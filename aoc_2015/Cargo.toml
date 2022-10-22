@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 util = { path = "../util" }
 md5 = "0.7.0"
+regex = "1.6.0"
