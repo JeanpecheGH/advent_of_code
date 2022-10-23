@@ -90,13 +90,13 @@ impl FromStr for Operation {
                 .unwrap();
         let res = if let Some(cap) = re.captures_iter(input).next() {
             let op: OperationType = OperationType::from_str(&cap[2])?;
-            let target = &cap[4].to_string();
+            let target = cap[4].to_string();
             match op {
                 OperationType::Equal | OperationType::Not => Ok(Operation {
                     op,
                     left: None,
                     right: Some(Wire::from_str(&cap[3])?),
-                    target: target.to_string(),
+                    target,
                 }),
                 OperationType::And
                 | OperationType::Or
@@ -105,7 +105,7 @@ impl FromStr for Operation {
                     op,
                     left: Some(Wire::from_str(&cap[1])?),
                     right: Some(Wire::from_str(&cap[3])?),
-                    target: target.to_string(),
+                    target,
                 }),
             }
         } else {
