@@ -1,7 +1,6 @@
 use regex::Regex;
 use std::collections::HashMap;
 use std::str::FromStr;
-use util;
 
 #[derive(Debug, Copy, Clone)]
 enum WireType {
@@ -39,10 +38,14 @@ impl FromStr for Wire {
 }
 
 impl Wire {
-    fn to_value(self, map: &HashMap<String, u16>) -> Option<u16> {
+    fn to_value(&self, map: &HashMap<String, u16>) -> Option<u16> {
         match self.w_type {
             WireType::Val => self.val,
-            WireType::Id => self.id.map(|id| map.get(&id)).flatten().cloned(),
+            WireType::Id => self
+                .id
+                .as_ref()
+                .and_then(|id| map.get(id.as_str()))
+                .cloned(),
         }
     }
 }

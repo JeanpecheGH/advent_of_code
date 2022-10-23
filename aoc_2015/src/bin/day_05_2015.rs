@@ -1,5 +1,3 @@
-use util;
-
 fn main() {
     let lines = util::file_as_lines("aoc_2015/input/day_05.txt").expect("Cannot open input file");
 

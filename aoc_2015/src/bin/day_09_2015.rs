@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
-use util;
 
 fn main() {
     let lines = util::file_as_lines("aoc_2015/input/day_09.txt").expect("Cannot open input file");

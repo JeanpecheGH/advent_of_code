@@ -1,5 +1,3 @@
-use util;
-
 fn main() {
     let s = util::file_as_string("aoc_2015/input/day_01.txt").expect("Cannot open input file");
 

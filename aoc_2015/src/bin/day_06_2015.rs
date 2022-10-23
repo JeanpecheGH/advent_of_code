@@ -1,6 +1,5 @@
 use regex::Regex;
 use std::str::FromStr;
-use util;
 
 #[derive(Debug)]
 enum Action {
@@ -58,23 +57,23 @@ fn main() {
 
     actions.iter().for_each(|ac| match ac.action {
         Action::TurnOff => {
-            for i in ac.start.0..=ac.end.0 {
-                for j in ac.start.1..=ac.end.1 {
-                    grid[i][j] = false
+            for row in grid.iter_mut().take(ac.end.0 + 1).skip(ac.start.0) {
+                for item in row.iter_mut().take(ac.end.1 + 1).skip(ac.start.1) {
+                    *item = false
                 }
             }
         }
         Action::Toggle => {
-            for i in ac.start.0..=ac.end.0 {
-                for j in ac.start.1..=ac.end.1 {
-                    grid[i][j] = !grid[i][j]
+            for row in grid.iter_mut().take(ac.end.0 + 1).skip(ac.start.0) {
+                for item in row.iter_mut().take(ac.end.1 + 1).skip(ac.start.1) {
+                    *item = !*item
                 }
             }
         }
         Action::TurnOn => {
-            for i in ac.start.0..=ac.end.0 {
-                for j in ac.start.1..=ac.end.1 {
-                    grid[i][j] = true
+            for row in grid.iter_mut().take(ac.end.0 + 1).skip(ac.start.0) {
+                for item in row.iter_mut().take(ac.end.1 + 1).skip(ac.start.1) {
+                    *item = true
                 }
             }
         }
@@ -96,10 +95,10 @@ fn main() {
             Action::Toggle => 2,
             Action::TurnOn => 1,
         };
-        for i in ac.start.0..=ac.end.0 {
-            for j in ac.start.1..=ac.end.1 {
-                let res = grid[i][j] + add;
-                grid[i][j] = if res > 0 { res } else { 0 }
+        for row in grid.iter_mut().take(ac.end.0 + 1).skip(ac.start.0) {
+            for item in row.iter_mut().take(ac.end.1 + 1).skip(ac.start.1) {
+                let res: i32 = *item + add;
+                *item = if res > 0 { res } else { 0 }
             }
         }
     });

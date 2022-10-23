@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use util;
 
 fn main() {
     let s = util::file_as_string("aoc_2015/input/day_03.txt").expect("Cannot open input file");
@@ -8,7 +7,7 @@ fn main() {
     let mut pos: (i32, i32) = (0, 0);
 
     houses.insert(pos);
-    for c in s.clone().chars() {
+    for c in s.chars() {
         pos = match c {
             '<' => (pos.0 - 1, pos.1),
             '>' => (pos.0 + 1, pos.1),

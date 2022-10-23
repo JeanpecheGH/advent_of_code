@@ -1,5 +1,3 @@
-use util;
-
 fn main() {
     let lines = util::file_as_lines("aoc_2015/input/day_02.txt").expect("Cannot open input file");
 
@@ -10,7 +8,7 @@ fn main() {
                 .split('x')
                 .map(|n| n.parse::<u32>().unwrap())
                 .collect();
-            sides.sort();
+            sides.sort_unstable();
             let s = sides[0];
             let m = sides[1];
             let l = sides[2];

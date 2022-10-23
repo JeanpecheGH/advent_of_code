@@ -1,5 +1,3 @@
-use util;
-
 fn main() {
     let lines = util::file_as_lines("aoc_2015/input/day_08.txt").expect("Cannot open input file");
 
@@ -21,12 +19,15 @@ fn main() {
 fn memory_size(s: &str, acc: u16) -> u16 {
     match s.len() {
         0 => acc,
-        x if x > 1 => match (s.chars().nth(0), s.chars().nth(1)) {
-            (Some('\\'), Some('\\')) => memory_size(&s[2..], acc + 1),
-            (Some('\\'), Some('\"')) => memory_size(&s[2..], acc + 1),
-            (Some('\\'), Some('x')) => memory_size(&s[4..], acc + 1),
-            _ => memory_size(&s[1..], acc + 1),
-        },
+        x if x > 1 => {
+            let mut chars = s.chars();
+            match (chars.next(), chars.next()) {
+                (Some('\\'), Some('\\')) => memory_size(&s[2..], acc + 1),
+                (Some('\\'), Some('\"')) => memory_size(&s[2..], acc + 1),
+                (Some('\\'), Some('x')) => memory_size(&s[4..], acc + 1),
+                _ => memory_size(&s[1..], acc + 1),
+            }
+        }
         _ => memory_size(&s[1..], acc + 1),
     }
 }
