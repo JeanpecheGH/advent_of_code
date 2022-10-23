@@ -15,9 +15,9 @@ fn main() {
                 }
             });
 
-    println!("Part1 : Santa ends up at floor n°{}", santa.0);
+    println!("Part1: Santa ends up at floor n°{}", santa.0);
     println!(
-        "Part2 : Santa enters basement at position {}",
+        "Part2: Santa enters basement at position {}",
         santa.1.unwrap()
     );
 }

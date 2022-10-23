@@ -19,8 +19,8 @@ fn main() {
         .reduce(|a, b| (a.0 + b.0, a.1 + b.1));
 
     println!(
-        "Part1 : We need {:?} square feet of wrapping paper",
+        "Part1: We need {:?} square feet of wrapping paper",
         wrapping.unwrap().0
     );
-    println!("Part2 : We need {:?} feet of ribbon", wrapping.unwrap().1);
+    println!("Part2: We need {:?} feet of ribbon", wrapping.unwrap().1);
 }
