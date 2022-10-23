@@ -19,18 +19,13 @@ fn look_and_say(str: String, n: u16) -> String {
     let mut it = str.chars().peekable();
     let mut store: u32 = 0;
     while let Some(c) = it.next() {
-        if let Some(&c_n) = it.peek() {
-            if c == c_n {
-                store += 1;
-            } else {
+        match it.peek() {
+            Some(&c_n) if c == c_n => store += 1,
+            _ => {
                 v.push(from_digit(store + 1, 10).unwrap());
                 v.push(c);
                 store = 0;
             }
-        } else {
-            v.push(from_digit(store + 1, 10).unwrap());
-            v.push(c);
-            store = 0;
         }
     }
     look_and_say(v.iter().collect(), n - 1)
