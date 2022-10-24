@@ -10,3 +10,4 @@ util = { path = "../util" }
 md5 = "0.7.0"
 regex = "1.6.0"
 itertools = "0.10.5"
+serde_json = "1.0"
