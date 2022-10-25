@@ -36,7 +36,7 @@ fn main() {
         }
     });
 
-    println!("Guests : {:?}", guests);
+    println!("Guests: {:?}", guests);
 
     let total_happy_sum: Option<i32> = guests
         .iter()
