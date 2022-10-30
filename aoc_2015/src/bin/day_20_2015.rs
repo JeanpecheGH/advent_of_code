@@ -28,9 +28,7 @@ fn main() {
 
 fn divisors(n: u32) -> Vec<u32> {
     let sq = approximated_sqrt(n);
-    let mut v: Vec<u32> = Vec::new();
-    v.push(1);
-    v.push(n);
+    let mut v: Vec<u32> = vec![1, n];
     for i in 2..sq {
         if n % i == 0 {
             v.push(i);
