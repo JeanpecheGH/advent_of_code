@@ -183,12 +183,6 @@ impl Battlefield {
     }
 
     fn a_turn(&mut self, spell: &Spell, hard: bool) -> Option<u16> {
-        if hard {
-            self.player.lose_life(1);
-            if self.player.dead() {
-                return None;
-            }
-        }
         let cost = spell.cost;
         if self.player.mana < cost {
             return None;
@@ -197,6 +191,12 @@ impl Battlefield {
         if self.boss.dead() {
             return Some(spell.cost);
         }
+        if hard {
+            self.player.lose_life(1);
+            if self.player.dead() {
+                return None;
+            }
+        }
         self.apply_effects();
         if self.boss.dead() {
             return Some(spell.cost);
@@ -204,6 +204,12 @@ impl Battlefield {
         self.boss_turn();
         if self.player.dead() {
             return None;
+        }
+        if hard {
+            self.player.lose_life(1);
+            if self.player.dead() {
+                return None;
+            }
         }
         self.apply_effects();
         Some(spell.cost)
