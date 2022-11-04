@@ -6,19 +6,17 @@ fn main() {
     let weight_sum: u64 = packages.iter().sum();
 
     let res1 = fill_packages(packages.clone(), weight_sum / 3, 6, Vec::new());
-    let mut qes1: Vec<u64> = res1.iter().map(|v| v.iter().product()).collect();
-    qes1.sort_unstable();
+    let qes1: Option<u64> = res1.iter().map(|v| v.iter().product()).min();
     println!(
         "Part1: The lowest Quantum Entanglement whe dividing in 3 groups is {:?}",
-        qes1.first().unwrap()
+        qes1.unwrap()
     );
 
     let res2 = fill_packages(packages, weight_sum / 4, 4, Vec::new());
-    let mut qes2: Vec<u64> = res2.iter().map(|v| v.iter().product()).collect();
-    qes2.sort_unstable();
+    let qes2: Option<u64> = res2.iter().map(|v| v.iter().product()).min();
     println!(
         "Part2: The lowest Quantum Entanglement whe dividing in 4 groups is {:?}",
-        qes2.first().unwrap()
+        qes2.unwrap()
     );
 }
 
