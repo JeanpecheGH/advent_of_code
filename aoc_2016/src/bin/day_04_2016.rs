@@ -27,7 +27,7 @@ impl Room {
         check.eq(&self.checksum)
     }
 
-    fn decryp(&self) -> String {
+    fn decrypt(&self) -> String {
         let a = 'a' as u32;
         let bytes: Vec<u8> = self.letters.bytes().collect();
         let rotated: String = bytes
@@ -70,7 +70,7 @@ fn main() {
     let north_pole_rooms: Vec<String> = rooms
         .iter()
         .filter_map(|room| {
-            let room_name = room.decryp();
+            let room_name = room.decrypt();
             if room_name.contains("northpole") {
                 Some(room_name)
             } else {
