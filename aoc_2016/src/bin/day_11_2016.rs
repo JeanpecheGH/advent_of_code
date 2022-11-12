@@ -10,76 +10,68 @@ struct Building<const N: usize> {
     items: [u8; N],
 }
 
-macro_rules! building {
-    ($p:expr) => {
-        impl Building<$p> {
-            fn is_valid(&self) -> bool {
-                let half = self.items.len() / 2;
-                self.items[..half].iter().enumerate().all(|(i, &chip)| {
-                    chip == self.items[half + i]
-                        || self.items[half..].iter().all(|&gen| gen != chip)
-                })
-            }
+impl<const N: usize> Building<N> {
+    fn is_valid(&self) -> bool {
+        let half = self.items.len() / 2;
+        self.items[..half].iter().enumerate().all(|(i, &chip)| {
+            chip == self.items[half + i] || self.items[half..].iter().all(|&gen| gen != chip)
+        })
+    }
 
-            fn moves(&self) -> Vec<Self> {
-                self.up_and_down()
-                    .into_iter()
-                    .flat_map(|i| {
-                        let items_to_move = self.same_floor();
+    fn moves(&self) -> Vec<Self> {
+        self.up_and_down()
+            .into_iter()
+            .flat_map(|i| {
+                let items_to_move = self.same_floor();
+                items_to_move
+                    .iter()
+                    .map(|&item_index| {
+                        let mut items = self.items;
+                        items[item_index] = i;
+                        Self { elevator: i, items }
+                    })
+                    .filter(|b| b.is_valid())
+                    .chain(
                         items_to_move
-                            .iter()
-                            .map(|&item_index| {
+                            .clone()
+                            .into_iter()
+                            .combinations(2)
+                            .map(|combi| {
                                 let mut items = self.items;
-                                items[item_index] = i;
+                                items[combi[0]] = i;
+                                items[combi[1]] = i;
                                 Self { elevator: i, items }
                             })
-                            .filter(|b| b.is_valid())
-                            .chain(
-                                items_to_move
-                                    .clone()
-                                    .into_iter()
-                                    .combinations(2)
-                                    .map(|combi| {
-                                        let mut items = self.items;
-                                        items[combi[0]] = i;
-                                        items[combi[1]] = i;
-                                        Self { elevator: i, items }
-                                    })
-                                    .filter(|b| b.is_valid()),
-                            )
-                            .collect::<Vec<Self>>()
-                    })
-                    .collect()
-            }
+                            .filter(|b| b.is_valid()),
+                    )
+                    .collect::<Vec<Self>>()
+            })
+            .collect()
+    }
 
-            fn up_and_down(&self) -> Vec<u8> {
-                match self.elevator {
-                    0 => vec![1],
-                    1 | 2 => vec![self.elevator - 1, self.elevator + 1],
-                    3 => vec![2],
-                    _ => Vec::new(),
-                }
-            }
-
-            fn same_floor(&self) -> Vec<usize> {
-                self.items
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(i, &floor)| {
-                        if self.elevator == floor {
-                            Some(i)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect()
-            }
+    fn up_and_down(&self) -> Vec<u8> {
+        match self.elevator {
+            0 => vec![1],
+            1 | 2 => vec![self.elevator - 1, self.elevator + 1],
+            3 => vec![2],
+            _ => Vec::new(),
         }
-    };
-}
+    }
 
-building!(NB_CHIP_PART1);
-building!(NB_CHIP_PART2);
+    fn same_floor(&self) -> Vec<usize> {
+        self.items
+            .iter()
+            .enumerate()
+            .filter_map(|(i, &floor)| {
+                if self.elevator == floor {
+                    Some(i)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
 
 fn main() {
     // The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
