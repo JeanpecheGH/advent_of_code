@@ -1,64 +1,50 @@
-#[derive(Copy, Clone)]
-struct LetterCounter {
-    letters: [u8; 26],
-}
-
-impl LetterCounter {
-    fn new(low: bool) -> Self {
-        if low {
-            LetterCounter { letters: [0; 26] }
-        } else {
-            LetterCounter {
-                letters: [u8::MAX; 26],
-            }
-        }
-    }
-
-    fn add(&mut self, c: char) {
-        let index = c as usize - 'a' as usize;
-        if self.letters[index] == u8::MAX {
-            self.letters[index] = 0;
-        }
-        self.letters[index] += 1;
-    }
-
-    fn ret_char(&self, low: bool) -> char {
-        let mut index = 0;
-        let mut limit = if low { 0 } else { u8::MAX };
-        self.letters.iter().enumerate().for_each(|(i, &n)| {
-            if low {
-                if n > limit {
-                    limit = n;
-                    index = i;
-                }
-            } else if n < limit {
-                limit = n;
-                index = i;
-            }
-        });
-
-        char::from_u32(index as u32 + 'a' as u32).unwrap()
-    }
-}
+use itertools::Itertools;
+use std::collections::HashMap;
 
 fn main() {
     let lines = util::file_as_lines("aoc_2016/input/day_06.txt").expect("Cannot open input file");
 
     let bad_words: Vec<String> = lines.map(|l| l.unwrap()).collect();
-
-    let mut counters: [LetterCounter; 8] = [LetterCounter::new(true); 8];
+    let mut counters: [Vec<char>; 8] = [
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    ];
     bad_words
         .iter()
-        .for_each(|w| w.chars().enumerate().for_each(|(i, c)| counters[i].add(c)));
+        .for_each(|w| w.chars().enumerate().for_each(|(i, c)| counters[i].push(c)));
 
-    let first_pwd: String = counters.iter().map(|cnt| cnt.ret_char(true)).collect();
+    let counters_map: Vec<HashMap<char, usize>> = counters
+        .into_iter()
+        .map(|counter| counter.into_iter().counts())
+        .collect();
+
+    let first_pwd: String = counters_map
+        .iter()
+        .map(|map| {
+            map.iter()
+                .max_by(|&a, &b| a.1.cmp(b.1))
+                .unwrap()
+                .0
+                .to_owned()
+        })
+        .collect();
     println!("Part1: The password is {}", first_pwd);
 
-    counters = [LetterCounter::new(false); 8];
-    bad_words
+    let second_pwd: String = counters_map
         .iter()
-        .for_each(|w| w.chars().enumerate().for_each(|(i, c)| counters[i].add(c)));
-
-    let second_pwd: String = counters.iter().map(|cnt| cnt.ret_char(false)).collect();
-    println!("Part1: The password is {}", second_pwd);
+        .map(|map| {
+            map.iter()
+                .min_by(|&a, &b| a.1.cmp(b.1))
+                .unwrap()
+                .0
+                .to_owned()
+        })
+        .collect();
+    println!("Part2: The password is {}", second_pwd);
 }
