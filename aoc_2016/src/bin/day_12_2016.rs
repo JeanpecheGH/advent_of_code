@@ -87,11 +87,8 @@ fn main() {
     let b = Registry::new(0);
     let c = Registry::new(0);
     let d = Registry::new(0);
-    let mut reg_map: HashMap<&str, &Registry> = HashMap::new();
-    reg_map.insert("a", &a);
-    reg_map.insert("b", &b);
-    reg_map.insert("c", &c);
-    reg_map.insert("d", &d);
+    let reg_map: HashMap<&str, &Registry> =
+        HashMap::from([("a", &a), ("b", &b), ("c", &c), ("d", &d)]);
 
     let mut instructions: [Instruction; 23] = [Instruction::JumpIfNotZeroVal(0, 0); 23];
     lines.enumerate().for_each(|(i, l)| {
