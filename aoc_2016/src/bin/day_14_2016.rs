@@ -20,9 +20,20 @@ fn main() {
     );
 }
 
+const HEX_ARRAY: &[u8; 16] = b"0123456789abcdef";
+fn bytes_to_hex(bytes: [u8; 16]) -> [u8; 32] {
+    let mut hex: [u8; 32] = [0; 32];
+    for i in 0..bytes.len() {
+        let v: usize = bytes[i] as usize & 0xFF;
+        hex[i * 2] = HEX_ARRAY[v >> 4];
+        hex[i * 2 + 1] = HEX_ARRAY[v & 0x0F];
+    }
+    hex
+}
+
 fn hash(word: String, times: usize) -> String {
     let mut digest = md5::compute(word);
-    (0..times - 1).for_each(|_| digest = md5::compute(format!("{:x}", digest)));
+    (0..times - 1).for_each(|_| digest = md5::compute(bytes_to_hex(digest.0)));
     format!("{:x}", digest)
 }
 
