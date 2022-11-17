@@ -24,7 +24,7 @@ const HEX_ARRAY: &[u8; 16] = b"0123456789abcdef";
 fn bytes_to_hex(bytes: [u8; 16]) -> [u8; 32] {
     let mut hex: [u8; 32] = [0; 32];
     for i in 0..bytes.len() {
-        let v: usize = bytes[i] as usize & 0xFF;
+        let v: usize = bytes[i] as usize;
         hex[i * 2] = HEX_ARRAY[v >> 4];
         hex[i * 2 + 1] = HEX_ARRAY[v & 0x0F];
     }
