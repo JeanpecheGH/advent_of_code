@@ -12,13 +12,7 @@ impl Node {
     fn new(x: i16, y: i16, path: Vec<char>) -> Self {
         let word = format!("{}{}", INPUT, path.iter().collect::<String>());
         let digest = md5::compute(word);
-        let hash: String = format!("{:x}", digest);
-        let doors_vec: Vec<bool> = hash
-            .chars()
-            .take(4)
-            .map(|c| ('b'..='f').contains(&c))
-            .collect();
-        let doors: [bool; 4] = [doors_vec[0], doors_vec[1], doors_vec[2], doors_vec[3]];
+        let doors: [bool; 4] = Node::bytes_to_bool(digest.0);
         Node { x, y, doors, path }
     }
 
@@ -63,6 +57,16 @@ impl Node {
     fn is_end(&self) -> bool {
         self.x == 3 && self.y == 3
     }
+
+    fn bytes_to_bool(bytes: [u8; 16]) -> [bool; 4] {
+        let mut bools: [bool; 4] = [false; 4];
+        for i in 0..2 {
+            let v: u8 = bytes[i];
+            bools[i * 2] = (v >> 4) > 10;
+            bools[i * 2 + 1] = (v & 0x0F) > 10;
+        }
+        bools
+    }
 }
 
 fn main() {
@@ -99,11 +103,7 @@ fn main() {
                     worst_node = n;
                 }
             }
-            Some(n) => n.neighbours().into_iter().for_each(|n| {
-                let idx: usize =
-                    candidates.partition_point(|x| x.score() >= n.score() && x.dist() > n.dist());
-                candidates.insert(idx, n)
-            }),
+            Some(n) => candidates.append(&mut n.neighbours()),
         }
     }
     println!(
