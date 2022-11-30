@@ -14,45 +14,8 @@ enum Instruction<'a> {
     ToggleReg(&'a Registry),
     DoNothingRegVal(&'a Registry, isize),
     DoNothingValVal(isize, isize),
+    Mul(&'a Registry, &'a Registry, &'a Registry),
 }
-
-// impl Instruction<'_> {
-//     fn compute(&self, i: isize) -> isize {
-//         match self {
-//             Instruction::CopyVal(n, reg) => {
-//                 reg.set(*n);
-//                 i + 1
-//             }
-//             Instruction::CopyReg(source, target) => {
-//                 target.set(source.get());
-//                 i + 1
-//             }
-//             Instruction::Increment(reg) => {
-//                 reg.inc();
-//                 i + 1
-//             }
-//             Instruction::Decrement(reg) => {
-//                 reg.dec();
-//                 i + 1
-//             }
-//             Instruction::JumpIfNotZeroVal(n, offset) => {
-//                 if *n != 0 {
-//                     i + offset
-//                 } else {
-//                     i + 1
-//                 }
-//             }
-//             Instruction::JumpIfNotZeroReg(reg, offset) => {
-//                 if !reg.is_zero() {
-//                     i + offset
-//                 } else {
-//                     i + 1
-//                 }
-//             }
-//             Instruction::ToggleReg(reg) => i + 1,
-//         }
-//     }
-// }
 
 #[derive(Debug, Clone)]
 struct Computer<'a> {
@@ -114,6 +77,11 @@ impl Computer<'_> {
             Instruction::DoNothingRegVal(_, _) | Instruction::DoNothingValVal(_, _) => {
                 self.idx += 1
             }
+            Instruction::Mul(src_1, src_2, tgt) => {
+                let prod = src_1.get() * src_2.get();
+                tgt.set(tgt.get() + prod);
+                self.idx += 1
+            }
         }
     }
 
@@ -133,6 +101,7 @@ impl Computer<'_> {
             Instruction::CopyVal(n, reg) => Instruction::JumpIfNotZeroValReg(n, reg),
             Instruction::DoNothingRegVal(reg, n) => Instruction::JumpIfNotZeroRegVal(reg, n),
             Instruction::DoNothingValVal(m, n) => Instruction::JumpIfNotZeroValVal(m, n),
+            Instruction::Mul(a, b, c) => Instruction::Mul(a, b, c),
         };
     }
 }
@@ -171,7 +140,9 @@ impl Registry {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_23.txt").expect("Cannot open input file");
+    // let lines = util::file_as_lines("aoc_2016/input/day_23.txt").expect("Cannot open input file");
+    let lines =
+        util::file_as_lines("aoc_2016/input/day_23_shortcut.txt").expect("Cannot open input file");
     let a = Registry::new(0);
     let b = Registry::new(0);
     let c = Registry::new(0);
@@ -206,6 +177,13 @@ fn main() {
                 )
             }
             ("tgl", None) => ops[i] = Instruction::ToggleReg(reg_map.get(words[1]).unwrap()),
+            ("mul", None) => {
+                ops[i] = Instruction::Mul(
+                    reg_map.get(words[1]).unwrap(),
+                    reg_map.get(words[2]).unwrap(),
+                    reg_map.get(words[3]).unwrap(),
+                )
+            }
             _ => (),
         }
     });
@@ -219,7 +197,7 @@ fn main() {
     }
 
     println!(
-        "Part1: When starting a 7, reg A contains {}, found in {:?}",
+        "Part1: When starting at 7, reg A contains {}, found in {:?}",
         a.get(),
         now.elapsed()
     );
@@ -236,7 +214,7 @@ fn main() {
     }
 
     println!(
-        "Part2: When starting a 12, reg A contains {}, found in {:?}",
+        "Part2: When starting at 12, reg A contains {}, found in {:?}",
         a.get(),
         now.elapsed()
     );
