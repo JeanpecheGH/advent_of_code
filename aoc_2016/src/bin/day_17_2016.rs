@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 const INPUT: &str = "mmsxrhfx";
 
 #[derive(Debug, Clone)]
@@ -85,8 +87,11 @@ fn main() {
             break;
         }
         best_node.neighbours().into_iter().for_each(|n| {
-            let idx: usize =
-                candidates.partition_point(|x| x.score() >= n.score() && x.dist() > n.dist());
+            let idx: usize = candidates.partition_point(|x| match x.score().cmp(&n.score()) {
+                Ordering::Less => false,
+                Ordering::Greater => true,
+                Ordering::Equal => x.dist() > n.dist(),
+            });
             candidates.insert(idx, n)
         })
     }
