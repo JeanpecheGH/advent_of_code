@@ -4,5 +4,6 @@ members = [
     "util",
     "aoc_2015",
     "aoc_2016",
+    "aoc_2020",
     "aoc_2022",
 ]
