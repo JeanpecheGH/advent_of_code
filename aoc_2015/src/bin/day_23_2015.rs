@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use util::Registry;
 
 #[derive(Debug, Copy, Clone)]
 enum Instruction<'a> {
@@ -44,46 +44,9 @@ impl Instruction<'_> {
     }
 }
 
-#[derive(Debug)]
-struct Registry {
-    value: Cell<u64>,
-}
-
-impl Registry {
-    fn new(n: u64) -> Self {
-        Registry {
-            value: Cell::new(n),
-        }
-    }
-
-    fn is_one(&self) -> bool {
-        self.value.get() == 1
-    }
-
-    fn is_even(&self) -> bool {
-        self.value.get() % 2 == 0
-    }
-
-    fn incr(&self) {
-        self.value.set(self.value.get() + 1);
-    }
-
-    fn half(&self) {
-        self.value.set(self.value.get() >> 1);
-    }
-
-    fn triple(&self) {
-        self.value.set(self.value.get() * 3);
-    }
-
-    fn set(&self, n: u64) {
-        self.value.set(n)
-    }
-}
-
 fn main() {
-    let a = Registry::new(0);
-    let b = Registry::new(0);
+    let a = Registry::default();
+    let b = Registry::default();
     let mut instructions: [Instruction; 48] = [Instruction::Jump(0); 48];
     let s = util::file_as_string("aoc_2015/input/day_23.txt").expect("Cannot open input file");
     s.lines().enumerate().for_each(|(i, s)| {
@@ -117,7 +80,7 @@ fn main() {
 
     println!(
         "Part1: Registry B contains {} when starting with 0 in registry A",
-        b.value.get()
+        b.get()
     );
 
     i = 0;
@@ -130,6 +93,6 @@ fn main() {
 
     println!(
         "Part2: Registry B contains {} when starting with 1 in registry A",
-        b.value.get()
+        b.get()
     );
 }
