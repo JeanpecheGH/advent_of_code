@@ -1,5 +1,5 @@
-use std::cell::Cell;
 use std::collections::HashMap;
+use util::Registry;
 
 #[derive(Debug, Copy, Clone)]
 enum Instruction<'a> {
@@ -32,11 +32,11 @@ impl Computer<'_> {
                 self.idx += 1;
             }
             Instruction::Increment(reg) => {
-                reg.inc();
+                reg.incr();
                 self.idx += 1;
             }
             Instruction::Decrement(reg) => {
-                reg.dec();
+                reg.decr();
                 self.idx += 1;
             }
             Instruction::JumpIfNotZeroVal(n, offset) => {
@@ -71,46 +71,13 @@ impl Computer<'_> {
     }
 }
 
-#[derive(Debug)]
-struct Registry {
-    value: Cell<isize>,
-}
-
-impl Registry {
-    fn new(n: isize) -> Self {
-        Registry {
-            value: Cell::new(n),
-        }
-    }
-
-    fn is_zero(&self) -> bool {
-        self.value.get() == 0
-    }
-
-    fn inc(&self) {
-        self.value.set(self.value.get() + 1);
-    }
-
-    fn dec(&self) {
-        self.value.set(self.value.get() - 1);
-    }
-
-    fn set(&self, n: isize) {
-        self.value.set(n)
-    }
-
-    fn get(&self) -> isize {
-        self.value.get()
-    }
-}
-
 fn main() {
     let s =
         util::file_as_string("aoc_2016/input/day_25_shortcut.txt").expect("Cannot open input file");
-    let a = Registry::new(0);
-    let b = Registry::new(0);
-    let c = Registry::new(0);
-    let d = Registry::new(0);
+    let a = Registry::default();
+    let b = Registry::default();
+    let c = Registry::default();
+    let d = Registry::default();
     let reg_map: HashMap<&str, &Registry> =
         HashMap::from([("a", &a), ("b", &b), ("c", &c), ("d", &d)]);
 

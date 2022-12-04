@@ -28,6 +28,10 @@ impl Registry {
         }
     }
 
+    pub fn is_zero(&self) -> bool {
+        self.value.get() == 0
+    }
+
     pub fn is_one(&self) -> bool {
         self.value.get() == 1
     }
