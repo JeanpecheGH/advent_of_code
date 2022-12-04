@@ -56,7 +56,7 @@ impl Position {
 
 fn main() {
     let s = util::file_as_string("aoc_2016/input/day_01.txt").expect("Cannot open input file");
-    let s = s.strip_suffix("\r\n").unwrap();
+    let s = s.lines().next().unwrap();
 
     let mut pos: Position = Position {
         visited: HashSet::new(),

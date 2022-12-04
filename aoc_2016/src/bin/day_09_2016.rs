@@ -47,9 +47,9 @@ impl Marker<'_> {
 const OPEN: u8 = b'(';
 
 fn main() {
-    let line: String =
+    let s: String =
         util::file_as_string("aoc_2016/input/day_09.txt").expect("Cannot open input file");
-    let coded = line.strip_suffix("\r\n").unwrap();
+    let coded = s.lines().next().unwrap();
 
     let line_bytes: &[u8] = coded.as_bytes();
 
