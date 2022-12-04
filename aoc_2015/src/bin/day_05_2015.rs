@@ -1,11 +1,9 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_05.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_05.txt").expect("Cannot open input file");
 
-    let nb_nice_strings: Option<(u16, u16)> = lines
-        .map(|res_l| {
-            let l = res_l.unwrap();
-            (is_nice(l.as_str()) as u16, is_nice_2(l.as_str()) as u16)
-        })
+    let nb_nice_strings: Option<(u16, u16)> = s
+        .lines()
+        .map(|s| (is_nice(s) as u16, is_nice_2(s) as u16))
         .reduce(|a, b| (a.0 + b.0, a.1 + b.1));
 
     println!(

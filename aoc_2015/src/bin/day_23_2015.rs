@@ -85,9 +85,8 @@ fn main() {
     let a = Registry::new(0);
     let b = Registry::new(0);
     let mut instructions: [Instruction; 48] = [Instruction::Jump(0); 48];
-    let lines = util::file_as_lines("aoc_2015/input/day_23.txt").expect("Cannot open input file");
-    lines.enumerate().for_each(|(i, l)| {
-        let s = l.unwrap();
+    let s = util::file_as_string("aoc_2015/input/day_23.txt").expect("Cannot open input file");
+    s.lines().enumerate().for_each(|(i, s)| {
         let words: Vec<&str> = s.split(' ').collect();
         match (words[0], words[1]) {
             ("hlf", _) => instructions[i] = Instruction::Half(&a),

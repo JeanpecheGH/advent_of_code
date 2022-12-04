@@ -5,11 +5,11 @@ struct Server {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_22.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_22.txt").expect("Cannot open input file");
 
-    let pos_servers: Vec<((usize, usize), Server)> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let pos_servers: Vec<((usize, usize), Server)> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split_whitespace().collect();
             let coords: Vec<&str> = words[0].split('-').collect();
             let x: usize = coords[1].strip_prefix('x').unwrap().parse().unwrap();

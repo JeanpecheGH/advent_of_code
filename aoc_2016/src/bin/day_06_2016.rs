@@ -2,9 +2,9 @@ use itertools::Itertools;
 use std::collections::HashMap;
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_06.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_06.txt").expect("Cannot open input file");
 
-    let bad_words: Vec<String> = lines.map(|l| l.unwrap()).collect();
+    let bad_words: Vec<&str> = s.lines().collect();
     let mut counters: [Vec<char>; 8] = [
         Vec::new(),
         Vec::new(),

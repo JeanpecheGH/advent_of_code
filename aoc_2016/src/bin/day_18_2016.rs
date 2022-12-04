@@ -32,9 +32,7 @@ impl TilesRow {
 }
 
 fn main() {
-    let mut lines =
-        util::file_as_lines("aoc_2016/input/day_18.txt").expect("Cannot open input file");
-    let s = lines.next().unwrap().unwrap();
+    let s = util::file_as_string("aoc_2016/input/day_18.txt").expect("Cannot open input file");
     let tiles: Vec<bool> = s.chars().map(|c| c == '^').collect();
 
     let now = std::time::Instant::now();

@@ -166,10 +166,11 @@ impl Operation {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_07.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_07.txt").expect("Cannot open input file");
 
-    let ops: Vec<Operation> = lines
-        .filter_map(|l| Operation::from_str(l.unwrap().as_str()).ok())
+    let ops: Vec<Operation> = s
+        .lines()
+        .filter_map(|s| Operation::from_str(s).ok())
         .collect();
 
     let mut map: HashMap<String, u16> = HashMap::new();

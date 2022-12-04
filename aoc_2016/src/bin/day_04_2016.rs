@@ -39,11 +39,11 @@ impl Room {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_04.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_04.txt").expect("Cannot open input file");
 
-    let rooms: Vec<Room> = lines
-        .map(|l| {
-            let s = l.unwrap();
+    let rooms: Vec<Room> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split('-').collect();
             let mut letters: String = "".to_string();
             for word in words.iter().take(words.len() - 1) {

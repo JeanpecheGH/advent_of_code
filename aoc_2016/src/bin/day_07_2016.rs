@@ -46,11 +46,11 @@ impl IPv7 {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_07.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_07.txt").expect("Cannot open input file");
 
-    let ips: Vec<IPv7> = lines
-        .map(|l| {
-            let s = l.unwrap();
+    let ips: Vec<IPv7> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split(|c| c == ']' || c == '[').collect();
             let mut supernets: Vec<String> = Vec::new();
             let mut hypernets: Vec<String> = Vec::new();

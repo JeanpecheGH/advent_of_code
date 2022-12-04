@@ -1,13 +1,8 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2020/input/day_01.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2020/input/day_01.txt").expect("Cannot open input file");
     let target_sum = 2020;
 
-    let expenses: Vec<usize> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
-            s.parse().unwrap()
-        })
-        .collect();
+    let expenses: Vec<usize> = s.lines().map(|s| s.parse().unwrap()).collect();
 
     for (idx, &ex_1) in expenses.iter().enumerate() {
         for &ex_2 in expenses[idx..].iter() {

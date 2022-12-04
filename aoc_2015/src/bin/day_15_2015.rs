@@ -56,11 +56,11 @@ impl Ingredient {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_15.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_15.txt").expect("Cannot open input file");
 
-    let ingredients: Vec<Ingredient> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let ingredients: Vec<Ingredient> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split(' ').collect();
 
             let capacity: i64 = words[2].strip_suffix(',').unwrap().parse::<i64>().unwrap();

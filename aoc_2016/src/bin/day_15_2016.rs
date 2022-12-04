@@ -52,10 +52,10 @@ impl Disc {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_15.txt").expect("Cannot open input file");
-    let mut aligned_discs: Vec<Disc> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let s = util::file_as_string("aoc_2016/input/day_15.txt").expect("Cannot open input file");
+    let mut aligned_discs: Vec<Disc> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split_whitespace().collect();
             let delay: usize = words[1].strip_prefix('#').unwrap().parse().unwrap();
             let period: usize = words[3].parse().unwrap();

@@ -1,11 +1,11 @@
 type Pair = (usize, usize);
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2022/input/day_04.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2022/input/day_04.txt").expect("Cannot open input file");
 
-    let ranges_pair: Vec<(Pair, Pair)> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let ranges_pair: Vec<(Pair, Pair)> = s
+        .lines()
+        .map(|s| {
             let pairs: Vec<&str> = s.split(',').collect();
             let pair_1: Vec<&str> = pairs[0].split('-').collect();
             let pair_2: Vec<&str> = pairs[1].split('-').collect();

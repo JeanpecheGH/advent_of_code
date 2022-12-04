@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_19.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_19.txt").expect("Cannot open input file");
 
-    let mut v: Vec<String> = lines.map(|l| l.unwrap()).collect();
+    let mut v: Vec<String> = s.lines().map(|s| s.to_string()).collect();
 
     let molecule: String = v.pop().unwrap();
     v.pop();

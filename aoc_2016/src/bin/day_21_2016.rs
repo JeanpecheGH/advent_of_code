@@ -71,11 +71,11 @@ impl Password {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_21.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_21.txt").expect("Cannot open input file");
     let input: &str = "abcdefgh";
-    let ops: Vec<Operation> = lines
-        .filter_map(|l| {
-            let s: String = l.unwrap();
+    let ops: Vec<Operation> = s
+        .lines()
+        .filter_map(|s| {
             let words: Vec<&str> = s.split_whitespace().collect();
             match (words[0], words[1]) {
                 ("swap", "position") => Some(Operation::SwapPositions(

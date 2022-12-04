@@ -18,11 +18,11 @@ impl Round {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2022/input/day_02.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2022/input/day_02.txt").expect("Cannot open input file");
 
-    let pairs: Vec<(i16, i16)> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let pairs: Vec<(i16, i16)> = s
+        .lines()
+        .map(|s| {
             let chars: Vec<u8> = s.bytes().collect();
             ((chars[0] - b'A') as i16, (chars[2] - b'X') as i16)
         })

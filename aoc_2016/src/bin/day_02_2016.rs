@@ -55,9 +55,9 @@ impl DiamondKeypad {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_02.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_02.txt").expect("Cannot open input file");
 
-    let moves: Vec<String> = lines.map(|l| l.unwrap()).collect();
+    let moves: Vec<&str> = s.lines().collect();
 
     let mut keypad = Keypad {
         keys: [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']],

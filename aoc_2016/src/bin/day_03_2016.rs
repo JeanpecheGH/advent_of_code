@@ -20,11 +20,12 @@ impl Triangle {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_03.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_03.txt").expect("Cannot open input file");
 
-    let numbers: Vec<Vec<u16>> = lines
-        .map(|l| {
-            let chars: Vec<char> = l.unwrap().chars().collect();
+    let numbers: Vec<Vec<u16>> = s
+        .lines()
+        .map(|s| {
+            let chars: Vec<char> = s.chars().collect();
             chars
                 .chunks(5)
                 .map(|cs| {

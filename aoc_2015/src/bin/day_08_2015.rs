@@ -1,13 +1,13 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_08.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_08.txt").expect("Cannot open input file");
 
-    let part1_diff: Option<(u16, u16)> = lines
-        .map(|l| {
-            let line = l.unwrap();
-            let current_size = line.len() as u16;
+    let part1_diff: Option<(u16, u16)> = s
+        .lines()
+        .map(|s| {
+            let current_size = s.len() as u16;
             (
-                current_size - memory_size(&line, 0) + 2,
-                encoded_size(&line) - current_size,
+                current_size - memory_size(s, 0) + 2,
+                encoded_size(s) - current_size,
             )
         })
         .reduce(|a, b| (a.0 + b.0, a.1 + b.1));

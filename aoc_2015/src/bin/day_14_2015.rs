@@ -18,11 +18,11 @@ impl Reindeer {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_14.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_14.txt").expect("Cannot open input file");
 
-    let reindeers: Vec<Reindeer> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let reindeers: Vec<Reindeer> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split(' ').collect();
             let speed: u32 = words[3].parse().unwrap();
             let period: u32 = words[6].parse().unwrap();

@@ -62,11 +62,11 @@ impl TinyLCD {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_08.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_08.txt").expect("Cannot open input file");
 
-    let commands: Vec<Command> = lines
-        .filter_map(|l| {
-            let s = l.unwrap();
+    let commands: Vec<Command> = s
+        .lines()
+        .filter_map(|s| {
             let words: Vec<&str> = s.split_whitespace().collect();
             match (words[0], words[1]) {
                 ("rect", r) => {

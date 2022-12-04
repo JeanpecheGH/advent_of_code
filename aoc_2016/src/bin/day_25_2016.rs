@@ -105,8 +105,8 @@ impl Registry {
 }
 
 fn main() {
-    let lines =
-        util::file_as_lines("aoc_2016/input/day_25_shortcut.txt").expect("Cannot open input file");
+    let s =
+        util::file_as_string("aoc_2016/input/day_25_shortcut.txt").expect("Cannot open input file");
     let a = Registry::new(0);
     let b = Registry::new(0);
     let c = Registry::new(0);
@@ -115,8 +115,7 @@ fn main() {
         HashMap::from([("a", &a), ("b", &b), ("c", &c), ("d", &d)]);
 
     let mut instructions: [Instruction; 30] = [Instruction::JumpIfNotZeroVal(0, 0); 30];
-    lines.enumerate().for_each(|(i, l)| {
-        let s = l.unwrap();
+    s.lines().enumerate().for_each(|(i, s)| {
         let words: Vec<&str> = s.split(' ').collect();
         match (words[0], words[1].parse::<isize>().ok()) {
             ("inc", _) => instructions[i] = Instruction::Increment(reg_map.get(words[1]).unwrap()),

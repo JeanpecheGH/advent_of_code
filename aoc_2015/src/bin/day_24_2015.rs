@@ -1,21 +1,21 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_24.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_24.txt").expect("Cannot open input file");
 
-    let packages: Vec<u64> = lines.map(|l| l.unwrap().parse().unwrap()).collect();
+    let packages: Vec<u64> = s.lines().map(|s| s.parse().unwrap()).collect();
 
     let weight_sum: u64 = packages.iter().sum();
 
     let res1 = fill_packages(packages.clone(), weight_sum / 3, 6, Vec::new());
     let qes1: Option<u64> = res1.iter().map(|v| v.iter().product()).min();
     println!(
-        "Part1: The lowest Quantum Entanglement whe dividing in 3 groups is {:?}",
+        "Part1: The lowest Quantum Entanglement when dividing in 3 groups is {:?}",
         qes1.unwrap()
     );
 
     let res2 = fill_packages(packages, weight_sum / 4, 4, Vec::new());
     let qes2: Option<u64> = res2.iter().map(|v| v.iter().product()).min();
     println!(
-        "Part2: The lowest Quantum Entanglement whe dividing in 4 groups is {:?}",
+        "Part2: The lowest Quantum Entanglement when dividing in 4 groups is {:?}",
         qes2.unwrap()
     );
 }

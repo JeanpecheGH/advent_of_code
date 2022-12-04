@@ -102,10 +102,9 @@ impl Factory {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_10.txt").expect("Cannot open input file");
-    let (bots_lines, input_lines): (Vec<String>, Vec<String>) = lines
-        .map(|l| l.unwrap())
-        .partition(|s| s.starts_with("bot"));
+    let s = util::file_as_string("aoc_2016/input/day_10.txt").expect("Cannot open input file");
+    let (bots_lines, input_lines): (Vec<&str>, Vec<&str>) =
+        s.lines().partition(|s| s.starts_with("bot"));
 
     let mut factory: Factory = bots_lines
         .iter()

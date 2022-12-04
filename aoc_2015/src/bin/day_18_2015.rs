@@ -1,8 +1,9 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_18.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_18.txt").expect("Cannot open input file");
 
-    let grid: Vec<Vec<bool>> = lines
-        .map(|l| l.unwrap().chars().map(|c| matches!(c, '#')).collect())
+    let grid: Vec<Vec<bool>> = s
+        .lines()
+        .map(|s| s.chars().map(|c| matches!(c, '#')).collect())
         .collect();
 
     let mut grid_1 = grid.clone();

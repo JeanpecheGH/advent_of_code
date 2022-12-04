@@ -1,13 +1,10 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_02.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_02.txt").expect("Cannot open input file");
 
-    let wrapping: Option<(u32, u32)> = lines
-        .map(|l| {
-            let mut sides: Vec<u32> = l
-                .unwrap()
-                .split('x')
-                .map(|n| n.parse::<u32>().unwrap())
-                .collect();
+    let wrapping: Option<(u32, u32)> = s
+        .lines()
+        .map(|s| {
+            let mut sides: Vec<u32> = s.split('x').map(|n| n.parse::<u32>().unwrap()).collect();
             sides.sort_unstable();
             let s = sides[0];
             let m = sides[1];

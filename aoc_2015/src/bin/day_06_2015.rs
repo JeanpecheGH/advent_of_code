@@ -29,13 +29,14 @@ struct ActionZone {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_06.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_06.txt").expect("Cannot open input file");
 
     let re = Regex::new(r"^([a-z ]*) (\d{1,3}),(\d{1,3}) through (\d{1,3}),(\d{1,3})$").unwrap();
 
-    let actions: Vec<ActionZone> = lines
-        .filter_map(|l| {
-            if let Some(cap) = re.captures_iter(l.unwrap().as_str()).next() {
+    let actions: Vec<ActionZone> = s
+        .lines()
+        .filter_map(|s| {
+            if let Some(cap) = re.captures_iter(s).next() {
                 let action = Action::from_str(&cap[1]).unwrap();
                 let start: (usize, usize) = (
                     cap[2].parse::<usize>().unwrap(),

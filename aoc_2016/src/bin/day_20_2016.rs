@@ -1,12 +1,12 @@
 use std::cmp::max;
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_20.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_20.txt").expect("Cannot open input file");
 
     let now = std::time::Instant::now();
-    let mut bls: Vec<(u64, u64)> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let mut bls: Vec<(u64, u64)> = s
+        .lines()
+        .map(|s| {
             let words: Vec<u64> = s.split('-').map(|w| w.parse().unwrap()).collect();
             (words[0], words[1])
         })

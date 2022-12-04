@@ -2,13 +2,12 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_13.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_13.txt").expect("Cannot open input file");
 
     let mut happy_map: HashMap<(String, String), i32> = HashMap::new();
     let mut guests: HashSet<String> = HashSet::new();
 
-    lines.for_each(|l| {
-        let s = l.unwrap();
+    s.lines().for_each(|s| {
         let words: Vec<&str> = s.split(' ').collect();
         guests.insert(words[0].to_string());
         let val: i32 = words[3].parse().unwrap();

@@ -24,11 +24,11 @@ impl AuntSue {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_16.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_16.txt").expect("Cannot open input file");
 
-    let aunts: Vec<AuntSue> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
+    let aunts: Vec<AuntSue> = s
+        .lines()
+        .map(|s| {
             let words: Vec<&str> = s.split(' ').collect();
 
             let id: u32 = words[1].strip_suffix(':').unwrap().parse::<u32>().unwrap();

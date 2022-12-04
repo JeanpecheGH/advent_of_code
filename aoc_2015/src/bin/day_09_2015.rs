@@ -2,13 +2,12 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_09.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_09.txt").expect("Cannot open input file");
 
     let mut towns: HashSet<String> = HashSet::new();
     let mut distances: HashMap<(String, String), u16> = HashMap::new();
 
-    lines.for_each(|l| {
-        let s = l.unwrap();
+    s.lines().for_each(|s| {
         let split: Vec<&str> = s.split(' ').collect();
         let town_1 = split[0];
         let town_2 = split[2];

@@ -124,15 +124,15 @@ impl Maze {
 }
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2016/input/day_24.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2016/input/day_24.txt").expect("Cannot open input file");
 
     //There are 8 marked number in the maze (0 to 7)
     let mut to_visit: [Pos; NB_NODE] = [Pos { x: 0, y: 0 }; NB_NODE];
 
-    let grid: Vec<Vec<bool>> = lines
+    let grid: Vec<Vec<bool>> = s
+        .lines()
         .enumerate()
-        .map(|(y, l)| {
-            let s: String = l.unwrap();
+        .map(|(y, s)| {
             let chars: Vec<char> = s.chars().collect();
             chars
                 .iter()

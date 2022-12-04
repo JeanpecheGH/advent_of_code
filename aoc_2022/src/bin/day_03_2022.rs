@@ -1,12 +1,7 @@
 fn main() {
-    let lines = util::file_as_lines("aoc_2022/input/day_03.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2022/input/day_03.txt").expect("Cannot open input file");
 
-    let words: Vec<Vec<char>> = lines
-        .map(|l| {
-            let s: String = l.unwrap();
-            s.chars().collect()
-        })
-        .collect();
+    let words: Vec<Vec<char>> = s.lines().map(|s| s.chars().collect()).collect();
 
     let prio: Vec<usize> = words
         .iter()

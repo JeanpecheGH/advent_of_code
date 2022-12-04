@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 fn main() {
-    let lines = util::file_as_lines("aoc_2015/input/day_17.txt").expect("Cannot open input file");
+    let s = util::file_as_string("aoc_2015/input/day_17.txt").expect("Cannot open input file");
 
     let target_volume: u32 = 150;
-    let mut buckets: Vec<u32> = lines.map(|l| l.unwrap().parse::<u32>().unwrap()).collect();
+    let mut buckets: Vec<u32> = s.lines().map(|s| s.parse::<u32>().unwrap()).collect();
 
     buckets.sort_unstable();
 
