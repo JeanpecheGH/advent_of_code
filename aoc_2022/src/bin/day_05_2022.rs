@@ -50,22 +50,22 @@ fn main() {
         })
         .collect();
 
-    let mut boat = Boat {
+    let mut boat_1 = Boat {
         stacks: stacks.clone(),
     };
-    orders.iter().for_each(|order| boat.move_crates(order));
+    orders.iter().for_each(|order| boat_1.move_crates(order));
     println!(
         "Part1: When moving crates 1 by 1, we find the crates {} on top",
-        boat.top_crates()
+        boat_1.top_crates()
     );
 
-    let mut boat = Boat { stacks };
+    let mut boat_2 = Boat { stacks };
     orders
         .iter()
-        .for_each(|order| boat.move_crates_multiple(order));
+        .for_each(|order| boat_2.move_crates_multiple(order));
     println!(
         "Part2: When moving crates all together, we find the crates {} on top",
-        boat.top_crates()
+        boat_2.top_crates()
     );
 }
 
@@ -74,7 +74,8 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
     let nb_stacks = lines[0].len() / 4 + 1;
     let mut stacks: Vec<Vec<char>> = vec![Vec::new(); nb_stacks];
 
-    for line in lines {
+    //Reverse now in order to avoid reversing later
+    lines.iter().rev().for_each(|line| {
         let chars: Vec<char> = line.chars().collect();
         for i in 0..nb_stacks {
             match chars[i * 4 + 1] {
@@ -83,7 +84,6 @@ fn parse_stacks(lines: &[&str]) -> Vec<Vec<char>> {
                 _ => (),
             }
         }
-    }
-    stacks.iter_mut().for_each(|s| s.reverse());
+    });
     stacks
 }
