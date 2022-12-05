@@ -6,12 +6,10 @@ fn main() {
     let ranges_pair: Vec<(Pair, Pair)> = s
         .lines()
         .map(|s| {
-            let pairs: Vec<&str> = s.split(',').collect();
-            let pair_1: Vec<&str> = pairs[0].split('-').collect();
-            let pair_2: Vec<&str> = pairs[1].split('-').collect();
+            let nbs: Vec<&str> = s.split(&[',', '-']).collect();
             (
-                (pair_1[0].parse().unwrap(), pair_1[1].parse().unwrap()),
-                (pair_2[0].parse().unwrap(), pair_2[1].parse().unwrap()),
+                (nbs[0].parse().unwrap(), nbs[1].parse().unwrap()),
+                (nbs[2].parse().unwrap(), nbs[3].parse().unwrap()),
             )
         })
         .collect();
@@ -38,5 +36,5 @@ fn include((s_1, e_1): Pair, (s_2, e_2): Pair) -> bool {
 }
 
 fn overlap((s_1, e_1): Pair, (s_2, e_2): Pair) -> bool {
-    (s_1 <= s_2 && e_1 >= s_2) || (s_2 <= s_1 && e_2 >= s_1)
+    !(s_1 > e_2 || s_2 > e_1)
 }
