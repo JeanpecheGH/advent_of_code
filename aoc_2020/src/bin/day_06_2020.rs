@@ -14,7 +14,7 @@ fn main() {
 
     let nb_answer_intersect: usize = nb_answers(&groups, set_intersection);
     println!(
-        "Part2: The sum of all questions answered by each passagner of each group is {}",
+        "Part2: The sum of all questions answered by each passenger of each group is {}",
         nb_answer_intersect
     );
 }

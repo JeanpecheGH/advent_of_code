@@ -14,20 +14,20 @@ fn main() {
         })
         .collect();
 
-    let nb_includes = filter_and_count(&ranges_pair, &include);
+    let nb_includes = filter_and_count(&ranges_pair, include);
     println!(
         "Part1: The number of pairs where a range includes the other is {}",
         nb_includes
     );
 
-    let nb_overlap = filter_and_count(&ranges_pair, &overlap);
+    let nb_overlap = filter_and_count(&ranges_pair, overlap);
     println!(
         "Part2: The number of pairs where the ranges overlap with one another is {}",
         nb_overlap
     );
 }
 
-fn filter_and_count(pairs: &[(Pair, Pair)], f: &dyn Fn(Pair, Pair) -> bool) -> usize {
+fn filter_and_count(pairs: &[(Pair, Pair)], f: fn(Pair, Pair) -> bool) -> usize {
     pairs.iter().filter(|&&(a, b)| f(a, b)).count()
 }
 
