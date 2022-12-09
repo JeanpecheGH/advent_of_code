@@ -35,13 +35,8 @@ fn main() {
 }
 
 fn has_sum(slice: &[usize], sum: usize) -> bool {
-    let mut found: bool = false;
-    for (idx, &e_1) in slice.iter().enumerate() {
-        for &e_2 in slice[idx + 1..].iter() {
-            if e_1 + e_2 == sum {
-                found = true
-            }
-        }
-    }
-    found
+    slice
+        .iter()
+        .enumerate()
+        .any(|(i, &e_1)| slice[i + 1..].iter().any(|&e_2| e_1 + e_2 == sum))
 }
