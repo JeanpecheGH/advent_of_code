@@ -6,44 +6,31 @@ enum Op {
 struct Computer {
     x: isize,
     cycle: isize,
-    idx: usize,
-    ops: Vec<Op>,
-    signal_strength: Vec<isize>,
+    signals: Vec<isize>,
     pixels: Vec<bool>,
-    finished: bool,
 }
 
 impl Computer {
-    fn compute(&mut self) {
-        self.draw_pixel();
-        self.cycle += 1;
-        self.add_signal_strength();
-        match self.ops[self.idx] {
-            Op::Noop => self.idx += 1,
+    fn compute(&mut self, op: &Op) {
+        self.signal_and_pixel();
+        match op {
+            Op::Noop => (),
             Op::Add(n) => {
-                self.draw_pixel();
-                self.cycle += 1;
-                self.add_signal_strength();
+                self.signal_and_pixel();
                 self.x += n;
-                self.idx += 1;
             }
         }
-        //Stop at 240 cycles
-        if self.cycle == 240 {
-            self.finished = true;
-        }
     }
 
-    fn add_signal_strength(&mut self) {
-        if self.cycle % 40 == 20 {
-            self.signal_strength.push(self.cycle * self.x);
-        }
-    }
-
-    fn draw_pixel(&mut self) {
+    fn signal_and_pixel(&mut self) {
+        //Store pixel
         let r = self.x - 1..=self.x + 1;
         let b: bool = r.contains(&(self.cycle % 40));
         self.pixels.push(b);
+
+        self.cycle += 1;
+        //Store signal
+        self.signals.push(self.cycle * self.x);
     }
 
     fn print_screen(&self) {
@@ -78,21 +65,21 @@ fn main() {
     let mut comp = Computer {
         x: 1,
         cycle: 0,
-        idx: 0,
-        ops,
-        signal_strength: Vec::new(),
+        signals: Vec::new(),
         pixels: Vec::new(),
-        finished: false,
     };
 
-    while !comp.finished {
-        comp.compute();
-    }
+    ops.iter().for_each(|op| {
+        comp.compute(op);
+    });
 
+    let signal_sum: isize = vec![20, 60, 100, 140, 180, 220]
+        .iter()
+        .map(|n| comp.signals[n - 1])
+        .sum();
     println!(
-        "Part1: The signal strengths computed are {:?}, their sum is {}",
-        comp.signal_strength,
-        comp.signal_strength.iter().sum::<isize>()
+        "Part1: The sum of the computed signal strengths is {}",
+        signal_sum,
     );
 
     println!("Part2: Look at the LCD!");
