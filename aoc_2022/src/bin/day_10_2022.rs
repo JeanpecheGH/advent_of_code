@@ -49,11 +49,12 @@ impl Computer {
     fn print_screen(&self) {
         for row in 0..6 {
             for p in 0..40 {
-                let c = if self.pixels[row * 40 + p] { '#' } else { ' ' };
+                let c = if self.pixels[row * 40 + p] {
+                    "██"
+                } else {
+                    "  "
+                };
                 print!("{c}");
-                if p % 5 == 4 {
-                    print!(" ");
-                }
             }
             println!();
         }
