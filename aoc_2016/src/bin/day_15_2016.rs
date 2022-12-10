@@ -77,7 +77,7 @@ fn main() {
     let solution: isize = discs.into_iter().map(|disc| disc.elem(prod)).sum();
     let elapsed = now.elapsed();
     println!(
-        "Part1: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm )",
+        "Part1: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm)",
         modulo(solution, prod as isize),
         elapsed
     );
@@ -113,7 +113,7 @@ fn main() {
     let solution: isize = aligned_discs.iter().map(|disc| disc.elem(prod)).sum();
     let elapsed = now.elapsed();
     println!(
-        "Part2: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm )",
+        "Part2: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm)",
         modulo(solution, prod as isize),
         elapsed
     );
