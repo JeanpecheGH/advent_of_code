@@ -26,11 +26,12 @@ struct Monkey {
 
 impl Monkey {
     fn throw_all(&mut self, modulo: Option<usize>) -> Vec<(usize, usize)> {
-        (0..self.items.len()).map(|_| self.throw(modulo)).collect()
+        let nb_items: usize = self.items.len();
+        self.nb_inspected += nb_items;
+        (0..nb_items).map(|_| self.throw(modulo)).collect()
     }
 
     fn throw(&mut self, modulo: Option<usize>) -> (usize, usize) {
-        self.nb_inspected += 1;
         let it: usize = self.items.pop_front().unwrap();
         let v: usize = match (&self.op_type, &self.operand) {
             (OpType::Add, Operand::Val(n)) => it + n,
@@ -75,15 +76,13 @@ impl MonkeyTroop {
     }
 
     fn business(&self) -> usize {
-        let busi: Vec<usize> = self
-            .monkeys
+        self.monkeys
             .iter()
             .map(|m| m.nb_inspected)
             .sorted()
             .rev()
             .take(2)
-            .collect();
-        busi[0] * busi[1]
+            .product()
     }
 }
 
@@ -91,10 +90,7 @@ fn main() {
     let s = util::file_as_string("aoc_2022/input/day_11.txt").expect("Cannot open input file");
 
     let lines: Vec<&str> = s.lines().collect();
-    let monkeys: Vec<Monkey> = lines
-        .split(|l| l.is_empty())
-        .map(|group| parse_monkey(group))
-        .collect();
+    let monkeys: Vec<Monkey> = lines.split(|l| l.is_empty()).map(parse_monkey).collect();
 
     let now = std::time::Instant::now();
     let mut troop: MonkeyTroop = MonkeyTroop {
