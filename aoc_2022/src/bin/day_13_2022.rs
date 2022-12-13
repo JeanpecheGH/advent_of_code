@@ -29,24 +29,20 @@ impl FromStr for Elem {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn split_list(l: &str) -> Vec<&str> {
-            let mut commas: Vec<isize> = vec![-1];
+            let mut commas: Vec<usize> = vec![0];
             let mut level: usize = 0;
             for (i, c) in l.chars().enumerate() {
                 match (c, level) {
                     ('[', _) => level += 1,
                     (']', _) => level -= 1,
-                    (',', 0) => commas.push(i as isize),
+                    (',', 1) => commas.push(i),
                     _ => (),
                 }
             }
-            commas.push(l.len() as isize);
+            commas.push(l.len() - 1);
             commas
                 .windows(2)
-                .map(|pair| {
-                    let start = (pair[0] + 1) as usize;
-                    let end = pair[1] as usize;
-                    &l[start..end]
-                })
+                .map(|bounds| &l[bounds[0] + 1..bounds[1]])
                 .collect()
         }
 
@@ -55,7 +51,7 @@ impl FromStr for Elem {
             return Err(());
         }
         if *s.as_bytes().first().unwrap() == b'[' {
-            let ll = split_list(&s[1..l - 1]);
+            let ll = split_list(s);
             let values: Vec<Elem> = ll
                 .iter()
                 .filter(|w| !w.is_empty())
@@ -97,7 +93,10 @@ fn main() {
         })
         .sum();
 
-    println!("Part1: {}", sum_indexes);
+    println!(
+        "Part1: The sum of the indexes of the well sorted pairs is {}",
+        sum_indexes
+    );
 
     let mut part_2_elems: Vec<Elem> = s.lines().flat_map(|l| l.parse()).collect();
     let div_1: Elem = "[[2]]".parse().unwrap();
@@ -118,7 +117,10 @@ fn main() {
         })
         .product();
 
-    println!("Part2: {}", prod_indexes);
+    println!(
+        "Part2: The product of the indexes of the divider packets is {}",
+        prod_indexes
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
