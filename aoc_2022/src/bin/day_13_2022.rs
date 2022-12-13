@@ -63,12 +63,13 @@ impl FromStr for Elem {
                 .collect();
             Ok(Elem::List(values))
         } else {
-            let value = s.parse::<usize>().unwrap();
+            let value: usize = s.parse().unwrap();
             Ok(Elem::Value(value))
         }
     }
 }
 fn main() {
+    let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2022/input/day_13.txt").expect("Cannot open input file");
 
     let lines: Vec<Option<Elem>> = s
@@ -118,6 +119,7 @@ fn main() {
         .product();
 
     println!("Part2: {}", prod_indexes);
+    println!("Computing time: {:?}", now.elapsed());
 }
 
 #[cfg(test)]
