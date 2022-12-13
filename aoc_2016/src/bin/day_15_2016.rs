@@ -1,3 +1,5 @@
+use util::chinese_remainders::smallest_remainder;
+
 #[derive(Debug, Copy, Clone)]
 struct Disc {
     delay: usize,
@@ -16,38 +18,6 @@ impl Disc {
 
     fn is_zero(&self) -> bool {
         self.position == 0
-    }
-
-    fn coeff(&self, prod: usize) -> isize {
-        fn inner_coeff(
-            r: isize,
-            u: isize,
-            v: isize,
-            r_prime: isize,
-            u_prime: isize,
-            v_prime: isize,
-        ) -> (isize, isize, isize) {
-            if r_prime == 0 {
-                (r, u, v)
-            } else {
-                let q = r / r_prime;
-                inner_coeff(
-                    r_prime,
-                    u_prime,
-                    v_prime,
-                    r - q * r_prime,
-                    u - q * u_prime,
-                    v - q * v_prime,
-                )
-            }
-        }
-        inner_coeff(prod as isize, 1, 0, self.period as isize, 0, 1).1
-    }
-
-    fn elem(&self, product: usize) -> isize {
-        let prod = product / self.period;
-        //Use -position
-        -(self.position as isize) * self.coeff(prod) * prod as isize
     }
 }
 
@@ -72,14 +42,15 @@ fn main() {
 
     //Part1 using extended Euclid algorithm
     let now = std::time::Instant::now();
-    let discs = aligned_discs.clone();
-    let prod = discs.iter().map(|disc| disc.period).product();
-    let solution: isize = discs.into_iter().map(|disc| disc.elem(prod)).sum();
-    let elapsed = now.elapsed();
+    let discs_and_delays: Vec<(isize, isize)> = aligned_discs
+        .iter()
+        .map(|disc| (disc.period as isize, -(disc.position as isize)))
+        .collect();
+    let solution = smallest_remainder(discs_and_delays);
     println!(
         "Part1: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm)",
-        modulo(solution, prod as isize),
-        elapsed
+        solution,
+        now.elapsed()
     );
 
     let mut part1_discs = aligned_discs.clone();
@@ -109,13 +80,15 @@ fn main() {
 
     //Part2 using extended Euclid algorithm
     let now = std::time::Instant::now();
-    let prod = aligned_discs.iter().map(|disc| disc.period).product();
-    let solution: isize = aligned_discs.iter().map(|disc| disc.elem(prod)).sum();
-    let elapsed = now.elapsed();
+    let discs_and_delays: Vec<(isize, isize)> = aligned_discs
+        .iter()
+        .map(|disc| (disc.period as isize, -(disc.position as isize)))
+        .collect();
+    let solution = smallest_remainder(discs_and_delays);
     println!(
         "Part2: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm)",
-        modulo(solution, prod as isize),
-        elapsed
+        solution,
+        now.elapsed()
     );
 
     let now = std::time::Instant::now();
@@ -132,13 +105,4 @@ fn main() {
         "Part2: You need to press the button at {time}s with this new disc (Answer found in {:?})",
         elapsed
     );
-}
-
-fn modulo(n: isize, modu: isize) -> isize {
-    let r = n % modu;
-    if r < 0 {
-        r + modu
-    } else {
-        r
-    }
 }

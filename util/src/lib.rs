@@ -1,3 +1,4 @@
+pub mod chinese_remainders;
 pub mod registry;
 
 use std::fs::File;
