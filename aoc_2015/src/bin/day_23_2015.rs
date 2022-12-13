@@ -1,4 +1,4 @@
-use util::Registry;
+use util::registry::Registry;
 
 #[derive(Debug, Copy, Clone)]
 enum Instruction<'a> {
