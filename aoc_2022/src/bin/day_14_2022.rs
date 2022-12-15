@@ -122,8 +122,7 @@ impl RockStructure {
 fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2022/input/day_14.txt").expect("Cannot open input file");
-    //     let s = "498,4 -> 498,6 -> 496,6
-    // 503,4 -> 502,4 -> 502,9 -> 494,9";
+
     let rock_paths: Vec<RockPath> = s.lines().map(|l| l.parse().unwrap()).collect();
     let sand_entry: usize = 500;
     let min_x = rock_paths.iter().map(|rp| rp.min_x()).min().unwrap() - MARGIN;
