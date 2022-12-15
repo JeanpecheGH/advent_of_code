@@ -1,4 +1,4 @@
-use std::cmp::{max, Ordering};
+use std::cmp::max;
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -10,16 +10,24 @@ const MAX: isize = 4_000_000;
 struct Sensor {
     pos: Pos,
     beacon: Pos,
+    max_range: isize,
 }
 
 impl Sensor {
+    fn new(pos: (isize, isize), beacon: (isize, isize)) -> Self {
+        let max_range: isize = (pos.0.abs_diff(beacon.0) + pos.1.abs_diff(beacon.1)) as isize;
+        Self {
+            pos,
+            beacon,
+            max_range,
+        }
+    }
+
     fn covered_range(&self, line: isize) -> Option<(isize, isize)> {
         let x: isize = self.pos.0;
-        let max_range: isize =
-            (x.abs_diff(self.beacon.0) + self.pos.1.abs_diff(self.beacon.1)) as isize;
         let dist_to_line: isize = self.pos.1.abs_diff(line) as isize;
-        if max_range >= dist_to_line {
-            let side_range = max_range - dist_to_line;
+        if self.max_range >= dist_to_line {
+            let side_range = self.max_range - dist_to_line;
             Some((x - side_range, x + side_range + 1))
         } else {
             None
@@ -44,10 +52,7 @@ impl FromStr for Sensor {
         let y_sensor: isize = words[6].parse().unwrap();
         let x_beacon: isize = words[13].parse().unwrap();
         let y_beacon: isize = words[16].parse().unwrap();
-        Ok(Self {
-            pos: (x_sensor, y_sensor),
-            beacon: (x_beacon, y_beacon),
-        })
+        Ok(Self::new((x_sensor, y_sensor), (x_beacon, y_beacon)))
     }
 }
 
@@ -99,11 +104,7 @@ impl SensorSystem {
             .collect();
 
         //Sort the ranges by starting value
-        ranges.sort_by(|(s_a, e_a), (s_b, e_b)| match s_a.cmp(s_b) {
-            Ordering::Equal => e_a.cmp(e_b),
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-        });
+        ranges.sort_unstable_by_key(|pair| (pair.0, pair.1));
         ranges
     }
 
