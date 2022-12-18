@@ -50,21 +50,18 @@ impl RockStructure {
     fn pour_sand(&mut self) {
         let mut x = self.sand_entry - self.min_x;
         let mut y = 0;
-        loop {
-            while (y + 1) < self.max_y && self.grid[y + 1][x].is_none() {
-                y += 1;
-            }
-            if (y + 1) == self.max_y {
-                break;
-            }
-            let left = self.grid[y + 1][x - 1];
-            let right = self.grid[y + 1][x + 1];
-            match (left, right) {
-                (None, _) => {
+        while (y + 1) < self.max_y {
+            match (
+                self.grid[y + 1][x],     //Mid
+                self.grid[y + 1][x - 1], //Left
+                self.grid[y + 1][x + 1], //Right
+            ) {
+                (None, _, _) => y += 1,
+                (Some(_), None, _) => {
                     y += 1;
                     x -= 1;
                 }
-                (Some(_), None) => {
+                (Some(_), Some(_), None) => {
                     y += 1;
                     x += 1;
                 }
