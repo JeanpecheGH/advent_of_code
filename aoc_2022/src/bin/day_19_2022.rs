@@ -21,7 +21,11 @@ struct Factory {
 }
 
 impl Factory {
-    fn next_minute(&self, minutes: usize) -> Vec<Self> {
+    fn next_minute(&self, max_geode: u16, minutes: usize) -> Vec<Self> {
+        if self.store[GEO] + 2 < max_geode {
+            return Vec::new();
+        }
+
         let mut potential_next: Vec<Option<usize>> = Vec::new();
         let mut no_build = [false; NB_ELEM];
         match (self.store[ORE], self.store[CLAY], self.store[OBSI], minutes) {
@@ -166,36 +170,43 @@ fn main() {
 
     let sum: u16 = factories
         .iter()
-        .map(|&f| {
-            let mut current: Vec<Factory> = vec![f];
-
-            for t in 0..24 {
-                current = current.into_iter().flat_map(|f| f.next_minute(t)).collect();
-            }
-            let max_quality: u16 = current.iter().map(|f| f.quality_level()).max().unwrap();
-            max_quality
-        })
+        .map(|&f| best_blueprint(f, 24, |f| f.quality_level()))
         .sum();
     println!("Part1: The sum of all the quality levels is {}", sum);
 
     let prod: usize = factories
         .iter()
         .take(3)
-        .map(|&f| {
-            let mut current: Vec<Factory> = vec![f];
-
-            for t in 0..32 {
-                current = current.into_iter().flat_map(|f| f.next_minute(t)).collect();
-            }
-            let max_geode: u16 = current.iter().map(|f| f.store[GEO]).max().unwrap();
-            max_geode as usize
-        })
+        .map(|&f| best_blueprint(f, 32, |f| f.store[GEO]) as usize)
         .product();
     println!(
         "Part2: The product of the number of geode opened for the first 3 blueprint is {}",
         prod
     );
     println!("Computing time: {:?}", now.elapsed());
+}
+
+fn best_blueprint(f: Factory, time: usize, closure: fn(&Factory) -> u16) -> u16 {
+    let mut current: Vec<Factory> = vec![f];
+    let mut max_geode: u16 = 0;
+    for t in 0..time {
+        current = current
+            .into_iter()
+            .flat_map(|f| f.next_minute(max_geode, t))
+            .collect();
+        max_geode = current
+            .iter()
+            .inspect(|f| {
+                if f.store[GEO] == 54 {
+                    dbg!(&f);
+                }
+            })
+            .map(|f| f.store[GEO])
+            .max()
+            .unwrap();
+    }
+    let max_quality: u16 = current.iter().map(closure).max().unwrap();
+    max_quality
 }
 
 #[cfg(test)]
@@ -211,33 +222,19 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
 
         let sum: u16 = factories
             .iter()
-            .map(|&f| {
-                let mut current: Vec<Factory> = vec![f];
-
-                for t in 0..24 {
-                    current = current.into_iter().flat_map(|f| f.next_minute(t)).collect();
-                }
-                current.iter().map(|f| f.quality_level()).max().unwrap()
-            })
+            .map(|&f| best_blueprint(f, 24, |f| f.quality_level()))
             .sum();
         assert_eq!(sum, 33);
     }
 
     #[test]
+    //This test does not work. We should be able to build an OBSI instead of a GEO sometimes
     fn part_2() {
         let factories: Vec<Factory> = INPUT.lines().map(|l| l.parse().unwrap()).collect();
         let max_geodes: Vec<u16> = factories
             .iter()
-            .map(|&f| {
-                let mut current: Vec<Factory> = vec![f];
-
-                for t in 0..32 {
-                    current = current.into_iter().flat_map(|f| f.next_minute(t)).collect();
-                }
-                current.iter().map(|f| f.store[GEO]).max().unwrap()
-            })
+            .map(|&f| best_blueprint(f, 32, |f| f.store[GEO]))
             .collect();
-
         assert_eq!(max_geodes[0], 56);
         assert_eq!(max_geodes[1], 62);
     }
