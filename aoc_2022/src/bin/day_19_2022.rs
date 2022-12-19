@@ -194,16 +194,7 @@ fn best_blueprint(f: Factory, time: usize, closure: fn(&Factory) -> u16) -> u16 
             .into_iter()
             .flat_map(|f| f.next_minute(max_geode, t))
             .collect();
-        max_geode = current
-            .iter()
-            .inspect(|f| {
-                if f.store[GEO] == 54 {
-                    dbg!(&f);
-                }
-            })
-            .map(|f| f.store[GEO])
-            .max()
-            .unwrap();
+        max_geode = current.iter().map(|f| f.store[GEO]).max().unwrap();
     }
     let max_quality: u16 = current.iter().map(closure).max().unwrap();
     max_quality
