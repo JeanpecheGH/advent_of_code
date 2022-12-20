@@ -6,76 +6,52 @@ const MIX_TIMES: usize = 10;
 
 #[derive(Debug)]
 struct Numbers {
-    list: Vec<isize>,
-    indexes: Vec<usize>,
+    indexed: Vec<(usize, isize)>,
 }
 
 impl Numbers {
     fn new(list: Vec<isize>) -> Self {
-        let indexes: Vec<usize> = (0..list.len()).collect();
+        let indexed: Vec<(usize, isize)> = list.into_iter().enumerate().collect();
 
-        Numbers { list, indexes }
-    }
-
-    fn decrypt(&mut self, key: isize) {
-        self.list = self.list.iter().map(|n| *n * key).collect()
-    }
-
-    fn mixing_times(&mut self, n: usize) {
-        for _ in 0..n {
-            self.mixing();
-        }
-    }
-
-    fn mixing(&mut self) {
-        for i in 0..self.list.len() {
-            self.mix(i);
-        }
-    }
-
-    fn mix(&mut self, i: usize) {
-        let idx: usize = self.indexes[i];
-        let nb: isize = self.list[i];
-        let len: usize = self.list.len() - 1;
-        let new_idx = (((idx as isize + nb % len as isize) + len as isize) % len as isize) as usize;
-
-        if new_idx > idx {
-            for j in 0..self.list.len() {
-                if (idx + 1..=new_idx).contains(&self.indexes[j]) {
-                    self.indexes[j] -= 1;
-                }
-            }
-        } else {
-            for j in 0..self.list.len() {
-                if (new_idx..idx).contains(&self.indexes[j]) {
-                    self.indexes[j] += 1;
-                }
-            }
-        }
-        self.indexes[i] = new_idx;
-    }
-
-    fn zero_pos(&self) -> usize {
-        let zero_idx = self.list.iter().position(|n| *n == 0).unwrap();
-        self.indexes[zero_idx]
-    }
-
-    fn n_after_zero(&self, n: usize) -> isize {
-        let zero: usize = self.zero_pos();
-        let idx: usize = (zero + n) % self.list.len();
-        let pos: usize = self.indexes.iter().position(|i| *i == idx).unwrap();
-        self.list[pos]
+        Numbers { indexed }
     }
 
     fn sum_at(&self, positions: &[usize]) -> isize {
-        positions.iter().map(|n| self.n_after_zero(*n)).sum()
+        let len = self.indexed.len();
+        let zero_pos: usize = self.indexed.iter().position(|(_, n)| *n == 0).unwrap();
+        positions
+            .iter()
+            .map(|n| self.indexed[(zero_pos + *n) % len].1)
+            .sum()
+    }
+
+    fn decrypt(&mut self, key: isize) {
+        self.indexed = self.indexed.iter().map(|(i, n)| (*i, *n * key)).collect()
+    }
+
+    fn solve(&mut self, times: usize, key: isize) {
+        self.decrypt(key);
+        for _ in 0..times {
+            self.mix();
+        }
+    }
+
+    fn mix(&mut self) {
+        let len: usize = self.indexed.len();
+        for i in 0..len {
+            let old_idx = self.indexed.iter().position(|(idx, _)| *idx == i).unwrap();
+            let elem = self.indexed.remove(old_idx);
+            let new_idx = ((((old_idx as isize + elem.1) % (len - 1) as isize)
+                + (len - 1) as isize)
+                % (len - 1) as isize) as usize;
+            self.indexed.insert(new_idx, elem);
+        }
     }
 
     #[allow(dead_code)]
     fn print(&self) {
-        for i in 0..self.list.len() {
-            let pos = self.indexes.iter().position(|idx| *idx == i).unwrap();
-            print!("{}, ", self.list[pos]);
+        for &elem in self.indexed.iter() {
+            print!("{:?}, ", elem);
         }
         println!();
     }
@@ -95,14 +71,18 @@ fn main() {
     let s = util::file_as_string("aoc_2022/input/day_20.txt").expect("Cannot open input file");
 
     let mut nbs: Numbers = s.parse().unwrap();
-    nbs.mixing();
-    println!("Part1: {}", nbs.sum_at(TARGETS));
+    nbs.solve(1, 1);
+    println!(
+        "Part1: The sum of the three coordinates is {}",
+        nbs.sum_at(TARGETS)
+    );
 
     let mut nbs_2: Numbers = s.parse().unwrap();
-    nbs_2.decrypt(DECRYPTION_KEY);
-    nbs_2.mixing_times(MIX_TIMES);
-    println!("Part2: {}", nbs_2.sum_at(TARGETS));
-
+    nbs_2.solve(MIX_TIMES, DECRYPTION_KEY);
+    println!(
+        "Part2: After decryption, the sum of the three coordinates is now {}",
+        nbs_2.sum_at(TARGETS)
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
@@ -121,7 +101,7 @@ mod tests {
     #[test]
     fn part_1() {
         let mut nbs: Numbers = INPUT.parse().unwrap();
-        nbs.mixing();
+        nbs.solve(1, 1);
         let sum = nbs.sum_at(TARGETS);
         assert_eq!(sum, 3);
     }
@@ -129,8 +109,7 @@ mod tests {
     #[test]
     fn part_2() {
         let mut nbs: Numbers = INPUT.parse().unwrap();
-        nbs.decrypt(DECRYPTION_KEY);
-        nbs.mixing_times(MIX_TIMES);
+        nbs.solve(MIX_TIMES, DECRYPTION_KEY);
         let sum = nbs.sum_at(TARGETS);
         assert_eq!(sum, 1623178306);
     }
