@@ -144,7 +144,7 @@ fn main() {
     for damage in 4..=13_u16 {
         let armor_range = match damage {
             11..=13 => 0..6_u16,
-            _ => 0..boss.damage as u16,
+            _ => 0..boss.damage,
         };
         for armor in armor_range {
             let player = Fighter {
