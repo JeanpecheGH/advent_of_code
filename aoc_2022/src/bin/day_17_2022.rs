@@ -205,7 +205,8 @@ impl Chamber {
 
     #[allow(dead_code)]
     fn print(&self) {
-        let size = self.tower_size();
+        println!("Printing chamber");
+        let size = self.tower_size() + 1;
         for j in (0..size).rev() {
             for i in 0..WIDTH {
                 let c: char = if self.grid[i][j] { '#' } else { '.' };
