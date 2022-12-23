@@ -3,7 +3,7 @@ use std::collections::hash_map::Entry::Vacant;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-const MARGIN_1: usize = 55;
+const MARGIN: usize = 55;
 type Pos = (usize, usize);
 
 #[derive(Debug)]
@@ -179,13 +179,13 @@ impl FromStr for Grove {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lines: Vec<&str> = s.lines().collect();
-        let size = lines.len() + 2 * MARGIN_1;
+        let size = lines.len() + 2 * MARGIN;
 
         let mut grid: Vec<Vec<bool>> = vec![vec![false; size]; size];
         for (j, row) in lines.into_iter().enumerate() {
             for (i, c) in row.chars().enumerate() {
                 if c == '#' {
-                    grid[j + MARGIN_1][i + MARGIN_1] = true;
+                    grid[j + MARGIN][i + MARGIN] = true;
                 }
             }
         }
