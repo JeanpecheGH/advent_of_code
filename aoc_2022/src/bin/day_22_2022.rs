@@ -160,7 +160,7 @@ impl Labyrinth {
     }
 
     fn score(&self) -> usize {
-        1000 * self.pos.1 + 4 * self.pos.0 + self.orient.clone() as usize
+        1000 * self.pos.1 + 4 * self.pos.0 + self.orient as usize
     }
 }
 
@@ -171,19 +171,20 @@ impl FromStr for Labyrinth {
         let mut lines: Vec<&str> = s.lines().collect();
         //Parse moves
         let ops: &str = lines.pop().unwrap();
-        let adv: Vec<Op> = ops
+        let ops: Vec<Op> = ops
             .split(&['R', 'L'])
             .map(|w| {
                 let v: usize = w.parse().unwrap();
                 Op::Move(v)
             })
+            .interleave(ops.chars().filter(|c| c.is_ascii_uppercase()).map(|c| {
+                if c == 'L' {
+                    Op::Left
+                } else {
+                    Op::Right
+                }
+            }))
             .collect();
-        let ros: Vec<Op> = ops
-            .chars()
-            .filter(|c| c.is_ascii_uppercase())
-            .map(|c| if c == 'L' { Op::Left } else { Op::Right })
-            .collect();
-        let ops: Vec<Op> = adv.into_iter().interleave(ros.into_iter()).collect();
 
         lines.pop();
         //Parse grid
