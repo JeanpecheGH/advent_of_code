@@ -1,13 +1,14 @@
 use itertools::Itertools;
 use std::str::FromStr;
 
-const SIZE: usize = 20;
+const PLANE_SIZE: usize = 19; //limit size of the starting plane (x and y)
+const HYPER_SIZE: usize = 14; //limit size of the additional dimensions (z and w)
 const NB_CYCLE: usize = 6;
 type Pos3D = (usize, usize, usize);
 type Pos4D = (usize, usize, usize, usize);
 
 struct Pocket3D {
-    space: [[[bool; SIZE]; SIZE]; SIZE],
+    space: [[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE],
 }
 
 impl Pocket3D {
@@ -18,16 +19,15 @@ impl Pocket3D {
     }
 
     fn cycle(&mut self) {
-        let mut new_space: [[[bool; SIZE]; SIZE]; SIZE] = [[[false; SIZE]; SIZE]; SIZE];
-        for i in 1..SIZE {
-            for j in 1..SIZE {
-                for k in 1..SIZE {
-                    let old: bool = self.space[k][j][i];
-                    new_space[k][j][i] = match (old, self.active_ngb(&(i, j, k))) {
-                        (true, 2..=3) => true,
-                        (false, 3) => true,
-                        _ => false,
-                    }
+        let mut new_space: [[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE] =
+            [[[false; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE];
+        for (k, plane) in self.space.iter().enumerate().skip(1) {
+            for (j, row) in plane.iter().enumerate().skip(1) {
+                for (i, &cube) in row.iter().enumerate().skip(1) {
+                    new_space[k][j][i] = matches!(
+                        (cube, self.active_ngb(&(i, j, k))),
+                        (true, 2..=3) | (false, 3)
+                    );
                 }
             }
         }
@@ -48,7 +48,7 @@ impl Pocket3D {
             .cartesian_product((y - 1..=y + 1).cartesian_product(z - 1..=z + 1))
             .map(|(i, (j, k))| (i, j, k))
             .filter(|&(i, j, k)| i != x || j != y || k != z)
-            .filter(|&(i, j, k)| i < SIZE && j < SIZE && k < SIZE)
+            .filter(|&(i, j, k)| i < PLANE_SIZE && j < PLANE_SIZE && k < HYPER_SIZE)
             .collect()
     }
 
@@ -71,15 +71,16 @@ impl FromStr for Pocket3D {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         //We suppose the given plan has x==y
         //The starting plan will have z=SIZE/2
-        let mut space: [[[bool; SIZE]; SIZE]; SIZE] = [[[false; SIZE]; SIZE]; SIZE];
+        let mut space: [[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE] =
+            [[[false; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE];
         let rows: Vec<&str> = s.lines().collect();
         let square_dim: usize = rows.len();
-        let start: usize = (SIZE - square_dim) / 2;
+        let start: usize = (PLANE_SIZE - square_dim) / 2;
 
         rows.into_iter().enumerate().for_each(|(j, row)| {
             row.chars().enumerate().for_each(|(i, c)| {
                 if c == '#' {
-                    space[SIZE / 2][start + j][start + i] = true
+                    space[HYPER_SIZE / 2][start + j][start + i] = true
                 }
             });
         });
@@ -88,7 +89,7 @@ impl FromStr for Pocket3D {
 }
 
 struct Pocket4D {
-    space: [[[[bool; SIZE]; SIZE]; SIZE]; SIZE],
+    space: [[[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE]; HYPER_SIZE],
 }
 
 impl Pocket4D {
@@ -99,18 +100,17 @@ impl Pocket4D {
     }
 
     fn cycle(&mut self) {
-        let mut new_space: [[[[bool; SIZE]; SIZE]; SIZE]; SIZE] =
-            [[[[false; SIZE]; SIZE]; SIZE]; SIZE];
-        for i in 1..SIZE {
-            for j in 1..SIZE {
-                for k in 1..SIZE {
-                    for l in 1..SIZE {
-                        let old: bool = self.space[l][k][j][i];
-                        new_space[l][k][j][i] = match (old, self.active_ngb(&(i, j, k, l))) {
-                            (true, 2..=3) => true,
-                            (false, 3) => true,
-                            _ => false,
-                        }
+        let mut new_space: [[[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE]; HYPER_SIZE] =
+            [[[[false; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE]; HYPER_SIZE];
+
+        for (l, space) in self.space.iter().enumerate().skip(1) {
+            for (k, plane) in space.iter().enumerate().skip(1) {
+                for (j, row) in plane.iter().enumerate().skip(1) {
+                    for (i, &cube) in row.iter().enumerate().skip(1) {
+                        new_space[l][k][j][i] = matches!(
+                            (cube, self.active_ngb(&(i, j, k, l))),
+                            (true, 2..=3) | (false, 3)
+                        );
                     }
                 }
             }
@@ -134,7 +134,9 @@ impl Pocket4D {
             )
             .map(|(i, (j, (k, l)))| (i, j, k, l))
             .filter(|&(i, j, k, l)| i != x || j != y || k != z || l != w)
-            .filter(|&(i, j, k, l)| i < SIZE && j < SIZE && k < SIZE && l < SIZE)
+            .filter(|&(i, j, k, l)| {
+                i < PLANE_SIZE && j < PLANE_SIZE && k < HYPER_SIZE && l < HYPER_SIZE
+            })
             .collect()
     }
 
@@ -161,16 +163,17 @@ impl FromStr for Pocket4D {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         //We suppose the given plan has x==y
-        //The starting plan will have z=SIZE/2
-        let mut space: [[[[bool; SIZE]; SIZE]; SIZE]; SIZE] = [[[[false; SIZE]; SIZE]; SIZE]; SIZE];
+        //The starting plan will have z=w=SIZE/2
+        let mut space: [[[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE]; HYPER_SIZE] =
+            [[[[false; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE]; HYPER_SIZE];
         let rows: Vec<&str> = s.lines().collect();
         let square_dim: usize = rows.len();
-        let start: usize = (SIZE - square_dim) / 2;
+        let start: usize = (PLANE_SIZE - square_dim) / 2;
 
         rows.into_iter().enumerate().for_each(|(j, row)| {
             row.chars().enumerate().for_each(|(i, c)| {
                 if c == '#' {
-                    space[SIZE / 2][SIZE / 2][start + j][start + i] = true
+                    space[HYPER_SIZE / 2][HYPER_SIZE / 2][start + j][start + i] = true
                 }
             });
         });
