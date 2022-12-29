@@ -24,10 +24,10 @@ impl Pocket3D {
         for (k, plane) in self.space.iter().enumerate().skip(1) {
             for (j, row) in plane.iter().enumerate().skip(1) {
                 for (i, &cube) in row.iter().enumerate().skip(1) {
-                    new_space[k][j][i] = matches!(
-                        (cube, self.active_ngb(&(i, j, k))),
-                        (true, 2..=3) | (false, 3)
-                    );
+                    match (cube, self.active_ngb(&(i, j, k))) {
+                        (true, 2..=3) | (false, 3) => new_space[k][j][i] = true,
+                        _ => (),
+                    }
                 }
             }
         }
@@ -107,10 +107,10 @@ impl Pocket4D {
             for (k, plane) in space.iter().enumerate().skip(1) {
                 for (j, row) in plane.iter().enumerate().skip(1) {
                     for (i, &cube) in row.iter().enumerate().skip(1) {
-                        new_space[l][k][j][i] = matches!(
-                            (cube, self.active_ngb(&(i, j, k, l))),
-                            (true, 2..=3) | (false, 3)
-                        );
+                        match (cube, self.active_ngb(&(i, j, k, l))) {
+                            (true, 2..=3) | (false, 3) => new_space[l][k][j][i] = true,
+                            _ => (),
+                        }
                     }
                 }
             }
