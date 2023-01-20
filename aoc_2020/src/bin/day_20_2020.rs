@@ -80,21 +80,6 @@ impl Tile {
         max(rev, norm)
     }
 
-    fn water_roughness(&self) -> usize {
-        self.pixels
-            .iter()
-            .take(TILE_SIZE - 1)
-            .skip(1)
-            .map(|row| {
-                row.iter()
-                    .take(TILE_SIZE - 1)
-                    .skip(1)
-                    .filter(|b| **b)
-                    .count()
-            })
-            .sum()
-    }
-
     fn pixel_at(&self, rot: &TileRotation, col: usize, row: usize) -> bool {
         let (x, y) = (col + 1, row + 1);
         let size = TILE_SIZE - 1;
@@ -231,17 +216,29 @@ impl Image {
         nb
     }
 
+    fn water_roughness(&self) -> usize {
+        self.image
+            .iter()
+            .map(|row| row.iter().filter(|b| **b).count())
+            .sum()
+    }
+
     fn monster_score(&self, monster: &str) -> usize {
         let monster: Monster = monster.parse().unwrap();
         let monster_size = monster.size();
         let max_monster: usize = monster
             .all_orientations()
             .into_iter()
-            .map(|m| self.nb_monster(&m))
-            .max()
+            .find_map(|m| {
+                let nb_monster = self.nb_monster(&m);
+                if nb_monster > 0 {
+                    Some(nb_monster)
+                } else {
+                    None
+                }
+            })
             .unwrap();
-        let water_roughness: usize = self.tiles.values().map(|tile| tile.water_roughness()).sum();
-        water_roughness - monster_size * max_monster
+        self.water_roughness() - monster_size * max_monster
     }
 
     fn single_edges(&self, edges: &[usize]) -> Vec<usize> {
