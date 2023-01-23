@@ -135,11 +135,11 @@ fn main() {
     let mut menu: Menu = s.parse().unwrap();
     menu.compute_allergens();
     println!(
-        "Total number of not allergen ingredients: {}",
+        "Part1: Total number of not allergen ingredients is {}",
         menu.not_allergens()
     );
     println!(
-        "The dangerous ingreident list is: {}",
+        "Part2: The dangerous ingredient list is {}",
         menu.dangerous_ingredient_list()
     );
     println!("Computing time: {:?}", now.elapsed());
