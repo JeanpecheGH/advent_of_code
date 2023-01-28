@@ -34,7 +34,7 @@ impl TileRotation {
             (3, 2) => (false, Rotation::Left),
             (3, 0) => (true, Rotation::Left),
             _ => {
-                println!("A bad position happened: {} {}", up, left);
+                println!("A bad position happened: {up} {left}");
                 (false, Rotation::Up)
             } //Should not happen
         };
@@ -390,7 +390,7 @@ impl Image {
         for row in self.square.iter() {
             for rot in row.iter() {
                 let rot = rot.unwrap();
-                print!("{:?}\t", rot);
+                print!("{rot:?}\t",);
             }
             println!();
         }

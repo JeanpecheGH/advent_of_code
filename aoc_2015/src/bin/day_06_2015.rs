@@ -85,7 +85,7 @@ fn main() {
         .map(|row| row.iter().filter(|&&b| b).count())
         .sum();
 
-    println!("Part1: {} lights are on", nb_lights);
+    println!("Part1: {nb_lights} lights are on");
 
     //Part 2
     let mut grid: [[i32; 1000]; 1000] = [[0; 1000]; 1000];
@@ -106,5 +106,5 @@ fn main() {
 
     let brightness: i32 = grid.iter().map(|row| row.iter().sum::<i32>()).sum();
 
-    println!("Part2: Total brightness is {}", brightness);
+    println!("Part2: Total brightness is {brightness}");
 }

@@ -280,11 +280,11 @@ fn main() {
     let mut first_group = group.clone();
     first_group.solve();
     let resp = first_group.solved.get(ROOT).unwrap().value().unwrap();
-    println!("Part1: The root monkey will yell {}", resp);
+    println!("Part1: The root monkey will yell {resp}");
 
     group.solve_until_human();
     let resp: isize = group.solve_part_2();
-    println!("Part2: You have to yell the number {:?}", resp);
+    println!("Part2: You have to yell the number {resp}");
     println!("Computing time: {:?}", now.elapsed());
 }
 #[cfg(test)]

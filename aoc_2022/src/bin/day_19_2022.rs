@@ -172,7 +172,7 @@ fn main() {
         .iter()
         .map(|&f| best_blueprint(f, 24, |f| f.quality_level()))
         .sum();
-    println!("Part1: The sum of all the quality levels is {}", sum);
+    println!("Part1: The sum of all the quality levels is {sum}");
 
     let prod: usize = factories
         .iter()
@@ -180,8 +180,7 @@ fn main() {
         .map(|&f| best_blueprint(f, 32, |f| f.store[GEO]) as usize)
         .product();
     println!(
-        "Part2: The product of the number of geode opened for the first 3 blueprint is {}",
-        prod
+        "Part2: The product of the number of geode opened for the first 3 blueprint is {prod}"
     );
     println!("Computing time: {:?}", now.elapsed());
 }

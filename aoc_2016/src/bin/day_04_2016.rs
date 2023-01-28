@@ -79,8 +79,5 @@ fn main() {
         })
         .collect();
 
-    println!(
-        "Part2: Rooms containing North Pole items {:?}",
-        north_pole_rooms
-    );
+    println!("Part2: Rooms containing North Pole items {north_pole_rooms:?}");
 }

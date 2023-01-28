@@ -50,10 +50,7 @@ fn main() {
         })
         .sum::<i32>()
         - 1;
-    println!(
-        "Part2: The minimum number of steps to create the molecule is {}",
-        steps
-    );
+    println!("Part2: The minimum number of steps to create the molecule is {steps}");
 }
 
 fn calibrate(molecule: &str, replace: &[(&str, &str)]) -> HashSet<String> {

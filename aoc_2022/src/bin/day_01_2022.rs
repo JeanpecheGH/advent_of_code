@@ -11,14 +11,10 @@ fn main() {
         .collect();
     let biggest_elf: usize = calories.iter().max().cloned().unwrap();
 
-    println!(
-        "Part1: The elf carrying the more calories has {} calories",
-        biggest_elf
-    );
+    println!("Part1: The elf carrying the more calories has {biggest_elf} calories");
 
     let biggest_three_elves: usize = calories.iter().sorted().rev().take(3).sum();
     println!(
-        "Part2: The three elves carrying the more calories has {} calories",
-        biggest_three_elves
+        "Part2: The three elves carrying the more calories has {biggest_three_elves} calories"
     );
 }

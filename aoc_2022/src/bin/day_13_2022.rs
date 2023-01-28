@@ -93,10 +93,7 @@ fn main() {
         })
         .sum();
 
-    println!(
-        "Part1: The sum of the indexes of the well sorted pairs is {}",
-        sum_indexes
-    );
+    println!("Part1: The sum of the indexes of the well sorted pairs is {sum_indexes}");
 
     let mut part_2_elems: Vec<Elem> = s.lines().flat_map(|l| l.parse()).collect();
     let div_1: Elem = "[[2]]".parse().unwrap();
@@ -117,10 +114,7 @@ fn main() {
         })
         .product();
 
-    println!(
-        "Part2: The product of the indexes of the divider packets is {}",
-        prod_indexes
-    );
+    println!("Part2: The product of the indexes of the divider packets is {prod_indexes}");
     println!("Computing time: {:?}", now.elapsed());
 }
 

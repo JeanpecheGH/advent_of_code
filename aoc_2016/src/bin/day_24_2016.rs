@@ -178,10 +178,7 @@ fn main() {
         .min()
         .unwrap();
 
-    println!(
-        "Part1: The shortest path to every node starting at 0 is {} steps long",
-        min_traveled
-    );
+    println!("Part1: The shortest path to every node starting at 0 is {min_traveled} steps long",);
 
     let min_traveled_with_return: usize = other_nodes
         .iter()
@@ -199,7 +196,6 @@ fn main() {
         .unwrap();
 
     println!(
-        "Part2: The shortest path to every node starting at 0 and coming back to 0 is {} steps long",
-        min_traveled_with_return
+        "Part2: The shortest path to every node starting at 0 and coming back to 0 is {min_traveled_with_return} steps long",
     );
 }

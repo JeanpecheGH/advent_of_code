@@ -13,10 +13,7 @@ fn main() {
         .collect();
 
     let prio_sum: usize = prio.iter().sum();
-    println!(
-        "Part1: The sum of the priority of the misplaced items is {}",
-        prio_sum
-    );
+    println!("Part1: The sum of the priority of the misplaced items is {prio_sum}");
 
     let badges: Vec<usize> = words
         .chunks(3)
@@ -30,10 +27,7 @@ fn main() {
         })
         .collect();
     let badge_sum: usize = badges.iter().sum();
-    println!(
-        "Part2: The sum of the priority of the lost badges is {}",
-        badge_sum
-    );
+    println!("Part2: The sum of the priority of the lost badges is {badge_sum}");
 }
 
 fn char_to_prio(c: char) -> usize {

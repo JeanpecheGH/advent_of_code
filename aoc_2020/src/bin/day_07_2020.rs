@@ -93,10 +93,7 @@ fn main() {
         }
     }
 
-    println!(
-        "Part1: {} different bags can contain a {} bag",
-        color_count, COLOR
-    );
+    println!("Part1: {color_count} different bags can contain a {COLOR} bag");
 
     let mut count_cache: HashMap<String, usize> = HashMap::new();
     while !bags.is_empty() {
@@ -110,8 +107,7 @@ fn main() {
     }
 
     println!(
-        "Part2: A {} bag contains {} total bags",
-        COLOR,
+        "Part2: A {COLOR} bag contains {} total bags",
         count_cache.get(COLOR).unwrap()
     );
 }

@@ -1,6 +1,6 @@
 fn main() {
     let mut input: [u8; 8] = ['c', 'q', 'j', 'x', 'j', 'n', 'd', 's'].map(|c| c as u8);
-    println!("{:?}", input);
+    println!("{input:?}");
 
     while !is_valid(input) {
         input = next(input);

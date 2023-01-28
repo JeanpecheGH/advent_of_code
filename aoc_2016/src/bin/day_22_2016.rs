@@ -28,10 +28,7 @@ fn main() {
         .iter()
         .filter(|s| s.used <= empty_size && s.used > 0)
         .count();
-    println!(
-        "Part1: {} server can be moved to the only empty server",
-        can_be_moved
-    );
+    println!("Part1: {can_be_moved} server can be moved to the only empty server");
 
     // Part 2
     //
@@ -57,8 +54,5 @@ fn main() {
         .find_map(|&((x, y), s)| if s.used == 0 { Some((x, y)) } else { None })
         .unwrap();
     let res = (empty_x - left_wall) + empty_y + (36 - left_wall) + (5 * 35);
-    println!(
-        "Part2: We can access the data of target server in {} moves",
-        res
-    );
+    println!("Part2: We can access the data of target server in {res} moves");
 }

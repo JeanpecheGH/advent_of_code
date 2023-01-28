@@ -37,11 +37,11 @@ fn main() {
 
     let ids: Vec<usize> = seats.iter().map(|seat| seat.id()).collect();
     let highest_id: usize = ids.iter().max().cloned().unwrap();
-    println!("Part1: The highest ID is {}", highest_id);
+    println!("Part1: The highest ID is {highest_id}");
 
     let lowest_id: usize = ids.iter().min().cloned().unwrap();
     let missing_ids: Vec<usize> = (lowest_id..=highest_id)
         .filter(|id| !ids.contains(id))
         .collect();
-    println!("Part2: All missing IDs in this flight {:?}", missing_ids);
+    println!("Part2: All missing IDs in this flight {missing_ids:?}");
 }

@@ -32,16 +32,10 @@ fn main() {
         .iter()
         .map(|&(opp, you)| Round::from_plays(opp, you).score())
         .sum();
-    println!(
-        "Part1: When summing the rounds, the total score is {}",
-        part1_score
-    );
+    println!("Part1: When summing the rounds, the total score is {part1_score}");
     let part2_score: i16 = pairs
         .iter()
         .map(|&(opp, result)| Round::from_result(opp, result).score())
         .sum();
-    println!(
-        "Part2: When following the actual strategy, the score is {}",
-        part2_score
-    );
+    println!("Part2: When following the actual strategy, the score is {part2_score}");
 }

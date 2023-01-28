@@ -34,7 +34,7 @@ fn main() {
                 .to_owned()
         })
         .collect();
-    println!("Part1: The password is {}", first_pwd);
+    println!("Part1: The password is {first_pwd}");
 
     let second_pwd: String = counters_map
         .iter()
@@ -46,5 +46,5 @@ fn main() {
                 .to_owned()
         })
         .collect();
-    println!("Part2: The password is {}", second_pwd);
+    println!("Part2: The password is {second_pwd}");
 }

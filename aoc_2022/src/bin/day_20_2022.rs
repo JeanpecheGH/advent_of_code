@@ -51,7 +51,7 @@ impl Numbers {
     #[allow(dead_code)]
     fn print(&self) {
         for &elem in self.indexed.iter() {
-            print!("{:?}, ", elem);
+            print!("{elem:?}, ");
         }
         println!();
     }

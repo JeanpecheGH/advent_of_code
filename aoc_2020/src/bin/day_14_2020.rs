@@ -99,7 +99,7 @@ impl Memory {
             }
         }
 
-        let binary: String = format!("{:036b}", addr);
+        let binary: String = format!("{addr:036b}");
         let binary_chars: Vec<char> = binary.chars().collect();
         let char_addresses: Vec<Vec<char>> = compute_mask(&binary_chars, &self.mask, 0, Vec::new());
         char_addresses
@@ -112,7 +112,7 @@ impl Memory {
     }
 
     fn masked_value(&self, value: usize) -> usize {
-        let binary: String = format!("{:036b}", value);
+        let binary: String = format!("{value:036b}");
         let masked_binary: String = binary
             .chars()
             .enumerate()

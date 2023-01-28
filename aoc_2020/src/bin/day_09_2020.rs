@@ -15,8 +15,7 @@ fn main() {
         .map(|(idx, slice)| (idx, slice.last().cloned().unwrap()))
         .unwrap();
     println!(
-        "Part1: The first number that is not a sum of two of the 25 numbers before it is {}, found at index {}",
-        not_sum, idx,
+        "Part1: The first number that is not a sum of two of the 25 numbers before it is {not_sum}, found at index {idx}"
     );
 
     for i in 0..idx {
@@ -26,8 +25,8 @@ fn main() {
                 let min: &usize = numbers[i..=j].iter().min().unwrap();
                 let max: &usize = numbers[i..=j].iter().max().unwrap();
                 println!(
-                    "Part2: The range of numbers summing to {} starts at {} and ends at {}. The smallest and largest numbers in this range are {} and {}, summing to {}",
-                    not_sum, i, j, min, max, min+max,
+                    "Part2: The range of numbers summing to {not_sum} starts at {i} and ends at {j}. The smallest and largest numbers in this range are {min} and {max}, summing to {}",
+                     min+max
                 );
             }
         }

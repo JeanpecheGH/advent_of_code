@@ -21,10 +21,7 @@ fn main() {
 
     //Filter and sum dirs with size under 1000000
     let sum: usize = dirs_map.values().filter(|&&v| v <= 100000).sum();
-    println!(
-        "Part1: The sum of data in folders containing 100000 bytes or less is {}",
-        sum
-    );
+    println!("Part1: The sum of data in folders containing 100000 bytes or less is {sum}");
 
     //Compute space that needs to be freed, and get the smallest dir that can be freed to attain that goal
     let used_space: usize = dirs_map.get("/").cloned().unwrap();
@@ -36,8 +33,7 @@ fn main() {
         .cloned()
         .unwrap();
     println!(
-        "Part2: The smallest dir that can be free to get to 30000000 free space has a size of {}",
-        to_free
+        "Part2: The smallest dir that can be free to get to 30000000 free space has a size of {to_free}"
     );
 }
 

@@ -48,8 +48,7 @@ fn main() {
         .collect();
     let solution = smallest_remainder(discs_and_delays);
     println!(
-        "Part1: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm)",
-        solution,
+        "Part1: You need to press the button at {solution}s (Answer found in {:?} with extended Euclid algorithm)",
         now.elapsed()
     );
 
@@ -65,10 +64,7 @@ fn main() {
         time += 1;
     }
     let elapsed = now.elapsed();
-    println!(
-        "Part1: You need to press the button at {time}s (Answer found in {:?})",
-        elapsed
-    );
+    println!("Part1: You need to press the button at {time}s (Answer found in {elapsed:?})");
 
     let mut new_disc = Disc {
         delay: 7,
@@ -86,8 +82,7 @@ fn main() {
         .collect();
     let solution = smallest_remainder(discs_and_delays);
     println!(
-        "Part2: You need to press the button at {}s (Answer found in {:?} with extended Euclid algorithm)",
-        solution,
+        "Part2: You need to press the button at {solution}s (Answer found in {:?} with extended Euclid algorithm)",
         now.elapsed()
     );
 
@@ -102,7 +97,7 @@ fn main() {
     }
     let elapsed = now.elapsed();
     println!(
-        "Part2: You need to press the button at {time}s with this new disc (Answer found in {:?})",
-        elapsed
+        "Part2: You need to press the button at {time}s with this new disc (Answer found in {elapsed:?})"
+
     );
 }

@@ -15,15 +15,11 @@ fn main() {
         .collect();
 
     let nb_includes = filter_and_count(&ranges_pair, include);
-    println!(
-        "Part1: The number of pairs where a range includes the other is {}",
-        nb_includes
-    );
+    println!("Part1: The number of pairs where a range includes the other is {nb_includes}",);
 
     let nb_overlap = filter_and_count(&ranges_pair, overlap);
     println!(
-        "Part2: The number of pairs where the ranges overlap with one another is {}",
-        nb_overlap
+        "Part2: The number of pairs where the ranges overlap with one another is {nb_overlap}",
     );
 }
 

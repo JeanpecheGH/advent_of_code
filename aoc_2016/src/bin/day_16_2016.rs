@@ -3,7 +3,7 @@ use std::cmp::{max, min};
 fn main() {
     let input: &str = "11100010111110100";
 
-    println!("Input: {}", input);
+    println!("Input: {input}");
     println!("Reverse: {}", reverse(input));
 
     let now = std::time::Instant::now();
@@ -17,9 +17,7 @@ fn main() {
         .map(|i| checksum_chunk(input, i * chunk_size, chunk_size))
         .collect();
     println!(
-        "Part1: The checksum for target size {} is {}, found in {:?}",
-        target_size,
-        cs,
+        "Part1: The checksum for target size {target_size} is {cs}, found in {:?}",
         now.elapsed()
     );
 
@@ -34,9 +32,7 @@ fn main() {
         .map(|i| checksum_chunk(input, i * chunk_size, chunk_size))
         .collect();
     println!(
-        "Part2: The checksum for target size {} is {}, found in {:?}",
-        target_size,
-        cs,
+        "Part2: The checksum for target size {target_size} is {cs}, found in {:?}",
         now.elapsed()
     );
 }
@@ -100,7 +96,7 @@ fn affix_ones(
     } else {
         size as usize
     };
-    let affixes = format!("{}{}", input, rev);
+    let affixes = format!("{input}{rev}");
     let mut chars: Vec<char> = affixes.chars().collect();
     if from_end {
         chars = chars.into_iter().rev().collect();

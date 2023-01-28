@@ -100,8 +100,7 @@ fn main() {
     let mut step = 0;
     loop {
         println!(
-            "Step: {}, Number of total positions computed: {}, Number of positions for this step: {}",
-            step,
+            "Step: {step}, Number of total positions computed: {}, Number of positions for this step: {}",
             building_set.len(),
             to_compute.len(),
         );
@@ -126,7 +125,7 @@ fn main() {
         step += 1;
     }
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    println!("Elapsed: {elapsed:.2?}",);
 
     //Part2: Added at first floor : An elerium generator, an elerium-compatible microchip, a dilithium generator, a dilithium-compatible microchip.
     //Chips will be : [elerium, dilithium, thulium, plutonium, strontium, promethium, ruthenium]
@@ -150,8 +149,7 @@ fn main() {
     let mut step = 0;
     loop {
         println!(
-            "Step: {}, Number of total positions computed: {}, Number of positions for this step: {}",
-            step,
+            "Step: {step}, Number of total positions computed: {}, Number of positions for this step: {}",
             building_set.len(),
             to_compute.len(),
         );
@@ -176,5 +174,5 @@ fn main() {
         step += 1;
     }
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    println!("Elapsed: {elapsed:.2?}");
 }

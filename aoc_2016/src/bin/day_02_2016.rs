@@ -73,7 +73,7 @@ fn main() {
         })
         .collect();
 
-    println!("Part1: The code to the bathroom should be {}", first_code);
+    println!("Part1: The code to the bathroom should be {first_code}");
 
     let mut diamond = DiamondKeypad {
         keys: [
@@ -95,5 +95,5 @@ fn main() {
         })
         .collect();
 
-    println!("Part2: The actual code to the bathroom is {}", second_code);
+    println!("Part2: The actual code to the bathroom is {second_code}");
 }

@@ -6,11 +6,11 @@ fn main() {
     let chars: Vec<char> = s.chars().collect();
     let idx = first_marker(&chars, 4);
 
-    println!("Part1: The first start-of-packet is after {} chars", idx);
+    println!("Part1: The first start-of-packet is after {idx} chars");
 
     let idx_2 = first_marker(&chars, 14);
 
-    println!("Part2: The first start-of-message is after {} chars", idx_2);
+    println!("Part2: The first start-of-message is after {idx_2} chars");
 }
 
 fn first_marker(chars: &[char], marker_size: usize) -> usize {

@@ -5,7 +5,7 @@ fn main() {
     loop {
         let my_word = format!("{input}{i}");
         let digest = md5::compute(my_word);
-        let hexa = format!("{:x}", digest);
+        let hexa = format!("{digest:x}");
         if hexa.starts_with("00000") {
             println!("Part1: {i}");
             break;
@@ -17,7 +17,7 @@ fn main() {
     loop {
         let my_word = format!("{input}{i}");
         let digest = md5::compute(my_word);
-        let hexa = format!("{:x}", digest);
+        let hexa = format!("{digest:x}");
         if hexa.starts_with("000000") {
             println!("Part2: {i}");
             break;

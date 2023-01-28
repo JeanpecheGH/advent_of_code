@@ -6,7 +6,7 @@ fn main() {
     let json: Value = serde_json::from_str(&s).unwrap();
 
     let res_1 = sum_json(&json);
-    println!("Part1: The sum of all number in the JSON is {}", res_1);
+    println!("Part1: The sum of all number in the JSON is {res_1}");
 
     let res_2 = sum_json_no_red(&json);
     println!(

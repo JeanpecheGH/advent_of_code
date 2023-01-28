@@ -141,8 +141,7 @@ fn main() {
         nb_sand = rocks.nb_sand();
     }
     println!(
-        "Part1: The rock structure holds {} unit of sand before it falls into the abyss",
-        nb_sand
+        "Part1: The rock structure holds {nb_sand} unit of sand before it falls into the abyss"
     );
 
     //Part 2

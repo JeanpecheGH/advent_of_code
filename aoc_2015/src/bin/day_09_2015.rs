@@ -34,6 +34,6 @@ fn main() {
     let min_dist: u16 = dists.iter().copied().min().unwrap();
     let max_dist: u16 = dists.iter().copied().max().unwrap();
 
-    println!("Part1: Min distance to cover is {}", min_dist);
-    println!("Part2: Max distance to cover is {}", max_dist);
+    println!("Part1: Min distance to cover is {min_dist}");
+    println!("Part2: Max distance to cover is {max_dist}");
 }

@@ -8,7 +8,7 @@ fn main() {
     //We already have code n°1, so we start at 2
     let code_n: u64 = (2..=rank).fold(code_1, |acc, _| mult_and_rest(acc));
 
-    println!("The {}th valid code is {}", rank, code_n);
+    println!("The {rank}th valid code is {code_n}");
 }
 
 fn code_rank(r: u64, c: u64) -> u64 {

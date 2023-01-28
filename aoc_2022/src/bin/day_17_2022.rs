@@ -252,10 +252,7 @@ fn main() {
 
     let starting_lines: usize = chamber.tower_size();
     let response = line_by_cycle * (BILLION / rock_by_cycle - 3) + starting_lines;
-    println!(
-        "Part2: When using {} pieces, the tower size is {}",
-        BILLION, response
-    );
+    println!("Part2: When using {BILLION} pieces, the tower size is {response}");
 
     // The code below was used to find the number of line by cycle, then computing the number of rocks by cycle
     //

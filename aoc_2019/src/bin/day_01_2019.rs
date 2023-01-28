@@ -3,12 +3,9 @@ fn main() {
     let s = util::file_as_string("aoc_2019/input/day_01.txt").expect("Cannot open input file");
     let numbers: Vec<usize> = s.lines().map(|l| l.parse().unwrap()).collect();
     let sum: usize = numbers.iter().map(|&n| fuel_for_mass(n)).sum();
-    println!("Part1: The sum of all the fuel requirements is {}", sum);
+    println!("Part1: The sum of all the fuel requirements is {sum}");
     let total_sum: usize = numbers.iter().map(|&n| total_fuel(n)).sum();
-    println!(
-        "Part2: The total sum of all the fuel requirements actually is {}",
-        total_sum
-    );
+    println!("Part2: The total sum of all the fuel requirements actually is {total_sum}");
     println!("Computing time: {:?}", now.elapsed());
 }
 

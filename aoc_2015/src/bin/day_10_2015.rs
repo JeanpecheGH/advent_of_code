@@ -6,8 +6,8 @@ fn main() {
     let n_40 = look_and_say(input.clone(), 40).len();
     let n_50 = look_and_say(input, 50).len();
 
-    println!("Part1: Result length is {}", n_40);
-    println!("Part2: Result length is {}", n_50);
+    println!("Part1: Result length is {n_40}");
+    println!("Part2: Result length is {n_50}");
 }
 
 fn look_and_say(str: String, n: u16) -> String {

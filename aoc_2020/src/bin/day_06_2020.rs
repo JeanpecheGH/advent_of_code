@@ -8,14 +8,14 @@ fn main() {
 
     let nb_answer: usize = nb_answers(&groups, set_union);
     println!(
-        "Part1: The sum of all questions answered at least once in each group is {}",
-        nb_answer
+        "Part1: The sum of all questions answered at least once in each group is {nb_answer}"
+
     );
 
     let nb_answer_intersect: usize = nb_answers(&groups, set_intersection);
     println!(
-        "Part2: The sum of all questions answered by each passenger of each group is {}",
-        nb_answer_intersect
+        "Part2: The sum of all questions answered by each passenger of each group is {nb_answer_intersect}"
+
     );
 }
 fn set_union(a: HashSet<char>, b: HashSet<char>) -> HashSet<char> {

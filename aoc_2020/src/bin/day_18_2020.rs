@@ -112,13 +112,13 @@ fn main() {
     let exps: Vec<Exp> = s.lines().map(|l| l.parse().unwrap()).collect();
     let sums: usize = exps.iter().map(|e| e.value()).sum();
     println!(
-        "Part1: When adding the results of all the lines, we obtain {}",
-        sums
+        "Part1: When adding the results of all the lines, we obtain {sums}"
+
     );
     let sums: usize = exps.iter().map(|e| e.advanced_value()).sum();
     println!(
-        "Part2: When adding the results of all the lines following the advanced precedence levels, we obtain {}",
-        sums
+        "Part2: When adding the results of all the lines following the advanced precedence levels, we obtain {sums}"
+
     );
     println!("Computing time: {:?}", now.elapsed());
 }

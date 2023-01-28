@@ -139,10 +139,7 @@ fn main() {
     let system: SensorSystem = s.parse().unwrap();
 
     let nb_forbidden: isize = system.forbidden_pos(2_000_000);
-    println!(
-        "Part1: {} positions cannot contain a beacon on line 2000000",
-        nb_forbidden
-    );
+    println!("Part1: {nb_forbidden} positions cannot contain a beacon on line 2000000");
 
     let pos: (isize, isize) = (MIN..=MAX)
         .find_map(|y| system.distress_beacon(y, MIN, MAX).map(|x| (x, y)))

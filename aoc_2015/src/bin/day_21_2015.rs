@@ -159,7 +159,7 @@ fn main() {
                 cheapest = match (cheapest, pick_equipment(equipments, true)) {
                     (None, Some(e)) => Some(e),
                     (Some(a), Some(b)) if a.price() > b.price() => {
-                        println!("Replace cheapest equipment with {:?}", b);
+                        println!("Replace cheapest equipment with {b:?}");
                         Some(b)
                     }
                     _ => cheapest,
@@ -168,7 +168,7 @@ fn main() {
                 expensive = match (expensive, pick_equipment(equipments, false)) {
                     (None, Some(e)) => Some(e),
                     (Some(a), Some(b)) if a.price() < b.price() => {
-                        println!("Replace most expensive equipment with {:?}", b);
+                        println!("Replace most expensive equipment with {b:?}");
                         Some(b)
                     }
                     _ => expensive,
@@ -183,9 +183,8 @@ fn main() {
         cheapest.unwrap()
     );
     println!(
-        "\nPart2: The most expensive losing equipment is costing {}: {:?}",
+        "\nPart2: The most expensive losing equipment is costing {}: {expensive:?}",
         expensive.unwrap().price(),
-        expensive
     );
 }
 

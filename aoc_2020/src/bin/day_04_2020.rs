@@ -82,14 +82,11 @@ fn main() {
         .iter()
         .filter(|doc| doc.contains_fields(&mandatory_fields))
         .count();
-    println!(
-        "Part1: There are {} documents with the right fields",
-        nb_valid_docs
-    );
+    println!("Part1: There are {nb_valid_docs} documents with the right fields");
 
     let nb_valid_docs_2: usize = docs
         .iter()
         .filter(|doc| doc.is_valid(&mandatory_fields))
         .count();
-    println!("Part2: There are {} valid documents", nb_valid_docs_2);
+    println!("Part2: There are {nb_valid_docs_2} valid documents");
 }

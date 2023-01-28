@@ -79,12 +79,9 @@ fn main() {
         .collect();
 
     let res = cookie_scores(ingredients.as_slice(), 100, false);
-    println!("Part1: Max cookie score is {}", res);
+    println!("Part1: Max cookie score is {res}");
     let res_2 = cookie_scores(ingredients.as_slice(), 100, true);
-    println!(
-        "Part2: Max cookie score is {} with a limit of 500 calories",
-        res_2
-    );
+    println!("Part2: Max cookie score is {res_2} with a limit of 500 calories");
 }
 
 fn cookie_scores(ingredients: &[Ingredient], total_spoons: i64, with_calories: bool) -> i64 {

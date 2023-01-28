@@ -34,11 +34,8 @@ fn main() {
         .collect();
 
     let nb_valid: usize = rules.iter().filter(|r| r.is_valid()).count();
-    println!("Part1: The number of valid password is {}", nb_valid);
+    println!("Part1: The number of valid password is {nb_valid}");
 
     let nb_valid_2: usize = rules.iter().filter(|r| r.is_valid_2()).count();
-    println!(
-        "Part1: With the new rule, the number of valid password is {}",
-        nb_valid_2
-    );
+    println!("Part1: With the new rule, the number of valid password is {nb_valid_2}");
 }

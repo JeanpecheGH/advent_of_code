@@ -50,7 +50,7 @@ fn main() {
         .iter()
         .map(|row| row.iter().filter(|&&b| b).count())
         .sum();
-    println!("Part1: {}", visible_count);
+    println!("Part1: The biggest number of tree visible is {visible_count}");
 
     //Transpose the tree grid to help searching in columns
     let mut transposed_trees: Vec<Vec<i8>> = vec![vec![0; SIZE]; SIZE];
@@ -77,7 +77,7 @@ fn main() {
         .map(|row| row.iter().max().unwrap())
         .max()
         .unwrap();
-    println!("Part2: {}", max_scenic_score);
+    println!("Part2: The best scenic score is {max_scenic_score}");
 }
 
 fn nb_visible(trees: &[i8], height: i8, reverse: bool) -> usize {

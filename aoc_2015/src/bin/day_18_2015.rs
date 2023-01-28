@@ -14,7 +14,7 @@ fn main() {
         .into_iter()
         .map(|row| row.into_iter().filter(|&b| b).count())
         .sum();
-    println!("Part1: There are {} lights on ", nb_lights_1);
+    println!("Part1: There are {nb_lights_1} lights on ");
 
     let mut grid_2 = grid;
     grid_2[0][0] = true;
@@ -28,7 +28,7 @@ fn main() {
         .into_iter()
         .map(|row| row.into_iter().filter(|&b| b).count())
         .sum();
-    println!("Part2: There are now {} lights on ", nb_lights_2);
+    println!("Part2: There are now {nb_lights_2} lights on ");
 }
 
 fn step(grid: &[Vec<bool>]) -> Vec<Vec<bool>> {

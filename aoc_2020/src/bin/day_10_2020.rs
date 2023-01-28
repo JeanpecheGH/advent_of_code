@@ -11,9 +11,7 @@ fn main() {
     let threes: usize = diffs.iter().filter(|&&d| d == 3).count() + 1;
 
     println!(
-        "Part1: There are {} differences of 1 Jolt and {} differences of 3 Jolt. The product is {}",
-        ones,
-        threes,
+        "Part1: There are {ones} differences of 1 Jolt and {threes} differences of 3 Jolt. The product is {}",
         ones * threes
     );
 
@@ -42,5 +40,5 @@ fn main() {
             }
         })
         .product();
-    println!("Part2: {}", nb_arrangements);
+    println!("Part2: {nb_arrangements}");
 }

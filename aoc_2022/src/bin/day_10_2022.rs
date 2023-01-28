@@ -77,10 +77,7 @@ fn main() {
         .iter()
         .map(|n| comp.signals[n - 1])
         .sum();
-    println!(
-        "Part1: The sum of the computed signal strengths is {}",
-        signal_sum,
-    );
+    println!("Part1: The sum of the computed signal strengths is {signal_sum}");
 
     println!("Part2: Look at the LCD!");
     comp.print_screen();

@@ -90,10 +90,7 @@ fn main() {
             break;
         }
     }
-    println!(
-        "Part2: In order to get {TARGET} in the output, the vern/noun code should be {}",
-        res
-    );
+    println!("Part2: In order to get {TARGET} in the output, the vern/noun code should be {res}");
     println!("Computing time: {:?}", now.elapsed());
 }
 

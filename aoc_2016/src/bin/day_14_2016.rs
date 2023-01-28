@@ -7,18 +7,12 @@ fn main() {
     let now = std::time::Instant::now();
     let part1: usize = find_nth_key(input, 1, 63);
     let elapsed = now.elapsed();
-    println!(
-        "Part1: The 64th key was found at index {} in {:?}",
-        part1, elapsed
-    );
+    println!("Part1: The 64th key was found at index {part1} in {elapsed:?}");
 
     let now = std::time::Instant::now();
     let part2: usize = find_nth_key(input, 2017, 63);
     let elapsed = now.elapsed();
-    println!(
-        "Part2: The 64th key was found at index {} in {:?}",
-        part2, elapsed
-    );
+    println!("Part2: The 64th key was found at index {part2} in {elapsed:?}");
 }
 
 const HEX_ARRAY: &[u8; 16] = b"0123456789abcdef";
@@ -35,7 +29,7 @@ fn bytes_to_hex(bytes: [u8; 16]) -> [u8; 32] {
 fn hash(word: String, times: usize) -> String {
     let mut digest = md5::compute(word);
     (0..times - 1).for_each(|_| digest = md5::compute(bytes_to_hex(digest.0)));
-    format!("{:x}", digest)
+    format!("{digest:x}")
 }
 
 fn find_nth_key(input: &str, times_hash: usize, n: usize) -> usize {

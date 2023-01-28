@@ -181,7 +181,7 @@ fn main() {
 
     let first_a = map.get("a").cloned().unwrap();
 
-    println!("Part1: The wire 'a' contains {}", first_a);
+    println!("Part1: The wire 'a' contains {first_a}");
 
     map.clear();
     map.insert("b".to_string(), first_a);
@@ -191,5 +191,5 @@ fn main() {
     }
 
     let second_a = map.get("a").unwrap();
-    println!("Part2: The wire 'a' now contains {}", second_a);
+    println!("Part2: The wire 'a' now contains {second_a}");
 }

@@ -70,9 +70,9 @@ fn main() {
 
     let nb_tls: usize = ips.iter().filter(|&ip| ip.support_tls()).count();
 
-    println!("Part1: {} ips support TLS", nb_tls);
+    println!("Part1: {nb_tls} ips support TLS");
 
     let nb_ssl: usize = ips.iter().filter(|&ip| ip.support_ssl()).count();
 
-    println!("Part1: {} ips support SSL", nb_ssl);
+    println!("Part1: {nb_ssl} ips support SSL");
 }

@@ -7,7 +7,7 @@ fn main() {
     //This sides use way more loops, don't compute it
     // let door_loops: usize = count_loops(7, door_key);
     // let encryption_key: usize = apply_loops(card_key, door_loops);
-    println!("Part1: The computed encryption key is {}", encryption_key);
+    println!("Part1: The computed encryption key is {encryption_key}");
     println!("Computing time: {:?}", now.elapsed());
 }
 

@@ -16,10 +16,7 @@ fn main() {
 
     let min_key = res.keys().min().unwrap();
     let min_ways = res.get(min_key).unwrap();
-    println!(
-        "Part2: There are {} ways to fill the minimum number of buckets",
-        min_ways
-    );
+    println!("Part2: There are {min_ways} ways to fill the minimum number of buckets");
 }
 
 fn fill_buckets(mut buckets: Vec<u32>, target: u32, nb_bucket: u32) -> HashMap<u32, u32> {

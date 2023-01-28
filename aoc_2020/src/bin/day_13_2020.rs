@@ -31,8 +31,5 @@ fn main() {
         })
         .collect();
     let solution: isize = smallest_remainder(buses_and_delays);
-    println!(
-        "Part2: The earliest timestamp that solves the bus delays is {}",
-        solution,
-    );
+    println!("Part2: The earliest timestamp that solves the bus delays is {solution}");
 }

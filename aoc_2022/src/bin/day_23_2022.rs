@@ -212,10 +212,7 @@ fn main() {
         grove.round();
         nb_round += 1;
     }
-    println!(
-        "Part2: After round {}, the elves are not moving anymore",
-        nb_round
-    );
+    println!("Part2: After round {nb_round}, the elves are not moving anymore");
     println!("Computing time: {:?}", now.elapsed());
 }
 
