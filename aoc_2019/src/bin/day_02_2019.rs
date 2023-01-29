@@ -1,66 +1,6 @@
-use std::str::FromStr;
+use util::intcode::IntCode;
 
-const TARGET: usize = 19690720;
-
-struct IntCode {
-    start_ops: Vec<usize>,
-    ops: Vec<usize>,
-}
-
-impl IntCode {
-    fn compute(&mut self) {
-        let size: usize = self.ops.len();
-        let mut idx: usize = 0;
-        while self.ops[idx] != 99 {
-            let op: usize = self.ops[idx];
-            let idx_a = self.ops[idx + 1];
-            if idx_a >= size {
-                self.reset();
-                break;
-            }
-            let a: usize = self.ops[idx_a];
-            let idx_b = self.ops[idx + 2];
-            if idx_b >= size {
-                self.reset();
-                break;
-            }
-            let b: usize = self.ops[idx_b];
-            let target: usize = self.ops[idx + 3];
-            if target >= size {
-                self.reset();
-                break;
-            }
-
-            let result: usize = if op == 1 { a + b } else { a * b };
-            self.ops[target] = result;
-            idx += 4;
-        }
-    }
-
-    fn set(&mut self, pos: usize, n: usize) {
-        self.ops[pos] = n
-    }
-
-    fn pos(&self, n: usize) -> usize {
-        self.ops[n]
-    }
-
-    fn reset(&mut self) {
-        self.ops = self.start_ops.clone();
-    }
-}
-
-impl FromStr for IntCode {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let ops: Vec<usize> = s.split(',').map(|n| n.parse::<usize>().unwrap()).collect();
-        Ok(IntCode {
-            start_ops: ops.clone(),
-            ops,
-        })
-    }
-}
+const TARGET: isize = 19690720;
 
 fn main() {
     let now = std::time::Instant::now();
@@ -74,7 +14,7 @@ fn main() {
         code.pos(0)
     );
     code.reset();
-    let mut res: usize = 0;
+    let mut res: isize = 0;
     for noun in 0..100 {
         for verb in 0..100 {
             code.set(1, noun);
