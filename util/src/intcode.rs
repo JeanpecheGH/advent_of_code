@@ -1,38 +1,126 @@
 use std::str::FromStr;
 
+type Err = ();
+
 pub struct IntCode {
     start_ops: Vec<isize>,
     pub ops: Vec<isize>,
+    idx: usize,
+    pub output: Vec<isize>,
 }
 
 impl IntCode {
-    pub fn compute(&mut self) {
-        let size: usize = self.ops.len();
-        let mut idx: usize = 0;
-        while self.ops[idx] != 99 {
-            let op: isize = self.ops[idx];
-            let idx_a = self.ops[idx + 1] as usize;
-            if idx_a >= size {
-                self.reset();
+    pub fn compute(&mut self, input: isize) {
+        loop {
+            let res: Result<(), Err> = self.one_op(input);
+            if res.is_err() {
                 break;
             }
-            let a: isize = self.ops[idx_a];
-            let idx_b = self.ops[idx + 2] as usize;
-            if idx_b >= size {
-                self.reset();
-                break;
-            }
-            let b: isize = self.ops[idx_b];
-            let target: usize = self.ops[idx + 3] as usize;
-            if target >= size {
-                self.reset();
-                break;
-            }
-
-            let result: isize = if op == 1 { a + b } else { a * b };
-            self.ops[target] = result;
-            idx += 4;
         }
+    }
+
+    fn get_value(&self, offset: usize, params: &[bool]) -> Result<isize, Err> {
+        let param: bool = params.get(offset - 1).copied().unwrap_or(false);
+        if param {
+            Ok(self.ops[self.idx + offset])
+        } else {
+            let index: usize = self.ops[self.idx + offset] as usize;
+            if index >= self.ops.len() {
+                Err(())
+            } else {
+                Ok(self.ops[index])
+            }
+        }
+    }
+
+    fn write_value(&mut self, offset: usize, value: isize) -> Result<(), Err> {
+        let index: usize = self.ops[self.idx + offset] as usize;
+        if index >= self.ops.len() {
+            Err(())
+        } else {
+            self.ops[index] = value;
+            Ok(())
+        }
+    }
+
+    fn one_op(&mut self, input: isize) -> Result<(), Err> {
+        let i: usize = self.idx;
+        let (op, params) = self.op_and_params(i);
+        match op {
+            1 => {
+                //Add
+                let a: isize = self.get_value(1, &params)?;
+                let b: isize = self.get_value(2, &params)?;
+                self.write_value(3, a + b)?;
+                self.idx += 4;
+                Ok(())
+            }
+            2 => {
+                //Mult
+                let a: isize = self.get_value(1, &params)?;
+                let b: isize = self.get_value(2, &params)?;
+                self.write_value(3, a * b)?;
+                self.idx += 4;
+                Ok(())
+            }
+            3 => {
+                //Read input
+                self.write_value(1, input)?;
+                self.idx += 2;
+                Ok(())
+            }
+            4 => {
+                //Write output
+                let a: isize = self.get_value(1, &params)?;
+                self.idx += 2;
+                self.output.push(a);
+                Ok(())
+            }
+            5 => {
+                //Jump if true
+                let a: isize = self.get_value(1, &params)?;
+                let b: isize = self.get_value(2, &params)?;
+                self.idx = if a != 0 { b as usize } else { self.idx + 3 };
+                Ok(())
+            }
+            6 => {
+                //Jump if true
+                let a: isize = self.get_value(1, &params)?;
+                let b: isize = self.get_value(2, &params)?;
+                self.idx = if a == 0 { b as usize } else { self.idx + 3 };
+                Ok(())
+            }
+            7 => {
+                //Jump if true
+                let a: isize = self.get_value(1, &params)?;
+                let b: isize = self.get_value(2, &params)?;
+                self.write_value(3, (a < b) as isize)?;
+                self.idx += 4;
+                Ok(())
+            }
+            8 => {
+                //Jump if true
+                let a: isize = self.get_value(1, &params)?;
+                let b: isize = self.get_value(2, &params)?;
+                self.write_value(3, (a == b) as isize)?;
+                self.idx += 4;
+                Ok(())
+            }
+            _ => Err(()), //End
+        }
+    }
+
+    fn op_and_params(&self, n: usize) -> (isize, Vec<bool>) {
+        let mut v: isize = self.ops[n];
+        let op: isize = v % 100;
+        v /= 100;
+        let mut params: Vec<bool> = Vec::new();
+        while v > 0 {
+            let p: bool = v % 10 > 0;
+            params.push(p);
+            v /= 10;
+        }
+        (op, params)
     }
 
     pub fn set(&mut self, pos: usize, n: isize) {
@@ -45,6 +133,8 @@ impl IntCode {
 
     pub fn reset(&mut self) {
         self.ops = self.start_ops.clone();
+        self.idx = 0;
+        self.output.clear();
     }
 }
 
@@ -56,6 +146,8 @@ impl FromStr for IntCode {
         Ok(IntCode {
             start_ops: ops.clone(),
             ops,
+            idx: 0,
+            output: Vec::new(),
         })
     }
 }

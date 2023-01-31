@@ -8,7 +8,7 @@ fn main() {
     let mut code: IntCode = s.parse().unwrap();
     code.set(1, 12);
     code.set(2, 2);
-    code.compute();
+    code.compute(0);
     println!(
         "Part1: After running the program, we have {} at position 0",
         code.pos(0)
@@ -19,7 +19,7 @@ fn main() {
         for verb in 0..100 {
             code.set(1, noun);
             code.set(2, verb);
-            code.compute();
+            code.compute(0);
             if code.pos(0) == TARGET {
                 res = 100 * noun + verb;
                 break;
@@ -38,44 +38,38 @@ fn main() {
 mod tests {
     use super::*;
 
-    const INPUT_1: &str = "1,9,10,3,2,3,11,0,99,30,40,50";
-    const INPUT_2: &str = "1,0,0,0,99";
-    const INPUT_3: &str = "2,3,0,3,99";
-    const INPUT_4: &str = "2,4,4,5,99,0";
-    const INPUT_5: &str = "1,1,1,4,99,5,6,0,99";
-
     #[test]
     fn test_1_part_1() {
-        let mut code: IntCode = INPUT_1.parse().unwrap();
-        code.compute();
+        let mut code: IntCode = "1,9,10,3,2,3,11,0,99,30,40,50".parse().unwrap();
+        code.compute(0);
         let expect: IntCode = "3500,9,10,70,2,3,11,0,99,30,40,50".parse().unwrap();
         assert_eq!(code.ops, expect.ops);
     }
     #[test]
     fn test_2_part_1() {
-        let mut code: IntCode = INPUT_2.parse().unwrap();
-        code.compute();
+        let mut code: IntCode = "1,0,0,0,99".parse().unwrap();
+        code.compute(0);
         let expect: IntCode = "2,0,0,0,99".parse().unwrap();
         assert_eq!(code.ops, expect.ops);
     }
     #[test]
     fn test_3_part_1() {
-        let mut code: IntCode = INPUT_3.parse().unwrap();
-        code.compute();
+        let mut code: IntCode = "2,3,0,3,99".parse().unwrap();
+        code.compute(0);
         let expect: IntCode = "2,3,0,6,99".parse().unwrap();
         assert_eq!(code.ops, expect.ops);
     }
     #[test]
     fn test_4_part_1() {
-        let mut code: IntCode = INPUT_4.parse().unwrap();
-        code.compute();
+        let mut code: IntCode = "2,4,4,5,99,0".parse().unwrap();
+        code.compute(0);
         let expect: IntCode = "2,4,4,5,99,9801".parse().unwrap();
         assert_eq!(code.ops, expect.ops);
     }
     #[test]
     fn test_5_part_1() {
-        let mut code: IntCode = INPUT_5.parse().unwrap();
-        code.compute();
+        let mut code: IntCode = "1,1,1,4,99,5,6,0,99".parse().unwrap();
+        code.compute(0);
         let expect: IntCode = "30,1,1,4,2,5,6,0,99".parse().unwrap();
         assert_eq!(code.ops, expect.ops);
     }
