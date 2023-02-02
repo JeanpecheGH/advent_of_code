@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 type Err = ();
 
+#[derive(Clone)]
 pub struct IntCode {
     start_ops: Vec<isize>,
     pub ops: Vec<isize>,
@@ -10,9 +11,10 @@ pub struct IntCode {
 }
 
 impl IntCode {
-    pub fn compute(&mut self, input: isize) {
+    pub fn compute(&mut self, inputs: &mut Vec<isize>) {
+        inputs.reverse();
         loop {
-            let res: Result<(), Err> = self.one_op(input);
+            let res: Result<(), Err> = self.one_op(inputs);
             if res.is_err() {
                 break;
             }
@@ -43,7 +45,7 @@ impl IntCode {
         }
     }
 
-    fn one_op(&mut self, input: isize) -> Result<(), Err> {
+    fn one_op(&mut self, inputs: &mut Vec<isize>) -> Result<(), Err> {
         let i: usize = self.idx;
         let (op, params) = self.op_and_params(i);
         match op {
@@ -65,7 +67,7 @@ impl IntCode {
             }
             3 => {
                 //Read input
-                self.write_value(1, input)?;
+                self.write_value(1, inputs.pop().ok_or(())?)?;
                 self.idx += 2;
                 Ok(())
             }
@@ -84,14 +86,14 @@ impl IntCode {
                 Ok(())
             }
             6 => {
-                //Jump if true
+                //Jump if false
                 let a: isize = self.get_value(1, &params)?;
                 let b: isize = self.get_value(2, &params)?;
                 self.idx = if a == 0 { b as usize } else { self.idx + 3 };
                 Ok(())
             }
             7 => {
-                //Jump if true
+                //Is lower
                 let a: isize = self.get_value(1, &params)?;
                 let b: isize = self.get_value(2, &params)?;
                 self.write_value(3, (a < b) as isize)?;
@@ -99,7 +101,7 @@ impl IntCode {
                 Ok(())
             }
             8 => {
-                //Jump if true
+                //Is equal
                 let a: isize = self.get_value(1, &params)?;
                 let b: isize = self.get_value(2, &params)?;
                 self.write_value(3, (a == b) as isize)?;
