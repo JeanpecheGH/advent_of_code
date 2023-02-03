@@ -79,13 +79,3 @@ fn main() {
     image.print_image();
     println!("Computing time: {:?}", now.elapsed());
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_1_part_1() {
-        assert_eq!(1, 1);
-    }
-}
