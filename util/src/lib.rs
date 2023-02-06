@@ -21,3 +21,20 @@ pub fn split_blocks(data: &str) -> Vec<&str> {
         .flat_map(|l| l.split(DOUBLE_LF).collect::<Vec<&str>>())
         .collect()
 }
+
+pub fn gcd(a: isize, b: isize) -> isize {
+    let mut dd: isize = a.abs();
+    let mut dv: isize = b.abs();
+
+    while dv != 0 {
+        let r: isize = dd % dv;
+        dd = dv;
+        dv = r;
+    }
+    dd
+}
+
+pub fn lcm(a: isize, b: isize) -> isize {
+    let g: isize = gcd(a, b);
+    a * b / g
+}

@@ -24,23 +24,11 @@ impl Slope {
             return Self { x, y };
         }
 
-        let gcd: isize = Self::gcd(x, y);
+        let gcd: isize = util::gcd(x, y);
         Self {
             x: x / gcd,
             y: y / gcd,
         }
-    }
-
-    fn gcd(a: isize, b: isize) -> isize {
-        let mut dd: isize = a.abs();
-        let mut dv: isize = b.abs();
-
-        while dv != 0 {
-            let r: isize = dd % dv;
-            dd = dv;
-            dv = r;
-        }
-        dd
     }
 
     fn score(&self) -> f64 {
