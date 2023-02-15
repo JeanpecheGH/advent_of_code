@@ -117,16 +117,3 @@ fn main() {
     println!("Part2: The final score is {score}");
     println!("Computing time: {:?}", now.elapsed());
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const INPUT_1: &str = "";
-
-    #[test]
-    fn test_1_part_1() {
-        let mut code: IntCode = INPUT_1.parse().unwrap();
-        assert_eq!(1, 1);
-    }
-}
