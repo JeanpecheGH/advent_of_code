@@ -34,17 +34,14 @@ impl Transmission {
 
     fn simple_phase(&mut self) {
         let size = self.elements.len();
-        let mut new_elements: Vec<i32> = vec![0; size];
+        let mut new_elements: Vec<u8> = vec![0; size];
 
-        let mut n: i32 = 0;
-        for i in (0..size).rev() {
-            n += self.elements[i] as i32;
+        let mut n: u8 = 0;
+        for (i, elem) in self.elements.iter().enumerate().rev() {
+            n += *elem;
             new_elements[i] = n;
         }
-        self.elements = new_elements
-            .into_iter()
-            .map(|n| (n % 10).unsigned_abs() as u8)
-            .collect();
+        self.elements = new_elements.into_iter().map(|n| n % 10).collect();
     }
 
     fn n_phase(&mut self, n: usize, simple: bool) {
