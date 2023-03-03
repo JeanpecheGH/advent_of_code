@@ -1,9 +1,8 @@
 use itertools::Itertools;
-use std::collections::VecDeque;
 use std::str::FromStr;
 
 struct Cups {
-    cups: VecDeque<u32>,
+    cups: Vec<u32>,
     max: u32,
 }
 
@@ -25,19 +24,14 @@ impl Cups {
     fn one_move(&mut self) {
         let head = self.cups[0];
         self.cups.rotate_left(1);
-        let a: u32 = self.cups.pop_front().unwrap();
-        let b: u32 = self.cups.pop_front().unwrap();
-        let c: u32 = self.cups.pop_front().unwrap();
-        let search: u32 = self.next(head, &[a, b, c]);
+        let search: u32 = self.next(head, &self.cups[0..3]);
         let pos: usize = self
             .cups
             .iter()
             .position(|c| *c == search)
             .map(|pos| pos + 1)
             .unwrap();
-        self.cups.insert(pos, c);
-        self.cups.insert(pos, b);
-        self.cups.insert(pos, a);
+        self.cups[..pos].rotate_left(3);
     }
 
     fn extend_to(&mut self, n: u32) {
@@ -52,9 +46,7 @@ impl Cups {
 
     fn labels(&mut self) -> String {
         self.one_in_front();
-        self.cups.make_contiguous();
-        let (slice, _): (&[u32], &[u32]) = self.cups.as_slices();
-        slice[1..].iter().join("")
+        self.cups[1..].iter().join("")
     }
 
     fn product(&mut self) -> usize {
@@ -68,7 +60,7 @@ impl FromStr for Cups {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let cups: VecDeque<u32> = s.chars().map(|c| c.to_digit(10).unwrap()).collect();
+        let cups: Vec<u32> = s.chars().map(|c| c.to_digit(10).unwrap()).collect();
         let max: u32 = cups.iter().max().copied().unwrap();
         Ok(Cups { cups, max })
     }
@@ -87,7 +79,7 @@ fn main() {
     cups.extend_to(1_000_000);
     cups.n_moves(10_000_000);
     println!(
-        "Part1: After doing 10000000 moves, the two labels after cup 1 multiply to {}",
+        "Part2: After doing 10000000 moves, the two labels after cup 1 multiply to {}",
         cups.product()
     );
     println!("Computing time: {:?}", now.elapsed());
