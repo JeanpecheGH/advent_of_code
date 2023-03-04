@@ -10,6 +10,7 @@ impl Transmission {
     fn phase(&mut self) {
         let size = self.elements.len();
         let mut new_elements: Vec<i32> = vec![0; size];
+        let pattern: Vec<i32> = vec![0, 1, 0, -1];
         for i in 0..size {
             let n: i32 = self.elements[i] as i32;
             //Distribute this element in every output elements
@@ -17,13 +18,7 @@ impl Transmission {
                 let i_plus: i32 = i as i32 + 1;
                 let j_plus: i32 = j as i32 + 1;
                 let pattern_pos: i32 = (i_plus % (j_plus * 4)) / j_plus;
-
-                let mul = match pattern_pos {
-                    1 => 1,
-                    3 => -1,
-                    _ => 0,
-                };
-                *elem += mul * n;
+                *elem += pattern[pattern_pos as usize] * n;
             }
         }
         self.elements = new_elements
@@ -33,15 +28,11 @@ impl Transmission {
     }
 
     fn simple_phase(&mut self) {
-        let size = self.elements.len();
-        let mut new_elements: Vec<u8> = vec![0; size];
-
-        let mut n: u8 = 0;
-        for (i, elem) in self.elements.iter().enumerate().rev() {
-            n += *elem;
-            new_elements[i] = n;
-        }
-        self.elements = new_elements.into_iter().map(|n| n % 10).collect();
+        self.elements.iter_mut().rev().fold(0u32, |mut acc, elem| {
+            acc += *elem as u32;
+            *elem = (acc % 10) as u8;
+            acc
+        });
     }
 
     fn n_phase(&mut self, n: usize, simple: bool) {
