@@ -2,8 +2,8 @@ use itertools::Itertools;
 use std::str::FromStr;
 
 struct Cups {
-    cups: Vec<u32>,
-    max: u32,
+    cups: Vec<usize>,
+    current: usize,
 }
 
 impl Cups {
@@ -13,8 +13,8 @@ impl Cups {
         }
     }
 
-    fn next(&self, n: u32, except: &[u32]) -> u32 {
-        let mut s: u32 = if n == 1 { self.max } else { n - 1 };
+    fn next(&self, n: usize, except: &[usize]) -> usize {
+        let mut s: usize = if n == 0 { self.cups.len() - 1 } else { n - 1 };
         while except.contains(&s) {
             s = self.next(s, except);
         }
@@ -22,37 +22,47 @@ impl Cups {
     }
 
     fn one_move(&mut self) {
-        let head = self.cups[0];
-        self.cups.rotate_left(1);
-        let search: u32 = self.next(head, &self.cups[0..3]);
-        let pos: usize = self
-            .cups
-            .iter()
-            .position(|c| *c == search)
-            .map(|pos| pos + 1)
-            .unwrap();
-        self.cups[..pos].rotate_left(3);
+        let a = self.cups[self.current];
+        let b = self.cups[a];
+        let c = self.cups[b];
+        let new_head = self.cups[c];
+        let next: usize = self.next(self.current, &vec![a, b, c]);
+
+        self.cups[self.current] = new_head;
+        self.cups[c] = self.cups[next];
+        self.cups[next] = a;
+        self.current = new_head;
     }
 
-    fn extend_to(&mut self, n: u32) {
-        self.cups.extend((self.max + 1)..=n);
-        self.max = n;
-    }
-
-    fn one_in_front(&mut self) {
-        let pos: usize = self.cups.iter().position(|c| *c == 1).unwrap();
-        self.cups.rotate_left(pos);
+    fn extend_to(&mut self, n: usize) {
+        let max: usize = self.cups.len() - 1;
+        for e in self.cups.iter_mut() {
+            if *e == self.current {
+                *e = max + 1;
+            }
+        }
+        for i in (max + 1)..(n - 1) {
+            self.cups.push(i + 1);
+        }
+        self.cups.push(self.current);
     }
 
     fn labels(&mut self) -> String {
-        self.one_in_front();
-        self.cups[1..].iter().join("")
+        let mut idx: usize = 0;
+        let labels: Vec<usize> = (0..self.cups.len() - 1)
+            .into_iter()
+            .map(|_| {
+                idx = self.cups[idx];
+                idx + 1
+            })
+            .collect();
+        labels.iter().join("")
     }
 
     fn product(&mut self) -> usize {
-        self.one_in_front();
-        println!("{} {} {}", self.cups[0], self.cups[1], self.cups[2]);
-        self.cups[1] as usize * self.cups[2] as usize
+        let a: usize = self.cups[0];
+        let b: usize = self.cups[a];
+        (a + 1) * (b + 1)
     }
 }
 
@@ -60,9 +70,19 @@ impl FromStr for Cups {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let cups: Vec<u32> = s.chars().map(|c| c.to_digit(10).unwrap()).collect();
-        let max: u32 = cups.iter().max().copied().unwrap();
-        Ok(Cups { cups, max })
+        let digits: Vec<usize> = s
+            .chars()
+            .map(|c| c.to_digit(10).unwrap() as usize - 1)
+            .collect();
+        let current: usize = digits.first().copied().unwrap();
+        let last: usize = digits.last().copied().unwrap();
+
+        let mut cups: Vec<usize> = vec![0; digits.len()];
+        for pair in digits.windows(2) {
+            cups[pair[0]] = pair[1];
+        }
+        cups[last] = current;
+        Ok(Self { cups, current })
     }
 }
 
