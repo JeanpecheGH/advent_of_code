@@ -55,7 +55,6 @@ fn main() {
 
     let new_nb_triangles = numbers
         .chunks(3)
-        .into_iter()
         .flat_map(|chunk| {
             let mut first: Triangle = Triangle::from_sides(chunk[0][0], chunk[1][0], chunk[2][0]);
             let mut mid: Triangle = Triangle::from_sides(chunk[0][1], chunk[1][1], chunk[2][1]);

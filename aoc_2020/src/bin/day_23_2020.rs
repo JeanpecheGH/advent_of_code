@@ -26,7 +26,7 @@ impl Cups {
         let b = self.cups[a];
         let c = self.cups[b];
         let new_head = self.cups[c];
-        let next: usize = self.next(self.current, &vec![a, b, c]);
+        let next: usize = self.next(self.current, &[a, b, c]);
 
         self.cups[self.current] = new_head;
         self.cups[c] = self.cups[next];
@@ -50,7 +50,6 @@ impl Cups {
     fn labels(&mut self) -> String {
         let mut idx: usize = 0;
         let labels: Vec<usize> = (0..self.cups.len() - 1)
-            .into_iter()
             .map(|_| {
                 idx = self.cups[idx];
                 idx + 1
