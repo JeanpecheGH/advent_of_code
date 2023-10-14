@@ -57,7 +57,7 @@ fn calibrate(molecule: &str, replace: &[(&str, &str)]) -> HashSet<String> {
     let mut set: HashSet<String> = HashSet::new();
     replace.iter().for_each(|pair| {
         let partial_set: HashSet<String> = replace_one(molecule, pair);
-        set.extend(partial_set.into_iter());
+        set.extend(partial_set);
     });
     set
 }

@@ -12,16 +12,16 @@ impl BagRule {
             color_cache.insert(self.color.clone(), true);
             Some(true)
         } else {
-            let opt_b: Option<bool> = self.contains.iter().map(|(c, _)| color_cache.get(c)).fold(
-                Some(false),
-                |acc, opt| match (acc, opt) {
-                    (Some(true), _) => Some(true),
+            let opt_b: Option<bool> = self
+                .contains
+                .iter()
+                .map(|(c, _)| color_cache.get(c))
+                .try_fold(false, |acc, opt| match (acc, opt) {
+                    (true, _) => Some(true),
                     (_, Some(true)) => Some(true),
                     (_, None) => None,
-                    (None, _) => None,
                     _ => Some(false),
-                },
-            );
+                });
             opt_b.iter().for_each(|&b| {
                 color_cache.insert(self.color.clone(), b);
             });
@@ -38,8 +38,8 @@ impl BagRule {
             .contains
             .iter()
             .map(|(c, n)| (count_cache.get(c), n))
-            .fold(Some(0), |acc, (opt, n)| match (acc, opt) {
-                (Some(a), Some(&b)) => Some(a + n * (b + 1)),
+            .try_fold(0, |acc, (opt, n)| match (acc, opt) {
+                (a, Some(&b)) => Some(a + n * (b + 1)),
                 _ => None,
             });
         opt_count.iter().for_each(|&c| {
@@ -81,8 +81,7 @@ fn main() {
     let mut bags_part1 = bags.clone();
     let mut color_cache: HashMap<String, bool> = HashMap::new();
     let mut color_count: usize = 0;
-    while !bags_part1.is_empty() {
-        let bag: BagRule = bags_part1.pop().unwrap();
+    while let Some(bag) = bags_part1.pop() {
         if let Some(b) = bag.contains(&mut color_cache, COLOR) {
             if b {
                 color_count += 1;
@@ -96,8 +95,8 @@ fn main() {
     println!("Part1: {color_count} different bags can contain a {COLOR} bag");
 
     let mut count_cache: HashMap<String, usize> = HashMap::new();
-    while !bags.is_empty() {
-        let bag: BagRule = bags.pop().unwrap();
+
+    while let Some(bag) = bags.pop() {
         // if let Some(c) = bag.nb_contains(&mut count_cache) {
         //     count_count += c;
         if bag.nb_contains(&mut count_cache).is_none() {

@@ -111,8 +111,7 @@ impl NanoFactory {
 
     fn sort(&mut self) {
         let mut result: Vec<Reaction> = Vec::new();
-        while !self.reactions.is_empty() {
-            let r: Reaction = self.reactions.pop().unwrap();
+        while let Some(r) = self.reactions.pop() {
             if self
                 .reactions
                 .iter()

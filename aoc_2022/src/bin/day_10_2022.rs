@@ -73,7 +73,7 @@ fn main() {
         comp.compute(op);
     });
 
-    let signal_sum: isize = vec![20, 60, 100, 140, 180, 220]
+    let signal_sum: isize = [20, 60, 100, 140, 180, 220]
         .iter()
         .map(|n| comp.signals[n - 1])
         .sum();

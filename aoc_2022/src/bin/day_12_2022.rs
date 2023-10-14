@@ -49,7 +49,7 @@ impl Terrain {
 
     fn neighbours(&self, node: Node) -> Vec<Node> {
         //First we describe the 4 directions
-        vec![(-1, 0), (1, 0), (0, -1), (0, 1)]
+        [(-1, 0), (1, 0), (0, -1), (0, 1)]
             .iter()
             //Compute the 4 neighbours of the Node
             .map(|(i, j)| (node.pos.0 as isize + i, node.pos.1 as isize + j))
