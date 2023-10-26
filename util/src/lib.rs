@@ -1,5 +1,6 @@
 pub mod chinese_remainders;
 pub mod intcode;
+pub mod orientation;
 pub mod registry;
 
 use std::fs::File;
