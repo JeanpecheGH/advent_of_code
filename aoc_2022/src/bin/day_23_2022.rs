@@ -2,17 +2,10 @@ use itertools::Itertools;
 use std::collections::hash_map::Entry::Vacant;
 use std::collections::HashMap;
 use std::str::FromStr;
+use util::orientation::Dir;
 
 const MARGIN: usize = 55;
 type Pos = (usize, usize);
-
-#[derive(Debug)]
-enum Dir {
-    North,
-    South,
-    West,
-    East,
-}
 
 struct Grove {
     grid: Vec<Vec<bool>>,

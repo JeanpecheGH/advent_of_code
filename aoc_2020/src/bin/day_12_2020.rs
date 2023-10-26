@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use util::orientation::Dir;
 
 #[derive(Debug)]
 enum Action {
@@ -28,13 +29,6 @@ impl FromStr for Action {
             _ => Err(()),
         }
     }
-}
-
-enum Dir {
-    North,
-    South,
-    East,
-    West,
 }
 
 struct Boat {
@@ -71,21 +65,11 @@ impl Boat {
         }
     }
     fn rotate_left(&mut self) {
-        match &self.dir {
-            Dir::North => self.dir = Dir::West,
-            Dir::West => self.dir = Dir::South,
-            Dir::South => self.dir = Dir::East,
-            Dir::East => self.dir = Dir::North,
-        }
+        self.dir = self.dir.turn_left();
     }
 
     fn rotate_right(&mut self) {
-        match &self.dir {
-            Dir::North => self.dir = Dir::East,
-            Dir::West => self.dir = Dir::North,
-            Dir::South => self.dir = Dir::West,
-            Dir::East => self.dir = Dir::South,
-        }
+        self.dir = self.dir.turn_right();
     }
 
     fn dist(&self) -> isize {

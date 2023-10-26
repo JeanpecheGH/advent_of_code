@@ -1,29 +1,27 @@
 use std::collections::HashSet;
-
-#[derive(Debug)]
-enum Dir {
-    L,
-    R,
-    U,
-    D,
-    NoMove,
-}
-
-impl Dir {
-    fn new(c: &str) -> Self {
-        match c {
-            "L" => Self::L,
-            "R" => Self::R,
-            "U" => Self::U,
-            "D" => Self::D,
-            _ => Self::NoMove,
-        }
-    }
-}
+use std::str::FromStr;
+use util::orientation::Dir;
 
 struct Move {
     dir: Dir,
     dist: usize,
+}
+
+impl FromStr for Move {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let words: Vec<&str> = s.split_whitespace().collect();
+        let dir: Dir = match words[0] {
+            "L" => Dir::West,
+            "R" => Dir::East,
+            "U" => Dir::North,
+            "D" => Dir::South,
+            _ => return Err(()), //Should not happen
+        };
+        let dist: usize = words[1].parse().unwrap();
+        Ok(Move { dir, dist })
+    }
 }
 
 struct Rope {
@@ -39,11 +37,10 @@ impl Rope {
     fn move_one(&mut self, dir: &Dir) {
         let (x, y): (isize, isize) = self.knots[0];
         match dir {
-            Dir::L => self.knots[0] = (x - 1, y),
-            Dir::R => self.knots[0] = (x + 1, y),
-            Dir::U => self.knots[0] = (x, y + 1),
-            Dir::D => self.knots[0] = (x, y - 1),
-            Dir::NoMove => (),
+            Dir::West => self.knots[0] = (x - 1, y),
+            Dir::East => self.knots[0] = (x + 1, y),
+            Dir::North => self.knots[0] = (x, y + 1),
+            Dir::South => self.knots[0] = (x, y - 1),
         }
         for i in 1..self.knots.len() {
             self.follow_tail(i);
@@ -72,15 +69,7 @@ impl Rope {
 fn main() {
     let s = util::file_as_string("aoc_2022/input/day_09.txt").expect("Cannot open input file");
 
-    let moves: Vec<Move> = s
-        .lines()
-        .map(|s| {
-            let words: Vec<&str> = s.split_whitespace().collect();
-            let dir: Dir = Dir::new(words[0]);
-            let dist: usize = words[1].parse().unwrap();
-            Move { dir, dist }
-        })
-        .collect();
+    let moves: Vec<Move> = s.lines().map(|s| s.parse().unwrap()).collect();
 
     let mut rope_2: Rope = Rope {
         knots: vec![(0, 0); 2],

@@ -1,6 +1,7 @@
 use std::cmp::max;
 use std::collections::HashMap;
 use std::str::FromStr;
+use util::orientation::Dir;
 
 const TILE_SIZE: usize = 10;
 const MONSTER: &str = "                  # 
@@ -8,34 +9,26 @@ const MONSTER: &str = "                  #
  #  #  #  #  #  #   ";
 
 #[derive(Debug, Copy, Clone)]
-enum Rotation {
-    Up = 0,
-    Right = 1,
-    Down = 2,
-    Left = 3,
-}
-
-#[derive(Debug, Copy, Clone)]
 struct TileRotation {
     id: usize,
     flipped: bool,
-    rotation: Rotation,
+    rotation: Dir,
 }
 
 impl TileRotation {
     fn from_up_and_left(id: usize, up: usize, left: usize) -> Self {
-        let (flipped, rotation): (bool, Rotation) = match (up, left) {
-            (0, 3) => (false, Rotation::Up),
-            (0, 1) => (true, Rotation::Up),
-            (1, 0) => (false, Rotation::Right),
-            (1, 2) => (true, Rotation::Right),
-            (2, 1) => (false, Rotation::Down),
-            (2, 3) => (true, Rotation::Down),
-            (3, 2) => (false, Rotation::Left),
-            (3, 0) => (true, Rotation::Left),
+        let (flipped, rotation): (bool, Dir) = match (up, left) {
+            (0, 3) => (false, Dir::North),
+            (0, 1) => (true, Dir::North),
+            (1, 0) => (false, Dir::East),
+            (1, 2) => (true, Dir::East),
+            (2, 1) => (false, Dir::South),
+            (2, 3) => (true, Dir::South),
+            (3, 2) => (false, Dir::West),
+            (3, 0) => (true, Dir::West),
             _ => {
                 println!("A bad position happened: {up} {left}");
-                (false, Rotation::Up)
+                (false, Dir::North)
             } //Should not happen
         };
 
@@ -85,10 +78,10 @@ impl Tile {
         let size = TILE_SIZE - 1;
         let (x, y) = if rot.flipped { (size - x, y) } else { (x, y) };
         let (x, y) = match rot.rotation {
-            Rotation::Up => (x, y),
-            Rotation::Right => (size - y, x),
-            Rotation::Down => (size - x, size - y),
-            Rotation::Left => (y, size - x),
+            Dir::North => (x, y),
+            Dir::East => (size - y, x),
+            Dir::South => (size - x, size - y),
+            Dir::West => (y, size - x),
         };
         self.pixels[y][x]
     }

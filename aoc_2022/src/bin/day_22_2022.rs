@@ -1,38 +1,11 @@
 use itertools::Itertools;
 use std::str::FromStr;
+use util::orientation::Dir;
 
 const HEIGHT: usize = 200;
 const WIDTH: usize = 150;
 
 type Pos = (usize, usize);
-
-#[derive(Debug, Copy, Clone)]
-enum Orient {
-    East = 0,
-    South = 1,
-    West = 2,
-    North = 3,
-}
-
-impl Orient {
-    fn right(&self) -> Self {
-        match self {
-            Orient::East => Orient::South,
-            Orient::South => Orient::West,
-            Orient::West => Orient::North,
-            Orient::North => Orient::East,
-        }
-    }
-
-    fn left(&self) -> Self {
-        match self {
-            Orient::East => Orient::North,
-            Orient::South => Orient::East,
-            Orient::West => Orient::South,
-            Orient::North => Orient::West,
-        }
-    }
-}
 
 #[derive(Debug, Copy, Clone)]
 enum Op {
@@ -45,7 +18,7 @@ enum Op {
 struct Labyrinth {
     grid: [[Option<bool>; WIDTH + 1]; HEIGHT + 1],
     pos: Pos,
-    orient: Orient,
+    dir: Dir,
     ops: Vec<Op>,
 }
 
@@ -66,8 +39,8 @@ impl Labyrinth {
                     self.advance_one()
                 }
             }),
-            Op::Left => self.orient = self.orient.left(),
-            Op::Right => self.orient = self.orient.right(),
+            Op::Left => self.dir = self.dir.turn_left(),
+            Op::Right => self.dir = self.dir.turn_right(),
         }
     }
 
@@ -80,38 +53,38 @@ impl Labyrinth {
            F..
         */
         let (x, y) = self.pos;
-        let (n_x, n_y, n_orient) = match (x, y, &self.orient) {
-            (51..=100, 1, Orient::North) => (1, x + 100, Orient::East), //A to F
-            (101..=150, 1, Orient::North) => (x - 100, 200, Orient::North), //B to F
-            (51, 1..=50, Orient::West) => (1, 151 - y, Orient::East),   //A to D
-            (150, 1..=50, Orient::East) => (100, 151 - y, Orient::West), //B to E
-            (101..=150, 50, Orient::South) => (100, x - 50, Orient::West), //B to C
-            (51, 51..=100, Orient::West) => (y - 50, 101, Orient::South), //C to D
-            (100, 51..=100, Orient::East) => (y + 50, 50, Orient::North), //C to B
-            (1..=50, 101, Orient::North) => (51, x + 50, Orient::East), //D to C
-            (1, 101..=150, Orient::West) => (51, 151 - y, Orient::East), //D to A
-            (100, 101..=150, Orient::East) => (150, 151 - y, Orient::West), //E to B
-            (51..=100, 150, Orient::South) => (50, x + 100, Orient::West), //E to F
-            (1, 151..=200, Orient::West) => (y - 100, 1, Orient::South), //F to A
-            (50, 151..=200, Orient::East) => (y - 100, 150, Orient::North), //F to E
-            (1..=50, 200, Orient::South) => (x + 100, 1, Orient::South), //F to B
-            (_, _, Orient::North) => (x, y - 1, self.orient),
-            (_, _, Orient::East) => (x + 1, y, self.orient),
-            (_, _, Orient::South) => (x, y + 1, self.orient),
-            (_, _, Orient::West) => (x - 1, y, self.orient),
+        let (n_x, n_y, n_orient) = match (x, y, &self.dir) {
+            (51..=100, 1, Dir::North) => (1, x + 100, Dir::East), //A to F
+            (101..=150, 1, Dir::North) => (x - 100, 200, Dir::North), //B to F
+            (51, 1..=50, Dir::West) => (1, 151 - y, Dir::East),   //A to D
+            (150, 1..=50, Dir::East) => (100, 151 - y, Dir::West), //B to E
+            (101..=150, 50, Dir::South) => (100, x - 50, Dir::West), //B to C
+            (51, 51..=100, Dir::West) => (y - 50, 101, Dir::South), //C to D
+            (100, 51..=100, Dir::East) => (y + 50, 50, Dir::North), //C to B
+            (1..=50, 101, Dir::North) => (51, x + 50, Dir::East), //D to C
+            (1, 101..=150, Dir::West) => (51, 151 - y, Dir::East), //D to A
+            (100, 101..=150, Dir::East) => (150, 151 - y, Dir::West), //E to B
+            (51..=100, 150, Dir::South) => (50, x + 100, Dir::West), //E to F
+            (1, 151..=200, Dir::West) => (y - 100, 1, Dir::South), //F to A
+            (50, 151..=200, Dir::East) => (y - 100, 150, Dir::North), //F to E
+            (1..=50, 200, Dir::South) => (x + 100, 1, Dir::South), //F to B
+            (_, _, Dir::North) => (x, y - 1, self.dir),
+            (_, _, Dir::East) => (x + 1, y, self.dir),
+            (_, _, Dir::South) => (x, y + 1, self.dir),
+            (_, _, Dir::West) => (x - 1, y, self.dir),
         };
 
         if let Some(false) = self.grid[n_y][n_x] {
             self.pos = (n_x, n_y);
-            self.orient = n_orient;
+            self.dir = n_orient;
         }
         //Else we're stuck in a wall. Don't move
     }
 
     fn advance_one(&mut self) {
         let (x, y) = self.pos;
-        let (n_x, n_y) = match self.orient {
-            Orient::East => {
+        let (n_x, n_y) = match self.dir {
+            Dir::East => {
                 let new_x: usize = if x + 1 > WIDTH || self.grid[y][x + 1].is_none() {
                     self.grid[y].iter().position(|opt| opt.is_some()).unwrap()
                 } else {
@@ -119,7 +92,7 @@ impl Labyrinth {
                 };
                 (new_x, y)
             }
-            Orient::South => {
+            Dir::South => {
                 let new_y: usize = if y + 1 > HEIGHT || self.grid[y + 1][x].is_none() {
                     let mut n: usize = 0;
                     while self.grid[n][x].is_none() {
@@ -131,7 +104,7 @@ impl Labyrinth {
                 };
                 (x, new_y)
             }
-            Orient::West => {
+            Dir::West => {
                 let new_x: usize = if x - 1 == 0 || self.grid[y][x - 1].is_none() {
                     self.grid[y].iter().rposition(|opt| opt.is_some()).unwrap()
                 } else {
@@ -139,7 +112,7 @@ impl Labyrinth {
                 };
                 (new_x, y)
             }
-            Orient::North => {
+            Dir::North => {
                 let new_y: usize = if y - 1 == 0 || self.grid[y - 1][x].is_none() {
                     let mut n: usize = HEIGHT;
                     while self.grid[n][x].is_none() {
@@ -160,7 +133,13 @@ impl Labyrinth {
     }
 
     fn score(&self) -> usize {
-        1000 * self.pos.1 + 4 * self.pos.0 + self.orient as usize
+        let dir_score: usize = match self.dir {
+            Dir::North => 3,
+            Dir::East => 0,
+            Dir::South => 1,
+            Dir::West => 2,
+        };
+        1000 * self.pos.1 + 4 * self.pos.0 + dir_score
     }
 }
 
@@ -203,7 +182,7 @@ impl FromStr for Labyrinth {
         Ok(Labyrinth {
             grid,
             pos: (start_x, 1),
-            orient: Orient::East,
+            dir: Dir::East,
             ops,
         })
     }

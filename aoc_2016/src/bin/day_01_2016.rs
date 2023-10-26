@@ -1,15 +1,9 @@
 use std::collections::HashSet;
-
-enum Direction {
-    N,
-    E,
-    S,
-    W,
-}
+use util::orientation::Dir;
 
 struct Position {
     visited: HashSet<(i16, i16)>,
-    dir: Direction,
+    dir: Dir,
     x: i16,
     y: i16,
     found_hq: bool,
@@ -17,28 +11,18 @@ struct Position {
 
 impl Position {
     fn turn_left(&mut self) {
-        self.dir = match self.dir {
-            Direction::N => Direction::W,
-            Direction::E => Direction::N,
-            Direction::S => Direction::E,
-            Direction::W => Direction::S,
-        }
+        self.dir = self.dir.turn_left()
     }
     fn turn_right(&mut self) {
-        self.dir = match self.dir {
-            Direction::N => Direction::E,
-            Direction::E => Direction::S,
-            Direction::S => Direction::W,
-            Direction::W => Direction::N,
-        }
+        self.dir = self.dir.turn_right()
     }
 
     fn advance_one(&mut self) {
         match self.dir {
-            Direction::N => self.y += 1,
-            Direction::E => self.x += 1,
-            Direction::S => self.y -= 1,
-            Direction::W => self.x -= 1,
+            Dir::North => self.y += 1,
+            Dir::East => self.x += 1,
+            Dir::South => self.y -= 1,
+            Dir::West => self.x -= 1,
         };
         if !self.visited.insert((self.x, self.y)) && !self.found_hq {
             println!(
@@ -60,7 +44,7 @@ fn main() {
 
     let mut pos: Position = Position {
         visited: HashSet::new(),
-        dir: Direction::N,
+        dir: Dir::North,
         x: 0,
         y: 0,
         found_hq: false,

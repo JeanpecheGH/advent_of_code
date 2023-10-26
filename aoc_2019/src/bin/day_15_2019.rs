@@ -2,16 +2,9 @@ use itertools::MinMaxResult::MinMax;
 use itertools::{Itertools, MinMaxResult};
 use std::collections::{HashMap, HashSet};
 use util::intcode::IntCode;
+use util::orientation::Dir;
 
 type Pos = (isize, isize);
-
-#[derive(Copy, Clone, Debug)]
-enum Dir {
-    North = 1,
-    South = 2,
-    West = 3,
-    East = 4,
-}
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Tile {
@@ -58,6 +51,15 @@ struct Droid {
 }
 
 impl Droid {
+    fn dir_code(dir: &Dir) -> isize {
+        match dir {
+            Dir::North => 1,
+            Dir::East => 4,
+            Dir::South => 2,
+            Dir::West => 3,
+        }
+    }
+
     fn from_code(code: IntCode) -> Self {
         Self {
             code,
@@ -161,7 +163,7 @@ impl Droid {
     }
 
     fn move_one(&mut self, dir: &Dir, first: bool) {
-        self.code.compute(&mut vec![*dir as isize]);
+        self.code.compute(&mut vec![Self::dir_code(dir)]);
         let res: isize = self.code.output.pop().unwrap();
         let dist: usize = self.tiles.get(&self.pos.pos).unwrap().1 + 1;
         match res {

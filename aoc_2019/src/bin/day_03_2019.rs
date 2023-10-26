@@ -1,14 +1,31 @@
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
+use util::orientation::Dir;
 
 type Pos = (isize, isize);
 
 #[derive(Debug, Copy, Clone)]
-enum Move {
-    Up(usize),
-    Down(usize),
-    Left(usize),
-    Right(usize),
+struct Move {
+    len: usize,
+    dir: Dir,
+}
+
+impl FromStr for Move {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let c: char = s.chars().next().unwrap();
+        let len: usize = s[1..].parse().unwrap();
+        let dir = match c {
+            'U' => Dir::North,
+            'D' => Dir::South,
+            'L' => Dir::West,
+            'R' => Dir::East,
+            _ => return Err(()),
+        };
+
+        Ok(Move { len, dir })
+    }
 }
 
 struct Wires {
@@ -24,13 +41,13 @@ impl Wires {
             let mut dist: usize = 0;
             map.insert(current_pos, dist);
             moves.iter().for_each(|m| {
-                let (dir, n): (Pos, usize) = match m {
-                    Move::Up(n) => ((0, -1), *n),
-                    Move::Down(n) => ((0, 1), *n),
-                    Move::Left(n) => ((-1, 0), *n),
-                    Move::Right(n) => ((1, 0), *n),
+                let dir: Pos = match m.dir {
+                    Dir::North => (0, -1),
+                    Dir::South => (0, 1),
+                    Dir::West => (-1, 0),
+                    Dir::East => (1, 0),
                 };
-                for _ in 0..n {
+                for _ in 0..m.len {
                     current_pos = (current_pos.0 + dir.0, current_pos.1 + dir.1);
                     dist += 1;
                     map.insert(current_pos, dist);
@@ -72,20 +89,7 @@ impl FromStr for Wires {
             .lines()
             .map(|l| {
                 let words: Vec<&str> = l.split(',').collect();
-                words
-                    .into_iter()
-                    .map(|w| {
-                        let c: char = w.chars().next().unwrap();
-                        let n: usize = w[1..].parse().unwrap();
-                        match c {
-                            'U' => Move::Up(n),
-                            'D' => Move::Down(n),
-                            'L' => Move::Left(n),
-                            'R' => Move::Right(n),
-                            _ => Move::Up(n),
-                        }
-                    })
-                    .collect()
+                words.into_iter().map(|w| w.parse().unwrap()).collect()
             })
             .collect();
 

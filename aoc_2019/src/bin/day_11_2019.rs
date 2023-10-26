@@ -2,20 +2,14 @@ use itertools::MinMaxResult::MinMax;
 use itertools::{Itertools, MinMaxResult};
 use std::collections::HashSet;
 use util::intcode::IntCode;
+use util::orientation::Dir;
 
 type Pos = (isize, isize);
 type Err = ();
 
-enum Orientation {
-    North,
-    East,
-    South,
-    West,
-}
-
 struct Position {
     pos: Pos,
-    orient: Orientation,
+    orient: Dir,
 }
 
 impl Position {
@@ -29,29 +23,19 @@ impl Position {
     }
 
     fn turn_left(&mut self) {
-        self.orient = match &self.orient {
-            Orientation::North => Orientation::West,
-            Orientation::East => Orientation::North,
-            Orientation::South => Orientation::East,
-            Orientation::West => Orientation::South,
-        }
+        self.orient = self.orient.turn_left()
     }
 
     fn turn_right(&mut self) {
-        self.orient = match &self.orient {
-            Orientation::North => Orientation::East,
-            Orientation::East => Orientation::South,
-            Orientation::South => Orientation::West,
-            Orientation::West => Orientation::North,
-        }
+        self.orient = self.orient.turn_right()
     }
 
     fn advance(&mut self) {
         let (x, y): (isize, isize) = match &self.orient {
-            Orientation::North => (0, -1),
-            Orientation::East => (1, 0),
-            Orientation::South => (0, 1),
-            Orientation::West => (-1, 0),
+            Dir::North => (0, -1),
+            Dir::East => (1, 0),
+            Dir::South => (0, 1),
+            Dir::West => (-1, 0),
         };
         self.pos = (self.pos.0 + x, self.pos.1 + y);
     }
@@ -68,7 +52,7 @@ impl Robot {
     fn from_code(code: IntCode, start_on_white: bool) -> Self {
         let position = Position {
             pos: (0, 0),
-            orient: Orientation::North,
+            orient: Dir::North,
         };
         let mut white: HashSet<Pos> = HashSet::new();
         if start_on_white {
