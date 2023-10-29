@@ -1,10 +1,9 @@
 use itertools::MinMaxResult::MinMax;
 use itertools::{Itertools, MinMaxResult};
 use std::collections::{HashMap, HashSet};
+use util::coord::PosI;
 use util::intcode::IntCode;
 use util::orientation::Dir;
-
-type Pos = (isize, isize);
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Tile {
@@ -15,12 +14,12 @@ enum Tile {
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 struct Position {
-    pos: Pos,
+    pos: PosI,
 }
 
 impl Position {
-    fn neighbours(&self) -> Vec<(Pos, Dir)> {
-        let (x, y): (isize, isize) = self.pos;
+    fn neighbours(&self) -> Vec<(PosI, Dir)> {
+        let (x, y): PosI = self.pos;
         vec![
             ((x, y - 1), Dir::North),
             ((x + 1, y), Dir::East),
@@ -29,7 +28,7 @@ impl Position {
         ]
     }
 
-    fn tile_in_dir(&self, dir: &Dir) -> Pos {
+    fn tile_in_dir(&self, dir: &Dir) -> PosI {
         match dir {
             Dir::North => (self.pos.0, self.pos.1 - 1),
             Dir::South => (self.pos.0, self.pos.1 + 1),
@@ -46,8 +45,8 @@ impl Position {
 struct Droid {
     code: IntCode,
     pos: Position,
-    tiles: HashMap<Pos, (Tile, usize)>,
-    finished: HashSet<Pos>,
+    tiles: HashMap<PosI, (Tile, usize)>,
+    finished: HashSet<PosI>,
 }
 
 impl Droid {
@@ -84,7 +83,7 @@ impl Droid {
 
     fn time_to_fill(&self) -> usize {
         let mut time: usize = 0;
-        let mut to_visit: HashSet<Pos> = self
+        let mut to_visit: HashSet<PosI> = self
             .tiles
             .iter()
             .filter_map(|(pos, (tile, _))| {
@@ -132,7 +131,7 @@ impl Droid {
     fn explore(&mut self) {
         //Set origin to empty
         self.tiles.insert(self.pos.pos, (Tile::Empty, 0));
-        let mut ngb: Vec<(Pos, Dir)> = self.pos.neighbours();
+        let mut ngb: Vec<(PosI, Dir)> = self.pos.neighbours();
         while ngb.iter().any(|(p, _)| !self.finished.contains(p)) {
             let move_into: Option<Dir> = ngb.iter().find_map(|(p, d)| {
                 if !self.tiles.contains_key(p) {
@@ -178,7 +177,7 @@ impl Droid {
                 self.tiles.insert(self.pos.pos, (Tile::Oxygen, dist));
             }
             _ => {
-                let wall: Pos = self.pos.tile_in_dir(dir);
+                let wall: PosI = self.pos.tile_in_dir(dir);
                 self.tiles.insert(wall, (Tile::Wall, dist));
                 self.finished.insert(wall);
             }

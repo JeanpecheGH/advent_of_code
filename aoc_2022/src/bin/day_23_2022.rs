@@ -2,10 +2,10 @@ use itertools::Itertools;
 use std::collections::hash_map::Entry::Vacant;
 use std::collections::HashMap;
 use std::str::FromStr;
+use util::coord::Pos;
 use util::orientation::Dir;
 
 const MARGIN: usize = 55;
-type Pos = (usize, usize);
 
 struct Grove {
     grid: Vec<Vec<bool>>,

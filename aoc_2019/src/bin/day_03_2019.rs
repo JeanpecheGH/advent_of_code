@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
+use util::coord::PosI;
 use util::orientation::Dir;
-
-type Pos = (isize, isize);
 
 #[derive(Debug, Copy, Clone)]
 struct Move {
@@ -34,14 +33,14 @@ struct Wires {
 }
 
 impl Wires {
-    fn paths(&self) -> (HashMap<Pos, usize>, HashMap<Pos, usize>) {
-        fn to_path(moves: &[Move]) -> HashMap<Pos, usize> {
-            let mut map: HashMap<Pos, usize> = HashMap::new();
-            let mut current_pos: Pos = (0, 0);
+    fn paths(&self) -> (HashMap<PosI, usize>, HashMap<PosI, usize>) {
+        fn to_path(moves: &[Move]) -> HashMap<PosI, usize> {
+            let mut map: HashMap<PosI, usize> = HashMap::new();
+            let mut current_pos: PosI = (0, 0);
             let mut dist: usize = 0;
             map.insert(current_pos, dist);
             moves.iter().for_each(|m| {
-                let dir: Pos = match m.dir {
+                let dir: PosI = match m.dir {
                     Dir::North => (0, -1),
                     Dir::South => (0, 1),
                     Dir::West => (-1, 0),
@@ -61,9 +60,9 @@ impl Wires {
 
     fn best_crossings(&self) -> (usize, usize) {
         let (wire_1, wire_2) = self.paths();
-        let wire_1_pos: HashSet<Pos> = wire_1.keys().copied().collect();
-        let wire_2_pos: HashSet<Pos> = wire_2.keys().copied().collect();
-        let mut crossings: HashSet<Pos> = wire_1_pos.intersection(&wire_2_pos).copied().collect();
+        let wire_1_pos: HashSet<PosI> = wire_1.keys().copied().collect();
+        let wire_2_pos: HashSet<PosI> = wire_2.keys().copied().collect();
+        let mut crossings: HashSet<PosI> = wire_1_pos.intersection(&wire_2_pos).copied().collect();
         crossings.remove(&(0, 0));
         let nearest_crossing = crossings
             .iter()

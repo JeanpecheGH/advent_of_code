@@ -1,11 +1,10 @@
 use itertools::Itertools;
 use std::str::FromStr;
+use util::coord::{Pos3, Pos4};
 
 const PLANE_SIZE: usize = 19; //limit size of the starting plane (x and y)
 const HYPER_SIZE: usize = 14; //limit size of the additional dimensions (z and w)
 const NB_CYCLE: usize = 6;
-type Pos3D = (usize, usize, usize);
-type Pos4D = (usize, usize, usize, usize);
 
 struct Pocket3D {
     space: [[[bool; PLANE_SIZE]; PLANE_SIZE]; HYPER_SIZE],
@@ -34,7 +33,7 @@ impl Pocket3D {
         self.space = new_space;
     }
 
-    fn active_ngb(&self, pos: &Pos3D) -> usize {
+    fn active_ngb(&self, pos: &Pos3) -> usize {
         Self::neighbours(pos)
             .into_iter()
             .map(|(x, y, z)| self.space[z][y][x])
@@ -42,7 +41,7 @@ impl Pocket3D {
             .count()
     }
 
-    fn neighbours(pos: &Pos3D) -> Vec<Pos3D> {
+    fn neighbours(pos: &Pos3) -> Vec<Pos3> {
         let (x, y, z) = *pos;
         (x - 1..=x + 1)
             .cartesian_product((y - 1..=y + 1).cartesian_product(z - 1..=z + 1))
@@ -118,7 +117,7 @@ impl Pocket4D {
         self.space = new_space;
     }
 
-    fn active_ngb(&self, pos: &Pos4D) -> usize {
+    fn active_ngb(&self, pos: &Pos4) -> usize {
         Self::neighbours(pos)
             .into_iter()
             .map(|(x, y, z, w)| self.space[w][z][y][x])
@@ -126,7 +125,7 @@ impl Pocket4D {
             .count()
     }
 
-    fn neighbours(pos: &Pos4D) -> Vec<Pos4D> {
+    fn neighbours(pos: &Pos4) -> Vec<Pos4> {
         let (x, y, z, w) = *pos;
         (x - 1..=x + 1)
             .cartesian_product(

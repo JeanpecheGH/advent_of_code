@@ -1,4 +1,5 @@
 pub mod chinese_remainders;
+pub mod coord;
 pub mod intcode;
 pub mod orientation;
 pub mod registry;

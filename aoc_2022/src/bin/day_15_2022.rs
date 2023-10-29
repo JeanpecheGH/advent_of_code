@@ -1,20 +1,20 @@
 use std::cmp::max;
 use std::collections::HashSet;
 use std::str::FromStr;
+use util::coord::PosI;
 
-type Pos = (isize, isize);
 const MIN: isize = 0;
 const MAX: isize = 4_000_000;
 
 #[derive(Debug)]
 struct Sensor {
-    pos: Pos,
-    beacon: Pos,
+    pos: PosI,
+    beacon: PosI,
     max_range: isize,
 }
 
 impl Sensor {
-    fn new(pos: (isize, isize), beacon: (isize, isize)) -> Self {
+    fn new(pos: PosI, beacon: PosI) -> Self {
         let max_range: isize = (pos.0.abs_diff(beacon.0) + pos.1.abs_diff(beacon.1)) as isize;
         Self {
             pos,
@@ -23,7 +23,7 @@ impl Sensor {
         }
     }
 
-    fn covered_range(&self, line: isize) -> Option<(isize, isize)> {
+    fn covered_range(&self, line: isize) -> Option<PosI> {
         let x: isize = self.pos.0;
         let dist_to_line: isize = self.pos.1.abs_diff(line) as isize;
         if self.max_range >= dist_to_line {
@@ -82,7 +82,7 @@ impl SensorSystem {
         let ranges = self.sorted_ranges(line);
 
         let mut cnt: isize = 0;
-        let (mut acc_start, mut acc_end): (isize, isize) = (isize::MIN, isize::MIN);
+        let (mut acc_start, mut acc_end): PosI = (isize::MIN, isize::MIN);
         for (r_start, r_end) in ranges {
             if r_start > acc_end {
                 cnt += acc_end - acc_start;
@@ -96,8 +96,8 @@ impl SensorSystem {
         cnt
     }
 
-    fn sorted_ranges(&self, line: isize) -> Vec<(isize, isize)> {
-        let mut ranges: Vec<(isize, isize)> = self
+    fn sorted_ranges(&self, line: isize) -> Vec<PosI> {
+        let mut ranges: Vec<PosI> = self
             .sensors
             .iter()
             .flat_map(|s| s.covered_range(line))
@@ -141,7 +141,7 @@ fn main() {
     let nb_forbidden: isize = system.forbidden_pos(2_000_000);
     println!("Part1: {nb_forbidden} positions cannot contain a beacon on line 2000000");
 
-    let pos: (isize, isize) = (MIN..=MAX)
+    let pos: PosI = (MIN..=MAX)
         .find_map(|y| system.distress_beacon(y, MIN, MAX).map(|x| (x, y)))
         .unwrap();
     println!(
@@ -182,7 +182,7 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
     #[test]
     fn part_2() {
         let system: SensorSystem = INPUT.parse().unwrap();
-        let pos: (isize, isize) = (MIN..=TEST_MAX)
+        let pos: PosI = (MIN..=TEST_MAX)
             .find_map(|y| system.distress_beacon(y, MIN, TEST_MAX).map(|x| (x, y)))
             .unwrap();
         let tuning_freq = pos.0 * MAX + pos.1;

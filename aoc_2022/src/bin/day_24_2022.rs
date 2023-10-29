@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::str::FromStr;
-
-type Pos = (usize, usize);
+use util::coord::Pos;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct Blizzards {
@@ -201,7 +200,7 @@ fn main() {
     );
     let target_again: Expedition = basin.a_star(start_again, false);
     println!(
-        "Part1: You take {} total minutes to reach the target after going back to get the snack of this silly Elf",
+        "Part2: You take {} total minutes to reach the target after going back to get the snack of this silly Elf",
         target_again.time
     );
     println!("Computing time: {:?}", now.elapsed());

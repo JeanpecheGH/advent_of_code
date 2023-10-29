@@ -1,3 +1,5 @@
+use util::coord::Pos;
+
 #[derive(Debug, Copy, Clone)]
 struct Server {
     size: usize,
@@ -7,7 +9,7 @@ struct Server {
 fn main() {
     let s = util::file_as_string("aoc_2016/input/day_22.txt").expect("Cannot open input file");
 
-    let pos_servers: Vec<((usize, usize), Server)> = s
+    let pos_servers: Vec<(Pos, Server)> = s
         .lines()
         .map(|s| {
             let words: Vec<&str> = s.split_whitespace().collect();

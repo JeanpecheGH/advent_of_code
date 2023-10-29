@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 use std::str::FromStr;
+use util::coord::Pos;
 
-type Pos = (usize, usize);
 const MARGIN: usize = 10;
 const SECOND_PART_MARGIN: usize = 200;
 const FLOOR_MARGIN: usize = 3;

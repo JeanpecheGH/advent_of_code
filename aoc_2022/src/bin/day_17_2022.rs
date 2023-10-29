@@ -1,6 +1,6 @@
 use std::str::FromStr;
+use util::coord::Pos;
 
-type Pos = (usize, usize);
 const ROCK_SIZE: usize = 4;
 const ROCK_NB: usize = 5;
 const WIDTH: usize = 7;

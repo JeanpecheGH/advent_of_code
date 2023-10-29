@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::str::FromStr;
-
-type Pos = (isize, isize);
+use util::coord::PosI;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct Slope {
@@ -10,7 +9,7 @@ struct Slope {
 }
 
 impl Slope {
-    fn from_pos(orig: Pos, target: Pos) -> Self {
+    fn from_pos(orig: PosI, target: PosI) -> Self {
         let x: isize = target.0 - orig.0;
         let y: isize = target.1 - orig.1;
 
@@ -44,7 +43,7 @@ impl Slope {
 }
 
 struct AsteroidField {
-    asteroids: Vec<Pos>,
+    asteroids: Vec<PosI>,
 }
 
 impl AsteroidField {
@@ -52,19 +51,19 @@ impl AsteroidField {
         let (nb_ast, mut vec) = self.best_asteroid();
         vec.sort_by(|(a, _), (b, _)| a.score().total_cmp(&b.score()));
         vec.reverse();
-        let pos: Pos = vec[199].1;
+        let pos: PosI = vec[199].1;
         (nb_ast, (pos.0 * 100 + pos.1) as usize)
     }
 
-    fn best_asteroid(&self) -> (usize, Vec<(Slope, Pos)>) {
-        fn dist(a: &Pos, b: &Pos) -> usize {
+    fn best_asteroid(&self) -> (usize, Vec<(Slope, PosI)>) {
+        fn dist(a: &PosI, b: &PosI) -> usize {
             a.0.abs_diff(b.0) + a.1.abs_diff(b.1)
         }
 
         self.asteroids
             .iter()
             .map(|ast| {
-                let mut slope_map: HashMap<Slope, Pos> = HashMap::new();
+                let mut slope_map: HashMap<Slope, PosI> = HashMap::new();
                 self.asteroids.iter().filter(|p| *ast != **p).for_each(|p| {
                     let s: Slope = Slope::from_pos(*ast, *p);
                     let e = slope_map.entry(s).or_insert(*p);
@@ -72,7 +71,7 @@ impl AsteroidField {
                         *e = *p;
                     }
                 });
-                let slopes: Vec<(Slope, Pos)> = slope_map.into_iter().collect();
+                let slopes: Vec<(Slope, PosI)> = slope_map.into_iter().collect();
                 (slopes.len(), slopes)
             })
             .max_by(|(a, _), (b, _)| a.cmp(b))
@@ -84,7 +83,7 @@ impl FromStr for AsteroidField {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let asteroids: Vec<Pos> = s
+        let asteroids: Vec<PosI> = s
             .lines()
             .enumerate()
             .flat_map(|(j, row)| {
@@ -97,7 +96,7 @@ impl FromStr for AsteroidField {
                             None
                         }
                     })
-                    .collect::<Vec<Pos>>()
+                    .collect::<Vec<PosI>>()
             })
             .collect();
         Ok(Self { asteroids })

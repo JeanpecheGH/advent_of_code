@@ -1,20 +1,21 @@
 use std::collections::HashSet;
 use std::str::FromStr;
+use util::coord::PosI;
 
 const DAYS: usize = 100;
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 struct Tile {
-    coords: (isize, isize),
+    coords: PosI,
 }
 
 impl Tile {
     fn neighbours(&self) -> Vec<Tile> {
-        let moves: Vec<(isize, isize)> = vec![(0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1)];
+        let moves: Vec<PosI> = vec![(0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1)];
         moves
             .into_iter()
             .map(|(x, y)| {
-                let coords: (isize, isize) = (x + self.coords.0, y + self.coords.1);
+                let coords: PosI = (x + self.coords.0, y + self.coords.1);
                 Tile { coords }
             })
             .collect()

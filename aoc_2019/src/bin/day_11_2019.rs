@@ -1,14 +1,14 @@
 use itertools::MinMaxResult::MinMax;
 use itertools::{Itertools, MinMaxResult};
 use std::collections::HashSet;
+use util::coord::PosI;
 use util::intcode::IntCode;
 use util::orientation::Dir;
 
-type Pos = (isize, isize);
 type Err = ();
 
 struct Position {
-    pos: Pos,
+    pos: PosI,
     orient: Dir,
 }
 
@@ -31,7 +31,7 @@ impl Position {
     }
 
     fn advance(&mut self) {
-        let (x, y): (isize, isize) = match &self.orient {
+        let (x, y): PosI = match &self.orient {
             Dir::North => (0, -1),
             Dir::East => (1, 0),
             Dir::South => (0, 1),
@@ -43,8 +43,8 @@ impl Position {
 
 struct Robot {
     position: Position,
-    painted: HashSet<Pos>,
-    white: HashSet<Pos>,
+    painted: HashSet<PosI>,
+    white: HashSet<PosI>,
     code: IntCode,
 }
 
@@ -54,7 +54,7 @@ impl Robot {
             pos: (0, 0),
             orient: Dir::North,
         };
-        let mut white: HashSet<Pos> = HashSet::new();
+        let mut white: HashSet<PosI> = HashSet::new();
         if start_on_white {
             white.insert((0, 0));
         }
@@ -67,7 +67,7 @@ impl Robot {
     }
 
     fn paint_one(&mut self) -> Result<(), Err> {
-        let pos: Pos = self.position.pos;
+        let pos: PosI = self.position.pos;
         let input: isize = self.white.contains(&pos) as isize;
         self.code.compute(&mut vec![input]);
         let turn: isize = self.code.output.pop().ok_or(())?;
@@ -97,12 +97,12 @@ impl Robot {
     fn print(&self) {
         let min_max_x: MinMaxResult<isize> = self.white.iter().map(|pos| pos.0).minmax();
         let min_max_y: MinMaxResult<isize> = self.white.iter().map(|pos| pos.1).minmax();
-        let (min_x, max_x): (isize, isize) = if let MinMax(a, b) = min_max_x {
+        let (min_x, max_x): PosI = if let MinMax(a, b) = min_max_x {
             (a, b)
         } else {
             (0, 0)
         };
-        let (min_y, max_y): (isize, isize) = if let MinMax(a, b) = min_max_y {
+        let (min_y, max_y): PosI = if let MinMax(a, b) = min_max_y {
             (a, b)
         } else {
             (0, 0)

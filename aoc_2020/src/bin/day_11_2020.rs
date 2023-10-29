@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use util::coord::PosI;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Seat {
@@ -32,7 +33,7 @@ impl WaitingArea {
         }
         WaitingArea { seats: new_seats }
     }
-    fn nb_occupied_neighbours(&self, node: Node, stop_at_first: bool) -> usize {
+    fn nb_occupied_neighbours(&self, node: PosI, stop_at_first: bool) -> usize {
         let max_x: usize = self.seats[0].len();
         let max_y: usize = self.seats.len();
         if stop_at_first {
@@ -46,15 +47,15 @@ impl WaitingArea {
         }
     }
 
-    fn distant_neighbours(&self, node: Node, max_x: isize, max_y: isize) -> usize {
-        let directions: Vec<Node> = (-1..=1)
+    fn distant_neighbours(&self, node: PosI, max_x: isize, max_y: isize) -> usize {
+        let directions: Vec<PosI> = (-1..=1)
             .cartesian_product(-1..=1)
             .filter(|&(x, y)| x != 0 || y != 0)
             .collect();
         directions
             .iter()
             .filter_map(|&(x, y)| {
-                let mut n: Node = (node.0 + x, node.1 + y);
+                let mut n: PosI = (node.0 + x, node.1 + y);
                 while n.0 >= 0
                     && n.0 < max_x
                     && n.1 >= 0
@@ -77,7 +78,7 @@ impl WaitingArea {
             .count()
     }
 
-    fn neighbours(node: Node, max_x: isize, max_y: isize) -> Vec<Node> {
+    fn neighbours(node: PosI, max_x: isize, max_y: isize) -> Vec<PosI> {
         (node.0 - 1..=node.0 + 1)
             .cartesian_product(node.1 - 1..=node.1 + 1)
             .filter(|&(x, y)| {
@@ -117,8 +118,6 @@ impl WaitingArea {
         println!();
     }
 }
-
-type Node = (isize, isize);
 
 fn main() {
     let s = util::file_as_string("aoc_2020/input/day_11.txt").expect("Cannot open input file");

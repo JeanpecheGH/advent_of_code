@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::str::FromStr;
+use util::coord::Pos3;
 
-type Pos3D = (usize, usize, usize);
 const MAX_COORD: usize = 25;
 
 #[derive(Debug)]
@@ -28,15 +28,15 @@ impl Lava {
 
     fn outer_surface(&self) -> usize {
         //Fill the structure with steam every where it can access
-        let mut steam: HashSet<Pos3D> = HashSet::new();
+        let mut steam: HashSet<Pos3> = HashSet::new();
         steam.insert((0, 0, 0));
 
-        let mut current: Vec<Pos3D> = vec![(0, 0, 0)];
+        let mut current: Vec<Pos3> = vec![(0, 0, 0)];
         while !current.is_empty() {
             current = current
                 .into_iter()
                 .flat_map(|drop| {
-                    let new_drops: Vec<Pos3D> = Self::neighbours(drop)
+                    let new_drops: Vec<Pos3> = Self::neighbours(drop)
                         .into_iter()
                         .filter(|(x, y, z)| !self.droplets[*x][*y][*z])
                         .collect();
@@ -65,15 +65,15 @@ impl Lava {
         outer_surface
     }
 
-    fn nb_neighbours(&self, drop: Pos3D) -> usize {
-        let ngbs: Vec<Pos3D> = Self::neighbours(drop);
+    fn nb_neighbours(&self, drop: Pos3) -> usize {
+        let ngbs: Vec<Pos3> = Self::neighbours(drop);
         ngbs.iter()
             .filter(|(i, j, k)| self.droplets[*i][*j][*k])
             .count()
     }
 
-    fn neighbours((x, y, z): Pos3D) -> Vec<Pos3D> {
-        let mut ngbs: Vec<Pos3D> = Vec::new();
+    fn neighbours((x, y, z): Pos3) -> Vec<Pos3> {
+        let mut ngbs: Vec<Pos3> = Vec::new();
         if x > 0 {
             ngbs.push((x - 1, y, z));
         }
@@ -100,7 +100,7 @@ impl FromStr for Lava {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let droplets: Vec<Pos3D> = s
+        let droplets: Vec<Pos3> = s
             .lines()
             .map(|l| {
                 let ns: Vec<&str> = l.split(',').collect();

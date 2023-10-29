@@ -1,7 +1,6 @@
 use std::cmp::max;
 use std::collections::HashSet;
-
-type Pos = (usize, usize);
+use util::coord::Pos;
 
 #[derive(Debug)]
 struct Terrain {

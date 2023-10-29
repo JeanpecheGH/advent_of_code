@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::str::FromStr;
+use util::coord::PosI;
 use util::orientation::Dir;
 
 struct Move {
@@ -25,8 +26,8 @@ impl FromStr for Move {
 }
 
 struct Rope {
-    knots: Vec<(isize, isize)>,
-    tail_positions: HashSet<(isize, isize)>,
+    knots: Vec<PosI>,
+    tail_positions: HashSet<PosI>,
 }
 
 impl Rope {
@@ -35,7 +36,7 @@ impl Rope {
     }
 
     fn move_one(&mut self, dir: &Dir) {
-        let (x, y): (isize, isize) = self.knots[0];
+        let (x, y): PosI = self.knots[0];
         match dir {
             Dir::West => self.knots[0] = (x - 1, y),
             Dir::East => self.knots[0] = (x + 1, y),
@@ -48,8 +49,8 @@ impl Rope {
     }
 
     fn follow_tail(&mut self, idx: usize) {
-        let (x, y): (isize, isize) = self.knots[idx - 1];
-        let (i, j): (isize, isize) = self.knots[idx];
+        let (x, y): PosI = self.knots[idx - 1];
+        let (i, j): PosI = self.knots[idx];
         match (x.abs_diff(i), y.abs_diff(j)) {
             (2, 2) => self.knots[idx] = ((x + i) / 2, (y + j) / 2),
             (2, _) => self.knots[idx] = ((x + i) / 2, y),

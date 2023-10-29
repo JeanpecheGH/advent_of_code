@@ -1,12 +1,11 @@
 use std::cmp::Ordering;
 use std::str::FromStr;
-
-type Pos3 = (isize, isize, isize);
+use util::coord::{Pos3, Pos3I};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Moon {
-    pos: Pos3,
-    velocity: Pos3,
+    pos: Pos3I,
+    velocity: Pos3I,
 }
 
 impl Moon {
@@ -59,8 +58,8 @@ impl FromStr for Moon {
         let x: isize = words[1].parse().unwrap();
         let y: isize = words[3].parse().unwrap();
         let z: isize = words[5].parse().unwrap();
-        let pos: Pos3 = (x, y, z);
-        let velocity: Pos3 = (0, 0, 0);
+        let pos: Pos3I = (x, y, z);
+        let velocity: Pos3I = (0, 0, 0);
         Ok(Self { pos, velocity })
     }
 }
@@ -97,7 +96,7 @@ impl System {
         let start_vel_y: Vec<isize> = self.moons.iter().map(|moon| moon.velocity.1).collect();
         let start_vel_z: Vec<isize> = self.moons.iter().map(|moon| moon.velocity.2).collect();
 
-        let (mut x_cycle, mut y_cycle, mut z_cycle): (usize, usize, usize) = (0, 0, 0);
+        let (mut x_cycle, mut y_cycle, mut z_cycle): Pos3 = (0, 0, 0);
 
         let mut i: usize = 0;
         loop {

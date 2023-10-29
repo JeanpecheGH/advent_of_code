@@ -1,16 +1,17 @@
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use util::coord::Pos;
 
 const SIZE: usize = 50;
 
 #[derive(Debug)]
 struct Node {
-    pos: (usize, usize),
+    pos: Pos,
     depth: usize,
 }
 
 impl Node {
-    fn score(&self, (x, y): (usize, usize)) -> usize {
+    fn score(&self, (x, y): Pos) -> usize {
         let dist: usize = Self::dist_abs(x, self.pos.0) + Self::dist_abs(y, self.pos.1);
         dist + self.depth
     }
@@ -23,7 +24,7 @@ impl Node {
         }
     }
 
-    fn eq(&self, target: (usize, usize)) -> bool {
+    fn eq(&self, target: Pos) -> bool {
         self.pos == target
     }
 }
@@ -34,7 +35,7 @@ struct Maze {
 }
 
 impl Maze {
-    fn get(&mut self, (x, y): (usize, usize)) -> bool {
+    fn get(&mut self, (x, y): Pos) -> bool {
         match self.grid[y][x] {
             Some(b) => b,
             None => {
@@ -45,7 +46,7 @@ impl Maze {
         }
     }
 
-    fn is_open((x, y): (usize, usize), seed: usize) -> bool {
+    fn is_open((x, y): Pos, seed: usize) -> bool {
         let s: usize = x * x + 3 * x + 2 * x * y + y + y * y + seed;
         s.count_ones() % 2 == 0
     }
@@ -68,7 +69,7 @@ impl Maze {
 fn main() {
     //Input Data//
     let seed: usize = 1350;
-    let target: (usize, usize) = (31, 39);
+    let target: Pos = (31, 39);
     //////////////
 
     let mut maze: Maze = Maze {
@@ -77,7 +78,7 @@ fn main() {
     };
 
     //Part1: Depth First Search
-    let mut visited_nodes: HashSet<(usize, usize)> = HashSet::from([(1, 1)]);
+    let mut visited_nodes: HashSet<Pos> = HashSet::from([(1, 1)]);
     let mut current_nodes: Vec<Node> = vec![Node {
         pos: (1, 1),
         depth: 0,
@@ -115,8 +116,8 @@ fn main() {
         seed,
         grid: [[None; SIZE]; SIZE],
     };
-    let mut visited_nodes: HashSet<(usize, usize)> = HashSet::from([(1, 1)]);
-    let mut current_nodes: Vec<(usize, usize)> = vec![(1, 1)];
+    let mut visited_nodes: HashSet<Pos> = HashSet::from([(1, 1)]);
+    let mut current_nodes: Vec<Pos> = vec![(1, 1)];
     for _ in 0..50 {
         current_nodes = current_nodes
             .into_iter()
@@ -132,7 +133,7 @@ fn main() {
     maze.print();
 }
 
-fn neighbours((x, y): (usize, usize)) -> Vec<(usize, usize)> {
+fn neighbours((x, y): Pos) -> Vec<Pos> {
     match (x, y) {
         (0, 0) => vec![(0, 1), (1, 0)],
         (0, _) => vec![(0, y - 1), (0, y + 1), (1, y)],

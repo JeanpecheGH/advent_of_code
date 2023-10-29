@@ -1,11 +1,10 @@
 use itertools::Itertools;
 use std::str::FromStr;
+use util::coord::Pos;
 use util::orientation::Dir;
 
 const HEIGHT: usize = 200;
 const WIDTH: usize = 150;
-
-type Pos = (usize, usize);
 
 #[derive(Debug, Copy, Clone)]
 enum Op {
