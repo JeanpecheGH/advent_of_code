@@ -1,6 +1,7 @@
 use crate::Step::{Advance, Left, Right};
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use util::coord::Pos;
 use util::intcode::IntCode;
 use util::orientation::Dir;
@@ -187,6 +188,74 @@ impl Scaffolding {
     }
 }
 
+struct Movement {
+    routine: String,
+    function_a: String,
+    function_b: String,
+    function_c: String,
+}
+
+impl Movement {
+    fn to_input(&self) -> Vec<isize> {
+        let input: String = format!(
+            "{}\n{}\n{}\n{}\nn\n",
+            self.routine, self.function_a, self.function_b, self.function_c
+        );
+        input.as_bytes().iter().map(|b| *b as isize).collect()
+    }
+}
+
+impl FromStr for Movement {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        fn has_pattern(path: String, acc: Vec<String>) -> Option<Vec<String>> {
+            let mut fun_len = 20;
+            while fun_len > 0 {
+                let mut rest = path.clone();
+                let slice: String = rest[..fun_len].to_string();
+                let last: char = slice.chars().last().unwrap();
+                if last.is_ascii_digit() && rest[fun_len..].contains(&slice) {
+                    rest = rest.replace(&slice, "").replace(",,", ",");
+                    rest = rest.strip_prefix(',').unwrap_or(&rest).to_string();
+                    rest = rest.strip_suffix(',').unwrap_or(&rest).to_string();
+
+                    let mut new_acc: Vec<String> = acc.clone();
+                    new_acc.push(slice);
+                    //End condition
+                    if acc.len() == 2 {
+                        if rest.is_empty() {
+                            return Some(new_acc);
+                        }
+                    } else if let Some(v) = has_pattern(rest.clone(), new_acc) {
+                        return Some(v);
+                    }
+                }
+                fun_len -= 1;
+            }
+            None
+        }
+
+        if let Some(f) = has_pattern(s.to_string(), Vec::new()) {
+            let routine = s
+                .replace(&f[0], "A")
+                .replace(&f[1], "B")
+                .replace(&f[2], "C");
+
+            let mut iter = f.into_iter();
+
+            Ok(Movement {
+                routine,
+                function_a: iter.next().unwrap(),
+                function_b: iter.next().unwrap(),
+                function_c: iter.next().unwrap(),
+            })
+        } else {
+            Err(())
+        }
+    }
+}
+
 fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2019/input/day_17.txt").expect("Cannot open input file");
@@ -208,21 +277,11 @@ fn main() {
         scaffolding.robot_path()
     );
     let p = scaffolding.robot_path();
-    let a = "R,4,R,12,R,10,L,12";
-    let b = "L,12,R,4,R,12";
-    let c = "L,12,L,8,R,10";
+    let movements: Movement = Movement::from_str(&p).unwrap();
 
-    let p_abc = p.replace(a, "A").replace(b, "B").replace(c, "C");
-
-    println!(
-        "Replacing\nA: {}\nB: {}\nC: {}\nEncoded path is: {}",
-        a, b, c, p_abc
-    );
     //Change first op to "2"
     code_2.ops[0] = 2;
-    let input: String = format!("{p_abc}\n{a}\n{b}\n{c}\nn\n");
-    let mut input_bytes: Vec<isize> = input.as_bytes().iter().map(|b| *b as isize).collect();
-    code_2.compute(&mut input_bytes);
+    code_2.compute(&mut movements.to_input());
     println!(
         "Part2: The vacuum robot collected {} dust",
         code_2.output.last().unwrap()
