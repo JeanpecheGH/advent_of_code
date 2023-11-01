@@ -36,18 +36,18 @@ impl Wires {
     fn paths(&self) -> (HashMap<PosI, usize>, HashMap<PosI, usize>) {
         fn to_path(moves: &[Move]) -> HashMap<PosI, usize> {
             let mut map: HashMap<PosI, usize> = HashMap::new();
-            let mut current_pos: PosI = (0, 0);
+            let mut current_pos: PosI = PosI(0, 0);
             let mut dist: usize = 0;
             map.insert(current_pos, dist);
             moves.iter().for_each(|m| {
                 let dir: PosI = match m.dir {
-                    Dir::North => (0, -1),
-                    Dir::South => (0, 1),
-                    Dir::West => (-1, 0),
-                    Dir::East => (1, 0),
+                    Dir::North => PosI(0, -1),
+                    Dir::South => PosI(0, 1),
+                    Dir::West => PosI(-1, 0),
+                    Dir::East => PosI(1, 0),
                 };
                 for _ in 0..m.len {
-                    current_pos = (current_pos.0 + dir.0, current_pos.1 + dir.1);
+                    current_pos = PosI(current_pos.0 + dir.0, current_pos.1 + dir.1);
                     dist += 1;
                     map.insert(current_pos, dist);
                 }
@@ -63,10 +63,10 @@ impl Wires {
         let wire_1_pos: HashSet<PosI> = wire_1.keys().copied().collect();
         let wire_2_pos: HashSet<PosI> = wire_2.keys().copied().collect();
         let mut crossings: HashSet<PosI> = wire_1_pos.intersection(&wire_2_pos).copied().collect();
-        crossings.remove(&(0, 0));
+        crossings.remove(&PosI(0, 0));
         let nearest_crossing = crossings
             .iter()
-            .map(|&(x, y)| x.unsigned_abs() + y.unsigned_abs())
+            .map(|&PosI(x, y)| x.unsigned_abs() + y.unsigned_abs())
             .min()
             .unwrap();
 

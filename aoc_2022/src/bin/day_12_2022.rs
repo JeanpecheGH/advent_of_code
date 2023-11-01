@@ -61,7 +61,7 @@ impl Terrain {
             //Remove nodes that are too high
             .filter(|(_, _, h)| *h <= node.height + 1)
             .map(|(i, j, h)| Node {
-                pos: (i, j),
+                pos: Pos(i, j),
                 dist: node.dist + 1,
                 height: h,
             })
@@ -97,8 +97,8 @@ impl Node {
 fn main() {
     let s = util::file_as_string("aoc_2022/input/day_12.txt").expect("Cannot open input file");
 
-    let mut start: Pos = (0, 0);
-    let mut end: Pos = (0, 0);
+    let mut start: Pos = Pos(0, 0);
+    let mut end: Pos = Pos(0, 0);
     let grid: Vec<Vec<u8>> = s
         .lines()
         .enumerate()
@@ -108,11 +108,11 @@ fn main() {
                 .map(|(i, c)| match c {
                     b'a'..=b'z' => c - b'a',
                     b'S' => {
-                        start = (i, j);
+                        start = Pos(i, j);
                         0
                     }
                     b'E' => {
-                        end = (i, j);
+                        end = Pos(i, j);
                         b'z' - b'a'
                     }
                     _ => 0,
@@ -134,7 +134,7 @@ fn main() {
     let now = std::time::Instant::now();
     //Candidates to this starting position are all at x=0
     //All the other 'a's are surrounded by 'c's
-    let starts: Vec<Pos> = (0..terrain.height()).map(|j| (0, j)).collect();
+    let starts: Vec<Pos> = (0..terrain.height()).map(|j| Pos(0, j)).collect();
 
     let shortest_path: usize = starts.iter().map(|pos| terrain.a_star(pos)).min().unwrap();
     println!("Part2: The shortest path from the top of the mountain to the nearest low level tile takes {} steps (found in {:?})", shortest_path, now.elapsed());

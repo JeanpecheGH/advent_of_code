@@ -23,7 +23,7 @@ impl Pocket3D {
         for (k, plane) in self.space.iter().enumerate().skip(1) {
             for (j, row) in plane.iter().enumerate().skip(1) {
                 for (i, &cube) in row.iter().enumerate().skip(1) {
-                    match (cube, self.active_ngb(&(i, j, k))) {
+                    match (cube, self.active_ngb(&Pos3(i, j, k))) {
                         (true, 2..=3) | (false, 3) => new_space[k][j][i] = true,
                         _ => (),
                     }
@@ -36,18 +36,18 @@ impl Pocket3D {
     fn active_ngb(&self, pos: &Pos3) -> usize {
         Self::neighbours(pos)
             .into_iter()
-            .map(|(x, y, z)| self.space[z][y][x])
+            .map(|Pos3(x, y, z)| self.space[z][y][x])
             .filter(|b| *b)
             .count()
     }
 
     fn neighbours(pos: &Pos3) -> Vec<Pos3> {
-        let (x, y, z) = *pos;
+        let Pos3(x, y, z) = *pos;
         (x - 1..=x + 1)
             .cartesian_product((y - 1..=y + 1).cartesian_product(z - 1..=z + 1))
-            .map(|(i, (j, k))| (i, j, k))
-            .filter(|&(i, j, k)| i != x || j != y || k != z)
-            .filter(|&(i, j, k)| i < PLANE_SIZE && j < PLANE_SIZE && k < HYPER_SIZE)
+            .map(|(i, (j, k))| Pos3(i, j, k))
+            .filter(|&Pos3(i, j, k)| i != x || j != y || k != z)
+            .filter(|&Pos3(i, j, k)| i < PLANE_SIZE && j < PLANE_SIZE && k < HYPER_SIZE)
             .collect()
     }
 
@@ -106,7 +106,7 @@ impl Pocket4D {
             for (k, plane) in space.iter().enumerate().skip(1) {
                 for (j, row) in plane.iter().enumerate().skip(1) {
                     for (i, &cube) in row.iter().enumerate().skip(1) {
-                        match (cube, self.active_ngb(&(i, j, k, l))) {
+                        match (cube, self.active_ngb(&Pos4(i, j, k, l))) {
                             (true, 2..=3) | (false, 3) => new_space[l][k][j][i] = true,
                             _ => (),
                         }
@@ -120,20 +120,20 @@ impl Pocket4D {
     fn active_ngb(&self, pos: &Pos4) -> usize {
         Self::neighbours(pos)
             .into_iter()
-            .map(|(x, y, z, w)| self.space[w][z][y][x])
+            .map(|Pos4(x, y, z, w)| self.space[w][z][y][x])
             .filter(|b| *b)
             .count()
     }
 
     fn neighbours(pos: &Pos4) -> Vec<Pos4> {
-        let (x, y, z, w) = *pos;
+        let Pos4(x, y, z, w) = *pos;
         (x - 1..=x + 1)
             .cartesian_product(
                 (y - 1..=y + 1).cartesian_product((z - 1..=z + 1).cartesian_product(w - 1..=w + 1)),
             )
-            .map(|(i, (j, (k, l)))| (i, j, k, l))
-            .filter(|&(i, j, k, l)| i != x || j != y || k != z || l != w)
-            .filter(|&(i, j, k, l)| {
+            .map(|(i, (j, (k, l)))| Pos4(i, j, k, l))
+            .filter(|&Pos4(i, j, k, l)| i != x || j != y || k != z || l != w)
+            .filter(|&Pos4(i, j, k, l)| {
                 i < PLANE_SIZE && j < PLANE_SIZE && k < HYPER_SIZE && l < HYPER_SIZE
             })
             .collect()

@@ -28,7 +28,7 @@ impl Sensor {
         let dist_to_line: isize = self.pos.1.abs_diff(line) as isize;
         if self.max_range >= dist_to_line {
             let side_range = self.max_range - dist_to_line;
-            Some((x - side_range, x + side_range + 1))
+            Some(PosI(x - side_range, x + side_range + 1))
         } else {
             None
         }
@@ -52,7 +52,10 @@ impl FromStr for Sensor {
         let y_sensor: isize = words[6].parse().unwrap();
         let x_beacon: isize = words[13].parse().unwrap();
         let y_beacon: isize = words[16].parse().unwrap();
-        Ok(Self::new((x_sensor, y_sensor), (x_beacon, y_beacon)))
+        Ok(Self::new(
+            PosI(x_sensor, y_sensor),
+            PosI(x_beacon, y_beacon),
+        ))
     }
 }
 
@@ -65,7 +68,7 @@ impl SensorSystem {
         let ranges = self.sorted_ranges(line);
 
         let mut acc_end: isize = isize::MIN;
-        for (r_start, r_end) in ranges {
+        for PosI(r_start, r_end) in ranges {
             if r_start == (acc_end + 1) && (min_x..=max_x).contains(&acc_end) {
                 return Some(acc_end);
             }
@@ -82,8 +85,8 @@ impl SensorSystem {
         let ranges = self.sorted_ranges(line);
 
         let mut cnt: isize = 0;
-        let (mut acc_start, mut acc_end): PosI = (isize::MIN, isize::MIN);
-        for (r_start, r_end) in ranges {
+        let PosI(mut acc_start, mut acc_end): PosI = PosI(isize::MIN, isize::MIN);
+        for PosI(r_start, r_end) in ranges {
             if r_start > acc_end {
                 cnt += acc_end - acc_start;
                 (acc_start, acc_end) = (r_start, r_end);
@@ -142,7 +145,7 @@ fn main() {
     println!("Part1: {nb_forbidden} positions cannot contain a beacon on line 2000000");
 
     let pos: PosI = (MIN..=MAX)
-        .find_map(|y| system.distress_beacon(y, MIN, MAX).map(|x| (x, y)))
+        .find_map(|y| system.distress_beacon(y, MIN, MAX).map(|x| PosI(x, y)))
         .unwrap();
     println!(
         "Part2: The distress beacon coordinates are {:?}, its tuning frequency is {}",
@@ -183,7 +186,7 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
     fn part_2() {
         let system: SensorSystem = INPUT.parse().unwrap();
         let pos: PosI = (MIN..=TEST_MAX)
-            .find_map(|y| system.distress_beacon(y, MIN, TEST_MAX).map(|x| (x, y)))
+            .find_map(|y| system.distress_beacon(y, MIN, TEST_MAX).map(|x| PosI(x, y)))
             .unwrap();
         let tuning_freq = pos.0 * MAX + pos.1;
         assert_eq!(pos, (14, 11));

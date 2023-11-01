@@ -51,7 +51,7 @@ impl Labyrinth {
            DE.
            F..
         */
-        let (x, y) = self.pos;
+        let (x, y) = (self.pos.0, self.pos.1);
         let (n_x, n_y, n_orient) = match (x, y, &self.dir) {
             (51..=100, 1, Dir::North) => (1, x + 100, Dir::East), //A to F
             (101..=150, 1, Dir::North) => (x - 100, 200, Dir::North), //B to F
@@ -74,14 +74,14 @@ impl Labyrinth {
         };
 
         if let Some(false) = self.grid[n_y][n_x] {
-            self.pos = (n_x, n_y);
+            self.pos = Pos(n_x, n_y);
             self.dir = n_orient;
         }
         //Else we're stuck in a wall. Don't move
     }
 
     fn advance_one(&mut self) {
-        let (x, y) = self.pos;
+        let (x, y) = (self.pos.0, self.pos.1);
         let (n_x, n_y) = match self.dir {
             Dir::East => {
                 let new_x: usize = if x + 1 > WIDTH || self.grid[y][x + 1].is_none() {
@@ -126,7 +126,7 @@ impl Labyrinth {
         };
 
         if let Some(false) = self.grid[n_y][n_x] {
-            self.pos = (n_x, n_y);
+            self.pos = Pos(n_x, n_y);
         }
         //Else, we're stuck in a wall. Don't move
     }
@@ -180,7 +180,7 @@ impl FromStr for Labyrinth {
 
         Ok(Labyrinth {
             grid,
-            pos: (start_x, 1),
+            pos: Pos(start_x, 1),
             dir: Dir::East,
             ops,
         })

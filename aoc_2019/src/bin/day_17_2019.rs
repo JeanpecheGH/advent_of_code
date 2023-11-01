@@ -70,14 +70,17 @@ struct Robot {
 }
 
 impl Robot {
-    fn from_pos_and_pixel((x, y): Pos, pixel: &char) -> Self {
+    fn from_pos_and_pixel(Pos(x, y): Pos, pixel: &char) -> Self {
         let dir: Dir = match pixel {
             '^' => Dir::North,
             '>' => Dir::East,
             'v' => Dir::South,
             _ => Dir::West,
         };
-        Robot { pos: (x, y), dir }
+        Robot {
+            pos: Pos(x, y),
+            dir,
+        }
     }
 }
 
@@ -105,7 +108,7 @@ impl Scaffolding {
             .flat_map(|(y, row)| {
                 row.into_iter()
                     .enumerate()
-                    .map(|(x, pixel)| ((x + 1, y + 1), pixel)) //Add 1 to avoid "0" coords
+                    .map(|(x, pixel)| (Pos(x + 1, y + 1), pixel)) //Add 1 to avoid "0" coords
                     .filter(|(_, pix)| *pix != '.') //Remove empty pixels
                     .collect::<Vec<(Pos, char)>>()
             })
@@ -121,15 +124,11 @@ impl Scaffolding {
         Scaffolding { scaffolds, robot }
     }
 
-    fn neighbours((x, y): Pos) -> Vec<Pos> {
-        vec![(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-    }
-
     fn alignement_parameters_sum(&self) -> usize {
         self.scaffolds
             .iter()
-            .filter_map(|&(x, y)| {
-                let ngbs: Vec<Pos> = Self::neighbours((x, y));
+            .filter_map(|&Pos(x, y)| {
+                let ngbs: Vec<Pos> = Pos(x, y).neighbours();
                 if ngbs.iter().all(|ngb| self.scaffolds.contains(ngb)) {
                     Some((x - 1) * (y - 1)) // Substract the 1 we added to avoid "0" coords
                 } else {
@@ -140,12 +139,12 @@ impl Scaffolding {
     }
 
     fn robot_path(&self) -> String {
-        fn move_ahead((x, y): Pos, dir: &Dir) -> Pos {
+        fn move_ahead(Pos(x, y): Pos, dir: &Dir) -> Pos {
             match dir {
-                Dir::North => (x, y - 1),
-                Dir::East => (x + 1, y),
-                Dir::South => (x, y + 1),
-                Dir::West => (x - 1, y),
+                Dir::North => Pos(x, y - 1),
+                Dir::East => Pos(x + 1, y),
+                Dir::South => Pos(x, y + 1),
+                Dir::West => Pos(x - 1, y),
             }
         }
         fn move_left(pos: Pos, dir: &Dir) -> Pos {

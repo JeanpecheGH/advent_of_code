@@ -36,12 +36,12 @@ impl Rope {
     }
 
     fn move_one(&mut self, dir: &Dir) {
-        let (x, y): PosI = self.knots[0];
+        let PosI(x, y): PosI = self.knots[0];
         match dir {
-            Dir::West => self.knots[0] = (x - 1, y),
-            Dir::East => self.knots[0] = (x + 1, y),
-            Dir::North => self.knots[0] = (x, y + 1),
-            Dir::South => self.knots[0] = (x, y - 1),
+            Dir::West => self.knots[0] = PosI(x - 1, y),
+            Dir::East => self.knots[0] = PosI(x + 1, y),
+            Dir::North => self.knots[0] = PosI(x, y + 1),
+            Dir::South => self.knots[0] = PosI(x, y - 1),
         }
         for i in 1..self.knots.len() {
             self.follow_tail(i);
@@ -49,12 +49,12 @@ impl Rope {
     }
 
     fn follow_tail(&mut self, idx: usize) {
-        let (x, y): PosI = self.knots[idx - 1];
-        let (i, j): PosI = self.knots[idx];
+        let PosI(x, y): PosI = self.knots[idx - 1];
+        let PosI(i, j): PosI = self.knots[idx];
         match (x.abs_diff(i), y.abs_diff(j)) {
-            (2, 2) => self.knots[idx] = ((x + i) / 2, (y + j) / 2),
-            (2, _) => self.knots[idx] = ((x + i) / 2, y),
-            (_, 2) => self.knots[idx] = (x, (y + j) / 2),
+            (2, 2) => self.knots[idx] = PosI((x + i) / 2, (y + j) / 2),
+            (2, _) => self.knots[idx] = PosI((x + i) / 2, y),
+            (_, 2) => self.knots[idx] = PosI(x, (y + j) / 2),
             _ => (),
         }
         if (idx + 1) == self.knots.len() {
@@ -73,12 +73,12 @@ fn main() {
     let moves: Vec<Move> = s.lines().map(|s| s.parse().unwrap()).collect();
 
     let mut rope_2: Rope = Rope {
-        knots: vec![(0, 0); 2],
+        knots: vec![PosI(0, 0); 2],
         tail_positions: HashSet::new(),
     };
 
     let mut rope_10: Rope = Rope {
-        knots: vec![(0, 0); 10],
+        knots: vec![PosI(0, 0); 10],
         tail_positions: HashSet::new(),
     };
 

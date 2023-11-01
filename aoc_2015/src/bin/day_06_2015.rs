@@ -39,11 +39,11 @@ fn main() {
         .filter_map(|s| {
             if let Some(cap) = re.captures_iter(s).next() {
                 let action = Action::from_str(&cap[1]).unwrap();
-                let start: Pos = (
+                let start: Pos = Pos(
                     cap[2].parse::<usize>().unwrap(),
                     cap[3].parse::<usize>().unwrap(),
                 );
-                let end: Pos = (
+                let end: Pos = Pos(
                     cap[4].parse::<usize>().unwrap(),
                     cap[5].parse::<usize>().unwrap(),
                 );

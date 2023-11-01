@@ -25,7 +25,7 @@ impl Grove {
         for (j, row) in self.grid.iter().enumerate() {
             for (i, &b) in row.iter().enumerate() {
                 if b {
-                    let pos = (i, j);
+                    let pos = Pos(i, j);
                     if let Some(target) = self.target(&pos) {
                         if let Vacant(e) = target_map.entry(target) {
                             e.insert(pos);
@@ -46,8 +46,7 @@ impl Grove {
         self.order.rotate_left(1);
     }
 
-    fn neighbours(&self, pos: &Pos) -> Vec<bool> {
-        let (x, y) = *pos;
+    fn neighbours(&self, &Pos(x, y): &Pos) -> Vec<bool> {
         (-1..=1)
             .cartesian_product(-1..=1)
             .filter(|(i, j)| *i != 0 || *j != 0)
@@ -56,8 +55,7 @@ impl Grove {
             .collect()
     }
 
-    fn target(&self, pos: &Pos) -> Option<Pos> {
-        let (x, y) = *pos;
+    fn target(&self, pos @ &Pos(x, y): &Pos) -> Option<Pos> {
         let ngbs: Vec<bool> = self.neighbours(pos);
         if ngbs.iter().all(|b| !*b) {
             return None;
@@ -71,28 +69,28 @@ impl Grove {
         self.order.iter().find_map(|dir| match dir {
             Dir::North => {
                 if !ngbs[0] && !ngbs[3] && !ngbs[5] {
-                    Some((x, y - 1))
+                    Some(Pos(x, y - 1))
                 } else {
                     None
                 }
             }
             Dir::South => {
                 if !ngbs[2] && !ngbs[4] && !ngbs[7] {
-                    Some((x, y + 1))
+                    Some(Pos(x, y + 1))
                 } else {
                     None
                 }
             }
             Dir::West => {
                 if !ngbs[0] && !ngbs[1] && !ngbs[2] {
-                    Some((x - 1, y))
+                    Some(Pos(x - 1, y))
                 } else {
                     None
                 }
             }
             Dir::East => {
                 if !ngbs[5] && !ngbs[6] && !ngbs[7] {
-                    Some((x + 1, y))
+                    Some(Pos(x + 1, y))
                 } else {
                     None
                 }
@@ -131,7 +129,7 @@ impl Grove {
             }
             bot_x -= 1;
         }
-        ((top_x, top_y), (bot_x, bot_y))
+        (Pos(top_x, top_y), Pos(bot_x, bot_y))
     }
 
     fn score(&self) -> usize {

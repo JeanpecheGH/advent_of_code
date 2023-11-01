@@ -11,7 +11,7 @@ struct Node {
 }
 
 impl Node {
-    fn score(&self, (x, y): Pos) -> usize {
+    fn score(&self, Pos(x, y): Pos) -> usize {
         let dist: usize = Self::dist_abs(x, self.pos.0) + Self::dist_abs(y, self.pos.1);
         dist + self.depth
     }
@@ -35,18 +35,18 @@ struct Maze {
 }
 
 impl Maze {
-    fn get(&mut self, (x, y): Pos) -> bool {
+    fn get(&mut self, Pos(x, y): Pos) -> bool {
         match self.grid[y][x] {
             Some(b) => b,
             None => {
-                let b = Maze::is_open((x, y), self.seed);
+                let b = Maze::is_open(Pos(x, y), self.seed);
                 self.grid[y][x] = Some(b);
                 b
             }
         }
     }
 
-    fn is_open((x, y): Pos, seed: usize) -> bool {
+    fn is_open(Pos(x, y): Pos, seed: usize) -> bool {
         let s: usize = x * x + 3 * x + 2 * x * y + y + y * y + seed;
         s.count_ones() % 2 == 0
     }
@@ -69,7 +69,7 @@ impl Maze {
 fn main() {
     //Input Data//
     let seed: usize = 1350;
-    let target: Pos = (31, 39);
+    let target: Pos = Pos(31, 39);
     //////////////
 
     let mut maze: Maze = Maze {
@@ -78,9 +78,9 @@ fn main() {
     };
 
     //Part1: Depth First Search
-    let mut visited_nodes: HashSet<Pos> = HashSet::from([(1, 1)]);
+    let mut visited_nodes: HashSet<Pos> = HashSet::from([Pos(1, 1)]);
     let mut current_nodes: Vec<Node> = vec![Node {
-        pos: (1, 1),
+        pos: Pos(1, 1),
         depth: 0,
     }];
     loop {
@@ -116,8 +116,8 @@ fn main() {
         seed,
         grid: [[None; SIZE]; SIZE],
     };
-    let mut visited_nodes: HashSet<Pos> = HashSet::from([(1, 1)]);
-    let mut current_nodes: Vec<Pos> = vec![(1, 1)];
+    let mut visited_nodes: HashSet<Pos> = HashSet::from([Pos(1, 1)]);
+    let mut current_nodes: Vec<Pos> = vec![Pos(1, 1)];
     for _ in 0..50 {
         current_nodes = current_nodes
             .into_iter()
@@ -133,11 +133,11 @@ fn main() {
     maze.print();
 }
 
-fn neighbours((x, y): Pos) -> Vec<Pos> {
-    match (x, y) {
-        (0, 0) => vec![(0, 1), (1, 0)],
-        (0, _) => vec![(0, y - 1), (0, y + 1), (1, y)],
-        (_, 0) => vec![(x - 1, 0), (x + 1, 0), (x, 1)],
-        _ => vec![(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)],
+fn neighbours(pos @ Pos(x, y): Pos) -> Vec<Pos> {
+    match pos {
+        Pos(0, 0) => vec![Pos(0, 1), Pos(1, 0)],
+        Pos(0, _) => vec![Pos(0, y - 1), Pos(0, y + 1), Pos(1, y)],
+        Pos(_, 0) => vec![Pos(x - 1, 0), Pos(x + 1, 0), Pos(x, 1)],
+        _ => vec![Pos(x, y - 1), Pos(x, y + 1), Pos(x - 1, y), Pos(x + 1, y)],
     }
 }

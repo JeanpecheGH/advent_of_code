@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::str::FromStr;
-use util::coord::{Pos3, Pos3I};
+use util::coord::Pos3I;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Moon {
@@ -34,7 +34,7 @@ impl Moon {
         let dy: isize = diff(other.pos.1, self.pos.1);
         let dz: isize = diff(other.pos.2, self.pos.2);
 
-        self.velocity = (
+        self.velocity = Pos3I(
             self.velocity.0 + dx,
             self.velocity.1 + dy,
             self.velocity.2 + dz,
@@ -42,7 +42,7 @@ impl Moon {
     }
 
     fn velocity(&mut self) {
-        self.pos = (
+        self.pos = Pos3I(
             self.pos.0 + self.velocity.0,
             self.pos.1 + self.velocity.1,
             self.pos.2 + self.velocity.2,
@@ -58,8 +58,8 @@ impl FromStr for Moon {
         let x: isize = words[1].parse().unwrap();
         let y: isize = words[3].parse().unwrap();
         let z: isize = words[5].parse().unwrap();
-        let pos: Pos3I = (x, y, z);
-        let velocity: Pos3I = (0, 0, 0);
+        let pos: Pos3I = Pos3I(x, y, z);
+        let velocity: Pos3I = Pos3I(0, 0, 0);
         Ok(Self { pos, velocity })
     }
 }
@@ -96,7 +96,7 @@ impl System {
         let start_vel_y: Vec<isize> = self.moons.iter().map(|moon| moon.velocity.1).collect();
         let start_vel_z: Vec<isize> = self.moons.iter().map(|moon| moon.velocity.2).collect();
 
-        let (mut x_cycle, mut y_cycle, mut z_cycle): Pos3 = (0, 0, 0);
+        let (mut x_cycle, mut y_cycle, mut z_cycle): (usize, usize, usize) = (0, 0, 0);
 
         let mut i: usize = 0;
         loop {

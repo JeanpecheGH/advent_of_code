@@ -91,7 +91,7 @@ impl FromStr for AsteroidField {
                     .enumerate()
                     .filter_map(|(i, c)| {
                         if c == '#' {
-                            Some((i as isize, j as isize))
+                            Some(PosI(i as isize, j as isize))
                         } else {
                             None
                         }

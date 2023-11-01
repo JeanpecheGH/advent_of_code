@@ -11,11 +11,18 @@ struct Tile {
 
 impl Tile {
     fn neighbours(&self) -> Vec<Tile> {
-        let moves: Vec<PosI> = vec![(0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1)];
+        let moves: Vec<PosI> = vec![
+            PosI(0, 1),
+            PosI(1, 1),
+            PosI(-1, 0),
+            PosI(1, 0),
+            PosI(-1, -1),
+            PosI(0, -1),
+        ];
         moves
             .into_iter()
-            .map(|(x, y)| {
-                let coords: PosI = (x + self.coords.0, y + self.coords.1);
+            .map(|PosI(x, y)| {
+                let coords: PosI = PosI(x + self.coords.0, y + self.coords.1);
                 Tile { coords }
             })
             .collect()
@@ -48,7 +55,7 @@ impl FromStr for Tile {
             prev = c;
         }
 
-        Ok(Tile { coords: (x, y) })
+        Ok(Tile { coords: PosI(x, y) })
     }
 }
 

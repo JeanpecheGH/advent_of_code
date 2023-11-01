@@ -19,7 +19,8 @@ impl WaitingArea {
         let mut new_seats = vec![vec![Seat::Floor; max_x]; max_y];
         for (j, row) in self.seats.iter().enumerate() {
             for (i, &seat) in row.iter().enumerate() {
-                let nb_occupied = self.nb_occupied_neighbours((i as isize, j as isize), first_part);
+                let nb_occupied =
+                    self.nb_occupied_neighbours(PosI(i as isize, j as isize), first_part);
 
                 let limit: usize = if first_part { 4 } else { 5 };
 
@@ -39,7 +40,7 @@ impl WaitingArea {
         if stop_at_first {
             Self::neighbours(node, max_x as isize, max_y as isize)
                 .iter()
-                .map(|&(x, y)| self.seats[y as usize][x as usize])
+                .map(|&PosI(x, y)| self.seats[y as usize][x as usize])
                 .filter(|&seat| seat == Seat::Occupied)
                 .count()
         } else {
@@ -50,19 +51,20 @@ impl WaitingArea {
     fn distant_neighbours(&self, node: PosI, max_x: isize, max_y: isize) -> usize {
         let directions: Vec<PosI> = (-1..=1)
             .cartesian_product(-1..=1)
-            .filter(|&(x, y)| x != 0 || y != 0)
+            .map(|(x, y)| PosI(x, y))
+            .filter(|&PosI(x, y)| x != 0 || y != 0)
             .collect();
         directions
             .iter()
-            .filter_map(|&(x, y)| {
-                let mut n: PosI = (node.0 + x, node.1 + y);
+            .filter_map(|&PosI(x, y)| {
+                let mut n: PosI = PosI(node.0 + x, node.1 + y);
                 while n.0 >= 0
                     && n.0 < max_x
                     && n.1 >= 0
                     && n.1 < max_y
                     && self.seats[n.1 as usize][n.0 as usize] == Seat::Floor
                 {
-                    n = (n.0 + x, n.1 + y);
+                    n = PosI(n.0 + x, n.1 + y);
                 }
                 if n.0 >= 0
                     && n.0 < max_x
@@ -81,7 +83,8 @@ impl WaitingArea {
     fn neighbours(node: PosI, max_x: isize, max_y: isize) -> Vec<PosI> {
         (node.0 - 1..=node.0 + 1)
             .cartesian_product(node.1 - 1..=node.1 + 1)
-            .filter(|&(x, y)| {
+            .map(|(x, y)| PosI(x, y))
+            .filter(|&PosI(x, y)| {
                 x >= 0 && x < max_x && y >= 0 && y < max_y && (x != node.0 || y != node.1)
             })
             .collect()

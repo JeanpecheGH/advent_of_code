@@ -18,7 +18,7 @@ fn main() {
             let y: usize = coords[2].strip_prefix('y').unwrap().parse().unwrap();
             let size: usize = words[1].strip_suffix('T').unwrap().parse().unwrap();
             let used: usize = words[2].strip_suffix('T').unwrap().parse().unwrap();
-            ((x, y), Server { size, used })
+            (Pos(x, y), Server { size, used })
         })
         .collect();
 
@@ -46,14 +46,14 @@ fn main() {
 
     let left_wall = pos_servers
         .iter()
-        .filter_map(|((x, _), s)| if s.used > empty_size { Some(x) } else { None })
+        .filter_map(|(Pos(x, _), s)| if s.used > empty_size { Some(x) } else { None })
         .min()
         .unwrap()
         - 1;
 
     let (empty_x, empty_y) = pos_servers
         .iter()
-        .find_map(|&((x, y), s)| if s.used == 0 { Some((x, y)) } else { None })
+        .find_map(|&(Pos(x, y), s)| if s.used == 0 { Some((x, y)) } else { None })
         .unwrap();
     let res = (empty_x - left_wall) + empty_y + (36 - left_wall) + (5 * 35);
     println!("Part2: We can access the data of target server in {res} moves");

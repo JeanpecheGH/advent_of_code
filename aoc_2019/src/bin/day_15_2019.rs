@@ -19,21 +19,21 @@ struct Position {
 
 impl Position {
     fn neighbours(&self) -> Vec<(PosI, Dir)> {
-        let (x, y): PosI = self.pos;
+        let PosI(x, y): PosI = self.pos;
         vec![
-            ((x, y - 1), Dir::North),
-            ((x + 1, y), Dir::East),
-            ((x, y + 1), Dir::South),
-            ((x - 1, y), Dir::West),
+            (PosI(x, y - 1), Dir::North),
+            (PosI(x + 1, y), Dir::East),
+            (PosI(x, y + 1), Dir::South),
+            (PosI(x - 1, y), Dir::West),
         ]
     }
 
     fn tile_in_dir(&self, dir: &Dir) -> PosI {
         match dir {
-            Dir::North => (self.pos.0, self.pos.1 - 1),
-            Dir::South => (self.pos.0, self.pos.1 + 1),
-            Dir::West => (self.pos.0 - 1, self.pos.1),
-            Dir::East => (self.pos.0 + 1, self.pos.1),
+            Dir::North => PosI(self.pos.0, self.pos.1 - 1),
+            Dir::South => PosI(self.pos.0, self.pos.1 + 1),
+            Dir::West => PosI(self.pos.0 - 1, self.pos.1),
+            Dir::East => PosI(self.pos.0 + 1, self.pos.1),
         }
     }
 
@@ -62,7 +62,7 @@ impl Droid {
     fn from_code(code: IntCode) -> Self {
         Self {
             code,
-            pos: Position { pos: (0, 0) },
+            pos: Position { pos: PosI(0, 0) },
             tiles: HashMap::new(),
             finished: HashSet::new(),
         }
@@ -185,8 +185,8 @@ impl Droid {
     }
 
     fn print(&self) {
-        let min_max_x: MinMaxResult<isize> = self.tiles.keys().map(|(x, _)| *x).minmax();
-        let min_max_y: MinMaxResult<isize> = self.tiles.keys().map(|(_, y)| *y).minmax();
+        let min_max_x: MinMaxResult<isize> = self.tiles.keys().map(|PosI(x, _)| *x).minmax();
+        let min_max_y: MinMaxResult<isize> = self.tiles.keys().map(|PosI(_, y)| *y).minmax();
         let (min_x, max_x): (isize, isize) = if let MinMax(a, b) = min_max_x {
             (a, b)
         } else {
@@ -200,7 +200,7 @@ impl Droid {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                let c: char = match self.tiles.get(&(x, y)) {
+                let c: char = match self.tiles.get(&PosI(x, y)) {
                     None => ' ',
                     Some((Tile::Oxygen, _)) => 'O',
                     Some((Tile::Wall, _)) => '#',

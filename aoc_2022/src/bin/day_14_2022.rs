@@ -13,14 +13,29 @@ struct RockPath {
 
 impl RockPath {
     fn min_x(&self) -> usize {
-        self.points.iter().map(|(x, _)| x).min().cloned().unwrap()
+        self.points
+            .iter()
+            .map(|Pos(x, _)| x)
+            .min()
+            .cloned()
+            .unwrap()
     }
     fn max_x(&self) -> usize {
-        self.points.iter().map(|(x, _)| x).max().cloned().unwrap()
+        self.points
+            .iter()
+            .map(|Pos(x, _)| x)
+            .max()
+            .cloned()
+            .unwrap()
     }
 
     fn max_y(&self) -> usize {
-        self.points.iter().map(|(_, y)| y).max().cloned().unwrap()
+        self.points
+            .iter()
+            .map(|Pos(_, y)| y)
+            .max()
+            .cloned()
+            .unwrap()
     }
 }
 
@@ -32,7 +47,7 @@ impl FromStr for RockPath {
             .split(" -> ")
             .map(|coords| {
                 let w: Vec<&str> = coords.split(',').collect();
-                (w[0].parse().unwrap(), w[1].parse().unwrap())
+                Pos(w[0].parse().unwrap(), w[1].parse().unwrap())
             })
             .collect();
         Ok(RockPath { points })
@@ -157,7 +172,7 @@ fn main() {
     };
     rocks.fill_rocks(&rock_paths);
     let floor: RockPath = RockPath {
-        points: vec![(min_x, max_y - 1), (max_x - 1, max_y - 1)],
+        points: vec![Pos(min_x, max_y - 1), Pos(max_x - 1, max_y - 1)],
     };
     rocks.fill_rocks(&[floor]);
     while !rocks.is_sand_stuck() {

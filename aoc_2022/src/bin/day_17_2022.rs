@@ -123,7 +123,7 @@ impl Chamber {
     fn new_rock(&mut self) {
         let rock: Rock = self.rocks.next();
         let tower_size = self.tower_size();
-        let mut pos: Pos = (3, tower_size + 4);
+        let mut pos: Pos = Pos(3, tower_size + 4);
         self.extend_grid(tower_size + 8);
 
         let mut stuck: bool = false;
@@ -136,7 +136,7 @@ impl Chamber {
         self.nb_rock += 1;
     }
 
-    fn lay_rock(&mut self, rock: Rock, (x, y): Pos) {
+    fn lay_rock(&mut self, rock: Rock, Pos(x, y): Pos) {
         (0..ROCK_SIZE).for_each(|i| {
             (0..ROCK_SIZE).for_each(|j| {
                 if rock.grid[j][i] {
@@ -146,19 +146,19 @@ impl Chamber {
         });
     }
 
-    fn rock_fall(&mut self, rock: &Rock, pos: Pos) -> (Pos, bool) {
-        let new_pos: Pos = (pos.0, pos.1 - 1);
+    fn rock_fall(&mut self, rock: &Rock, Pos(x, y): Pos) -> (Pos, bool) {
+        let new_pos: Pos = Pos(x, y - 1);
         if self.collision(rock, &new_pos) {
-            (pos, true)
+            (Pos(x, y), true)
         } else {
             (new_pos, false)
         }
     }
 
-    fn jet_stream(&mut self, rock: &Rock, pos: Pos, jet: isize) -> Pos {
-        let new_pos: Pos = (((pos.0 as isize) + jet) as usize, pos.1);
+    fn jet_stream(&mut self, rock: &Rock, Pos(x, y): Pos, jet: isize) -> Pos {
+        let new_pos: Pos = Pos(((x as isize) + jet) as usize, y);
         if self.collision(rock, &new_pos) {
-            pos
+            Pos(x, y)
         } else {
             new_pos
         }
@@ -166,10 +166,10 @@ impl Chamber {
 
     fn collision(&self, rock: &Rock, pos: &Pos) -> bool {
         match pos {
-            (0, _) => true,
-            (_, 0) => true,
-            (x, _) if x + rock.max_right > 7 => true,
-            (x, y) => (0..ROCK_SIZE).any(|i| {
+            Pos(0, _) => true,
+            Pos(_, 0) => true,
+            Pos(x, _) if x + rock.max_right > 7 => true,
+            Pos(x, y) => (0..ROCK_SIZE).any(|i| {
                 (0..ROCK_SIZE).any(|j| {
                     if (x + i - 1) < 7 {
                         rock.grid[j][i] && self.grid[x + i - 1][y + j]

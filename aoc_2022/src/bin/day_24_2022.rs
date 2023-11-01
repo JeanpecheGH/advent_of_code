@@ -24,26 +24,22 @@ impl Blizzards {
         }
     }
 
-    fn northern_free(&self, pos: &Pos, time: usize) -> bool {
-        let (x, y) = *pos;
+    fn northern_free(&self, &Pos(x, y): &Pos, time: usize) -> bool {
         let v: usize = (y - 1 + time) % self.height + 1;
         !self.northern[x].contains(&v)
     }
 
-    fn southern_free(&self, pos: &Pos, time: usize) -> bool {
-        let (x, y) = *pos;
+    fn southern_free(&self, &Pos(x, y): &Pos, time: usize) -> bool {
         let v: usize = (y + self.height * time - 1 - time) % self.height + 1;
         !self.southern[x].contains(&v)
     }
 
-    fn western_free(&self, pos: &Pos, time: usize) -> bool {
-        let (x, y) = *pos;
+    fn western_free(&self, &Pos(x, y): &Pos, time: usize) -> bool {
         let v: usize = (x - 1 + time) % self.width + 1;
         !self.western[y].contains(&v)
     }
 
-    fn eastern_free(&self, pos: &Pos, time: usize) -> bool {
-        let (x, y) = *pos;
+    fn eastern_free(&self, &Pos(x, y): &Pos, time: usize) -> bool {
         let v: usize = (x + self.width * time - 1 - time) % self.width + 1;
         !self.eastern[y].contains(&v)
     }
@@ -95,21 +91,29 @@ impl Baasin {
             .collect()
     }
 
-    fn ngb_pos(&self, pos: &Pos, backwards: bool) -> Vec<Pos> {
-        let (x, y) = *pos;
+    fn ngb_pos(&self, pos @ &Pos(x, y): &Pos, backwards: bool) -> Vec<Pos> {
         if y == 0 {
-            vec![(1, 0), (1, 1)]
+            vec![Pos(1, 0), Pos(1, 1)]
         } else if y == self.height + 1 {
-            vec![(self.width, self.height), (self.width, self.height + 1)]
+            vec![
+                Pos(self.width, self.height),
+                Pos(self.width, self.height + 1),
+            ]
         } else if x == self.width && y == self.height && !backwards {
-            vec![(self.width, self.height + 1)]
+            vec![Pos(self.width, self.height + 1)]
         } else if x == 1 && y == 1 && backwards {
-            vec![(1, 0)]
+            vec![Pos(1, 0)]
         } else {
-            let candidates: Vec<Pos> = vec![(x - 1, y), (x, y - 1), (x, y), (x + 1, y), (x, y + 1)];
+            let candidates: Vec<Pos> = vec![
+                Pos(x - 1, y),
+                Pos(x, y - 1),
+                *pos,
+                Pos(x + 1, y),
+                Pos(x, y + 1),
+            ];
             candidates
                 .into_iter()
-                .filter(|(i, j)| *i > 0 && *i <= self.width && *j > 0 && *j <= self.height)
+                .filter(|&Pos(i, j)| i > 0 && i <= self.width && j > 0 && j <= self.height)
                 .collect()
         }
     }
@@ -122,8 +126,8 @@ impl FromStr for Baasin {
         let lines: Vec<&str> = s.lines().collect();
         let height: usize = lines.len() - 2;
         let width: usize = lines.first().unwrap().len() - 2;
-        let start: Pos = (1, 0);
-        let end: Pos = (width, height + 1);
+        let start: Pos = Pos(1, 0);
+        let end: Pos = Pos(width, height + 1);
         let mut northern: Vec<HashSet<usize>> = vec![HashSet::new(); width + 1];
         let mut southern: Vec<HashSet<usize>> = vec![HashSet::new(); width + 1];
         let mut western: Vec<HashSet<usize>> = vec![HashSet::new(); height + 1];

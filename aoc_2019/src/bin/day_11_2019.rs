@@ -31,13 +31,13 @@ impl Position {
     }
 
     fn advance(&mut self) {
-        let (x, y): PosI = match &self.orient {
-            Dir::North => (0, -1),
-            Dir::East => (1, 0),
-            Dir::South => (0, 1),
-            Dir::West => (-1, 0),
+        let PosI(x, y): PosI = match &self.orient {
+            Dir::North => PosI(0, -1),
+            Dir::East => PosI(1, 0),
+            Dir::South => PosI(0, 1),
+            Dir::West => PosI(-1, 0),
         };
-        self.pos = (self.pos.0 + x, self.pos.1 + y);
+        self.pos = PosI(self.pos.0 + x, self.pos.1 + y);
     }
 }
 
@@ -51,12 +51,12 @@ struct Robot {
 impl Robot {
     fn from_code(code: IntCode, start_on_white: bool) -> Self {
         let position = Position {
-            pos: (0, 0),
+            pos: PosI(0, 0),
             orient: Dir::North,
         };
         let mut white: HashSet<PosI> = HashSet::new();
         if start_on_white {
-            white.insert((0, 0));
+            white.insert(PosI(0, 0));
         }
         Robot {
             position,
@@ -97,12 +97,12 @@ impl Robot {
     fn print(&self) {
         let min_max_x: MinMaxResult<isize> = self.white.iter().map(|pos| pos.0).minmax();
         let min_max_y: MinMaxResult<isize> = self.white.iter().map(|pos| pos.1).minmax();
-        let (min_x, max_x): PosI = if let MinMax(a, b) = min_max_x {
+        let (min_x, max_x): (isize, isize) = if let MinMax(a, b) = min_max_x {
             (a, b)
         } else {
             (0, 0)
         };
-        let (min_y, max_y): PosI = if let MinMax(a, b) = min_max_y {
+        let (min_y, max_y): (isize, isize) = if let MinMax(a, b) = min_max_y {
             (a, b)
         } else {
             (0, 0)
@@ -110,7 +110,7 @@ impl Robot {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                let s: &str = if self.white.contains(&(x, y)) {
+                let s: &str = if self.white.contains(&PosI(x, y)) {
                     "██"
                 } else {
                     "  "

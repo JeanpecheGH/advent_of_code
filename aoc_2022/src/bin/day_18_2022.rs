@@ -16,7 +16,7 @@ impl Lava {
             for (j, row) in slice.iter().enumerate() {
                 for (k, &drop) in row.iter().enumerate() {
                     surface += if drop {
-                        6 - self.nb_neighbours((i, j, k))
+                        6 - self.nb_neighbours(Pos3(i, j, k))
                     } else {
                         0
                     }
@@ -29,16 +29,16 @@ impl Lava {
     fn outer_surface(&self) -> usize {
         //Fill the structure with steam every where it can access
         let mut steam: HashSet<Pos3> = HashSet::new();
-        steam.insert((0, 0, 0));
+        steam.insert(Pos3(0, 0, 0));
 
-        let mut current: Vec<Pos3> = vec![(0, 0, 0)];
+        let mut current: Vec<Pos3> = vec![Pos3(0, 0, 0)];
         while !current.is_empty() {
             current = current
                 .into_iter()
                 .flat_map(|drop| {
                     let new_drops: Vec<Pos3> = Self::neighbours(drop)
                         .into_iter()
-                        .filter(|(x, y, z)| !self.droplets[*x][*y][*z])
+                        .filter(|&Pos3(x, y, z)| !self.droplets[x][y][z])
                         .collect();
                     new_drops
                 })
@@ -53,7 +53,7 @@ impl Lava {
             for (j, row) in slice.iter().enumerate() {
                 for (k, &drop) in row.iter().enumerate() {
                     outer_surface += if drop {
-                        let ngbs = Self::neighbours((i, j, k));
+                        let ngbs = Self::neighbours(Pos3(i, j, k));
                         let nb_steam = ngbs.iter().filter(|drop| steam.contains(*drop)).count();
                         6 - ngbs.len() + nb_steam
                     } else {
@@ -68,29 +68,29 @@ impl Lava {
     fn nb_neighbours(&self, drop: Pos3) -> usize {
         let ngbs: Vec<Pos3> = Self::neighbours(drop);
         ngbs.iter()
-            .filter(|(i, j, k)| self.droplets[*i][*j][*k])
+            .filter(|Pos3(i, j, k)| self.droplets[*i][*j][*k])
             .count()
     }
 
-    fn neighbours((x, y, z): Pos3) -> Vec<Pos3> {
+    fn neighbours(Pos3(x, y, z): Pos3) -> Vec<Pos3> {
         let mut ngbs: Vec<Pos3> = Vec::new();
         if x > 0 {
-            ngbs.push((x - 1, y, z));
+            ngbs.push(Pos3(x - 1, y, z));
         }
         if x + 1 < MAX_COORD {
-            ngbs.push((x + 1, y, z));
+            ngbs.push(Pos3(x + 1, y, z));
         }
         if y > 0 {
-            ngbs.push((x, y - 1, z));
+            ngbs.push(Pos3(x, y - 1, z));
         }
         if y + 1 < MAX_COORD {
-            ngbs.push((x, y + 1, z));
+            ngbs.push(Pos3(x, y + 1, z));
         }
         if z > 0 {
-            ngbs.push((x, y, z - 1));
+            ngbs.push(Pos3(x, y, z - 1));
         }
         if z + 1 < MAX_COORD {
-            ngbs.push((x, y, z + 1));
+            ngbs.push(Pos3(x, y, z + 1));
         }
         ngbs
     }
@@ -107,7 +107,7 @@ impl FromStr for Lava {
                 let x: usize = ns[0].parse().unwrap();
                 let y: usize = ns[1].parse().unwrap();
                 let z: usize = ns[2].parse().unwrap();
-                (x, y, z)
+                Pos3(x, y, z)
             })
             .collect();
 
@@ -115,7 +115,7 @@ impl FromStr for Lava {
             droplets: [[[false; MAX_COORD]; MAX_COORD]; MAX_COORD],
         };
 
-        droplets.iter().for_each(|&(x, y, z)| {
+        droplets.iter().for_each(|&Pos3(x, y, z)| {
             lava.droplets[x][y][z] = true;
         });
         Ok(lava)
