@@ -153,6 +153,23 @@ impl IntCode {
         self.ops[n]
     }
 
+    pub fn write_cmd(&mut self, cmd: &str) {
+        let mut input: Vec<isize> = cmd.as_bytes().iter().map(|&c| c as isize).collect();
+        input.push(10);
+        self.compute(&mut input);
+    }
+
+    pub fn read_prompt(&mut self) -> Option<String> {
+        if let Some(10) = self.output.last() {
+            let chars: Vec<u8> = self.output.iter().map(|&n| n as u8).collect();
+            let prompt: Option<String> = String::from_utf8(chars).ok();
+            self.output.clear();
+            prompt
+        } else {
+            None
+        }
+    }
+
     pub fn reset(&mut self) {
         self.ops = self.start_ops.clone();
         self.idx = 0;

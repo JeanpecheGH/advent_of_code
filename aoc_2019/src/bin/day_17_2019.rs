@@ -188,20 +188,10 @@ impl Scaffolding {
 }
 
 struct Movement {
-    routine: String,
-    function_a: String,
-    function_b: String,
-    function_c: String,
-}
-
-impl Movement {
-    fn to_input(&self) -> Vec<isize> {
-        let input: String = format!(
-            "{}\n{}\n{}\n{}\nn\n",
-            self.routine, self.function_a, self.function_b, self.function_c
-        );
-        input.as_bytes().iter().map(|b| *b as isize).collect()
-    }
+    pub routine: String,
+    pub function_a: String,
+    pub function_b: String,
+    pub function_c: String,
 }
 
 impl FromStr for Movement {
@@ -280,10 +270,24 @@ fn main() {
 
     //Change first op to "2"
     code_2.ops[0] = 2;
-    code_2.compute(&mut movements.to_input());
+
+    //Read prompt and write commands
+    code_2.compute(&mut Vec::new());
+    println!("{}{}", code_2.read_prompt().unwrap(), movements.routine);
+    code_2.write_cmd(&movements.routine);
+    println!("{}{}", code_2.read_prompt().unwrap(), movements.function_a);
+    code_2.write_cmd(&movements.function_a);
+    println!("{}{}", code_2.read_prompt().unwrap(), movements.function_b);
+    code_2.write_cmd(&movements.function_b);
+    println!("{}{}", code_2.read_prompt().unwrap(), movements.function_c);
+    code_2.write_cmd(&movements.function_c);
+    println!("{}No", code_2.read_prompt().unwrap());
+    code_2.write_cmd("n");
+
+    //Finally we read the last number
     println!(
         "Part2: The vacuum robot collected {} dust",
-        code_2.output.last().unwrap()
+        code_2.output.pop().unwrap()
     );
     println!("Computing time: {:?}", now.elapsed());
 }
