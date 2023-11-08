@@ -12,7 +12,7 @@ pub struct Pos3I(pub isize, pub isize, pub isize);
 pub struct Pos4(pub usize, pub usize, pub usize, pub usize);
 
 impl Pos {
-    pub fn distance(&self, &Pos(x, y): &Pos) -> usize {
+    pub fn distance(&self, Pos(x, y): Pos) -> usize {
         self.0.abs_diff(x) + self.1.abs_diff(y)
     }
 
@@ -36,7 +36,7 @@ impl Pos {
 }
 
 impl PosI {
-    pub fn distance(&self, &PosI(x, y): &PosI) -> usize {
+    pub fn distance(&self, PosI(x, y): PosI) -> usize {
         self.0.abs_diff(x) + self.1.abs_diff(y)
     }
 
