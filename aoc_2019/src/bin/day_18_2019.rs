@@ -1,5 +1,6 @@
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+use std::cmp::Ordering;
+use std::collections::{BTreeSet, BinaryHeap, HashMap, HashSet};
 use std::str::FromStr;
 use util::coord::Pos;
 
@@ -17,14 +18,37 @@ impl AStarNode {
     }
 }
 
+#[derive(Clone, Eq, PartialEq)]
 struct KeyPath {
-    keys: Vec<char>,
+    keys: BTreeSet<char>,
+    last: char,
     dist: usize,
 }
 
 impl KeyPath {
-    fn last_key(&self) -> char {
-        *self.keys.last().unwrap()
+    fn new() -> KeyPath {
+        KeyPath {
+            keys: BTreeSet::new(),
+            last: '@',
+            dist: 0,
+        }
+    }
+
+    fn reach_all_keys(&self, key_set: &BTreeSet<char>, matrix: &DistMatrix) -> Vec<KeyPath> {
+        let target_keys: Vec<char> = key_set.difference(&self.keys).copied().collect();
+
+        let a: char = self.last;
+        target_keys
+            .into_iter()
+            .filter_map(|b| {
+                let (dist, doors): &(usize, Vec<char>) = if a < b {
+                    matrix.get(&(a, b)).unwrap()
+                } else {
+                    matrix.get(&(b, a)).unwrap()
+                };
+                self.reach_key(b, *dist, doors)
+            })
+            .collect::<Vec<KeyPath>>()
     }
 
     fn reach_key(&self, target_key: char, dist: usize, doors: &[char]) -> Option<KeyPath> {
@@ -33,9 +57,10 @@ impl KeyPath {
             .all(|&door| self.keys.contains(&door.to_lowercase().last().unwrap()))
         {
             let mut new_keys = self.keys.clone();
-            new_keys.push(target_key);
+            new_keys.insert(target_key);
             Some(KeyPath {
                 keys: new_keys,
+                last: target_key,
                 dist: self.dist + dist,
             })
         } else {
@@ -43,25 +68,78 @@ impl KeyPath {
         }
     }
 
-    fn sort_path(&self) -> (char, Vec<char>) {
-        let mut keys = self.keys.clone();
-        let c = keys.pop().unwrap();
-        keys.sort();
-        (c, keys)
-    }
-
-    fn print(&self) {
-        println!("{:?} in {} steps", self.keys, self.dist);
+    fn hash(&self) -> (usize, char) {
+        let path_score: usize = self
+            .keys
+            .iter()
+            .map(|&c| {
+                let i: usize = c as usize - 'a' as usize + 1;
+                1 << i
+            })
+            .sum();
+        (path_score, self.last)
     }
 }
 
+//We reverse order (Binary Heap pops the greatest item)
+impl Ord for KeyPath {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other
+            .dist
+            .cmp(&self.dist)
+            .then(other.keys.len().cmp(&self.keys.len()))
+    }
+}
+
+impl PartialOrd for KeyPath {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
 struct QuadKeyPath {
-    keys: Vec<char>,
+    keys: BTreeSet<char>,
     current: [char; 4],
     dist: usize,
 }
 
 impl QuadKeyPath {
+    fn new() -> QuadKeyPath {
+        QuadKeyPath {
+            keys: BTreeSet::new(),
+            current: ['@', '@', '@', '@'],
+            dist: 0,
+        }
+    }
+
+    fn reach_all_keys(
+        &self,
+        key_set: &BTreeSet<char>,
+        matrixes: &[DistMatrix],
+    ) -> Vec<QuadKeyPath> {
+        let target_keys: Vec<char> = key_set.difference(&self.keys).copied().collect();
+
+        let currents: [char; 4] = self.current;
+        target_keys
+            .into_iter()
+            .flat_map(|b| vec![(b, 0), (b, 1), (b, 2), (b, 3)])
+            .filter_map(|(b, i)| {
+                let a: char = currents[i];
+                let res: Option<&(usize, Vec<char>)> = if a < b {
+                    matrixes[i].get(&(a, b))
+                } else {
+                    matrixes[i].get(&(b, a))
+                };
+                if let Some((dist, doors)) = res {
+                    self.reach_key(i, b, *dist, doors)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<QuadKeyPath>>()
+    }
+
     fn reach_key(
         &self,
         quarter: usize,
@@ -74,7 +152,7 @@ impl QuadKeyPath {
             .all(|&door| self.keys.contains(&door.to_lowercase().last().unwrap()))
         {
             let mut new_keys = self.keys.clone();
-            new_keys.push(target_key);
+            new_keys.insert(target_key);
             let mut new_current: [char; 4] = self.current;
             new_current[quarter] = target_key;
             Some(QuadKeyPath {
@@ -87,15 +165,45 @@ impl QuadKeyPath {
         }
     }
 
-    fn sort_path(&self) -> (char, Vec<char>) {
-        let mut keys = self.keys.clone();
-        let c = keys.pop().unwrap();
-        keys.sort();
-        (c, keys)
+    fn hash(&self) -> (usize, usize) {
+        let path_score: usize = self
+            .keys
+            .iter()
+            .map(|&c| {
+                let i: usize = c as usize - 'a' as usize + 1;
+                1 << i
+            })
+            .sum();
+        let current_score: usize = self
+            .current
+            .iter()
+            .enumerate()
+            .map(|(i, &c)| {
+                let char_value = match c {
+                    '@' => 1,
+                    _ => c as usize - 'a' as usize + 2,
+                };
+                let pow: usize = 100 ^ i;
+                char_value * pow
+            })
+            .sum();
+        (path_score, current_score)
     }
+}
 
-    fn print(&self) {
-        println!("{:?} in {} steps", self.keys, self.dist);
+//We reverse order (Binary Heap pops the greatest item)
+impl Ord for QuadKeyPath {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other
+            .dist
+            .cmp(&self.dist)
+            .then(other.keys.len().cmp(&self.keys.len()))
+    }
+}
+
+impl PartialOrd for QuadKeyPath {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -106,7 +214,7 @@ struct Tunnels {
 }
 
 impl Tunnels {
-    fn quad_collect_all_keys(&self) -> QuadKeyPath {
+    fn quad_collect_all_keys(&self) -> Option<usize> {
         //Compute the new starting points
         let Pos(x, y) = Pos(self.grid[0].len() / 2, self.grid.len() / 2);
 
@@ -123,134 +231,92 @@ impl Tunnels {
 
         let matrixes: [DistMatrix; 4] = [dist_nw, dist_ne, dist_sw, dist_se];
 
+        //Start each robot from the '@' char
+        let start_path: QuadKeyPath = QuadKeyPath::new();
+        let mut best_dists: HashMap<(usize, usize), usize> =
+            HashMap::from([(start_path.hash(), start_path.dist)]);
+        let mut heap: BinaryHeap<QuadKeyPath> = BinaryHeap::new();
+        heap.push(start_path);
+        let key_set: BTreeSet<char> = self.keys.keys().copied().collect();
+
         //Compute all possible paths depending on doors
-        let key_set: HashSet<&char> = self.keys.keys().collect();
-        let mut current_paths: Vec<QuadKeyPath> = vec![QuadKeyPath {
-            keys: vec![],
-            current: ['@', '@', '@', '@'],
-            dist: 0,
-        }];
-        let mut n = 0;
-        while current_paths.last().unwrap().keys.len() < self.keys.len() {
-            n += 1;
-            //Get next all next possible keys for all paths
-            current_paths = current_paths
+        while let Some(best_path) = heap.pop() {
+            //We got a path picking all keys, we know it's the best path
+            if best_path.keys.len() == self.keys.len() {
+                return Some(best_path.dist);
+            }
+
+            //This node has already be attained by a better path, skip it
+            if let Some(&dist) = best_dists.get(&best_path.hash()) {
+                if best_path.dist > dist {
+                    continue;
+                }
+            }
+
+            //Get next all next possible keys for this path
+            best_path
+                .reach_all_keys(&key_set, &matrixes)
                 .into_iter()
-                .flat_map(|path| {
-                    let p_keys: HashSet<&char> = path.keys.iter().collect();
-                    let target_keys: Vec<char> = key_set.difference(&p_keys).map(|&&c| c).collect();
+                .for_each(|new_path| {
+                    //Get the best current distance for this node
+                    let distance_entry = best_dists.entry(new_path.hash()).or_insert(usize::MAX);
 
-                    let currents: [char; 4] = path.current;
-                    target_keys
-                        .into_iter()
-                        .flat_map(|b| vec![(b, 0), (b, 1), (b, 2), (b, 3)])
-                        .filter_map(|(b, i)| {
-                            let a: char = currents[i];
-                            let res: Option<&(usize, Vec<char>)> = if a < b {
-                                matrixes[i].get(&(a, b))
-                            } else {
-                                matrixes[i].get(&(b, a))
-                            };
-                            if let Some((dist, doors)) = res {
-                                path.reach_key(i, b, *dist, doors)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect::<Vec<QuadKeyPath>>()
+                    //If the new node has a best distance, we update the distance and add the Path to the heap
+                    if new_path.dist < *distance_entry {
+                        *distance_entry = new_path.dist;
+
+                        heap.push(new_path);
+                    }
                 })
-                .collect();
-
-            print!("Level {}, {} paths", n, current_paths.len());
-
-            //Sort paths
-            current_paths.sort_by(|a, b| {
-                let (last_a, vec_a) = a.sort_path();
-                let (last_b, vec_b) = b.sort_path();
-                last_a
-                    .cmp(&last_b)
-                    .then(vec_a.cmp(&vec_b))
-                    .then(a.current.cmp(&b.current))
-                    .then(a.dist.cmp(&b.dist))
-            });
-            //Filter redondant paths (a->b->c ~= b->a->c)
-            current_paths.dedup_by(|b, a| {
-                let (last_a, vec_a) = a.sort_path();
-                let (last_b, vec_b) = b.sort_path();
-                last_a == last_b && vec_a.eq(&vec_b) && a.current.eq(&b.current)
-            });
-
-            println!(", deduplicated to {} paths", current_paths.len());
         }
-
-        //Get cheapest path
-        current_paths
-            .into_iter()
-            .min_by_key(|path| path.dist)
-            .unwrap()
+        //No path found
+        None
     }
 
-    fn collect_all_keys(&self) -> KeyPath {
+    fn collect_all_keys(&self) -> Option<usize> {
         //Get the distance matrix between every keys
         let dist_matrix: DistMatrix = self.distance_matrix();
 
-        //Compute possible start paths
-        let mut current_paths: Vec<KeyPath> = self.start_keys();
-        let key_set: HashSet<&char> = self.keys.keys().collect();
+        //Start from the '@' char
+        let start_path: KeyPath = KeyPath::new();
+        let mut best_dists: HashMap<(usize, char), usize> =
+            HashMap::from([(start_path.hash(), start_path.dist)]);
+        let mut heap: BinaryHeap<KeyPath> = BinaryHeap::new();
+        heap.push(start_path);
+        let key_set: BTreeSet<char> = self.keys.keys().copied().collect();
 
         //Compute all possible paths depending on doors
-        let mut n = 1;
-        println!("Starting with {} paths", current_paths.len());
-        while current_paths.last().unwrap().keys.len() < self.keys.len() {
-            n += 1;
-            //Get next all next possible keys for all paths
-            current_paths = current_paths
+        while let Some(best_path) = heap.pop() {
+            //We got a path picking all keys, we know it's the best path
+            if best_path.keys.len() == self.keys.len() {
+                return Some(best_path.dist);
+            }
+
+            //This node has already be attained by a better path, skip it
+            if let Some(&dist) = best_dists.get(&best_path.hash()) {
+                if best_path.dist > dist {
+                    continue;
+                }
+            }
+
+            //Get next all next possible keys for this path
+            best_path
+                .reach_all_keys(&key_set, &dist_matrix)
                 .into_iter()
-                .flat_map(|path| {
-                    let p_keys: HashSet<&char> = path.keys.iter().collect();
-                    let target_keys: Vec<char> = key_set.difference(&p_keys).map(|&&c| c).collect();
+                .for_each(|new_path| {
+                    //Get the best current distance for this node
+                    let distance_entry = best_dists.entry(new_path.hash()).or_insert(usize::MAX);
 
-                    let a: char = path.last_key();
-                    target_keys
-                        .into_iter()
-                        .filter_map(|b| {
-                            let (dist, doors): &(usize, Vec<char>) = if a < b {
-                                dist_matrix.get(&(a, b)).unwrap()
-                            } else {
-                                dist_matrix.get(&(b, a)).unwrap()
-                            };
-                            path.reach_key(b, *dist, doors)
-                        })
-                        .collect::<Vec<KeyPath>>()
+                    //If the new node has a best distance, we update the distance and add the Path to the heap
+                    if new_path.dist < *distance_entry {
+                        *distance_entry = new_path.dist;
+
+                        heap.push(new_path);
+                    }
                 })
-                .collect();
-
-            print!("Level {}, {} paths", n, current_paths.len());
-
-            //Sort paths
-            current_paths.sort_by(|a, b| {
-                let (last_a, vec_a) = a.sort_path();
-                let (last_b, vec_b) = b.sort_path();
-                last_a
-                    .cmp(&last_b)
-                    .then(vec_a.cmp(&vec_b))
-                    .then(a.dist.cmp(&b.dist))
-            });
-            //Filter redondant paths (a->b->c ~= b->a->c)
-            current_paths.dedup_by(|b, a| {
-                let (last_a, vec_a) = a.sort_path();
-                let (last_b, vec_b) = b.sort_path();
-                last_a == last_b && vec_a.eq(&vec_b)
-            });
-
-            println!(", deduplicated to {} paths", current_paths.len());
         }
-
-        //Get cheapest path
-        current_paths
-            .into_iter()
-            .min_by_key(|path| path.dist)
-            .unwrap()
+        //No path found
+        None
     }
 
     fn distance_matrix_quarter(&self, start: Pos) -> DistMatrix {
@@ -287,7 +353,13 @@ impl Tunnels {
     }
 
     fn distance_matrix(&self) -> DistMatrix {
-        self.keys
+        let mut dist_matrix: DistMatrix = self
+            .keys
+            .iter()
+            .filter_map(|(&a, &pos)| self.a_star(self.start, pos).map(|pair| (('@', a), pair)))
+            .collect();
+        let rest_matrix: DistMatrix = self
+            .keys
             .iter()
             .cartesian_product(self.keys.iter())
             .filter_map(|((&a, &pos_a), (&b, &pos_b))| {
@@ -297,24 +369,10 @@ impl Tunnels {
                     None
                 }
             })
-            .collect()
-    }
+            .collect();
 
-    fn start_keys(&self) -> Vec<KeyPath> {
-        self.keys
-            .iter()
-            .filter_map(|(&c, &pos)| {
-                let (dist, doors) = self.a_star(self.start, pos).unwrap();
-                if doors.is_empty() {
-                    Some(KeyPath {
-                        keys: vec![c],
-                        dist,
-                    })
-                } else {
-                    None
-                }
-            })
-            .collect()
+        dist_matrix.extend(rest_matrix);
+        dist_matrix
     }
 
     fn a_star(&self, start: Pos, end: Pos) -> Option<(usize, Vec<char>)> {
@@ -445,16 +503,22 @@ fn main() {
     let mut tunnels: Tunnels = s.parse().unwrap();
 
     //tunnels.print();
-    let path = tunnels.collect_all_keys();
-    print!("Part 1: ");
-    path.print();
+    let best_dist = tunnels.collect_all_keys().unwrap();
+    println!(
+        "Part 1: The shortest path to collect all keys takes {} steps",
+        best_dist
+    );
+    println!("Computing time part 1: {:?}", now.elapsed());
 
     //Part 2
+    let now = std::time::Instant::now();
     tunnels.split_start();
-    let path = tunnels.quad_collect_all_keys();
-    print!("Part 2: ");
-    path.print();
-    println!("Computing time: {:?}", now.elapsed());
+    let best_dist = tunnels.quad_collect_all_keys().unwrap();
+    println!(
+        "Part 2: The shortest path to collect all keys takes {} steps when using 4 robots",
+        best_dist
+    );
+    println!("Computing time part 2: {:?}", now.elapsed());
 }
 
 #[cfg(test)]
@@ -498,45 +562,40 @@ mod tests {
     fn example_1() {
         let tunnels: Tunnels = EXAMPLE_1.parse().unwrap();
         tunnels.print();
-        let path = tunnels.collect_all_keys();
-        println!("{:?}", path.keys);
-        assert_eq!(path.dist, 8);
+        let dist = tunnels.collect_all_keys();
+        assert_eq!(dist, Some(8));
     }
 
     #[test]
     fn example_2() {
         let tunnels: Tunnels = EXAMPLE_2.parse().unwrap();
         tunnels.print();
-        let path = tunnels.collect_all_keys();
-        println!("{:?}", path.keys);
-        assert_eq!(path.dist, 86);
+        let dist = tunnels.collect_all_keys();
+        assert_eq!(dist, Some(86));
     }
 
     #[test]
     fn example_3() {
         let tunnels: Tunnels = EXAMPLE_3.parse().unwrap();
         tunnels.print();
-        let path = tunnels.collect_all_keys();
-        println!("{:?}", path.keys);
-        assert_eq!(path.dist, 132);
+        let dist = tunnels.collect_all_keys();
+        assert_eq!(dist, Some(132));
     }
 
     #[test]
     fn example_4() {
         let tunnels: Tunnels = EXAMPLE_4.parse().unwrap();
         tunnels.print();
-        let path = tunnels.collect_all_keys();
-        println!("{:?}", path.keys);
-        assert_eq!(path.dist, 136);
+        let dist = tunnels.collect_all_keys();
+        assert_eq!(dist, Some(136));
     }
 
     #[test]
     fn example_5() {
         let tunnels: Tunnels = EXAMPLE_5.parse().unwrap();
         tunnels.print();
-        let path = tunnels.collect_all_keys();
-        println!("{:?}", path.keys);
-        assert_eq!(path.dist, 81);
+        let dist = tunnels.collect_all_keys();
+        assert_eq!(dist, Some(81));
     }
 
     const EXAMPLE_6: &str = "#######
@@ -578,29 +637,28 @@ mod tests {
         let mut tunnels: Tunnels = EXAMPLE_6.parse().unwrap();
         tunnels.split_start();
         tunnels.print();
-        let path = tunnels.quad_collect_all_keys();
-        assert_eq!(path.dist, 8);
+        let dist = tunnels.quad_collect_all_keys();
+        assert_eq!(dist, Some(8));
     }
     #[test]
     fn example_7() {
         let tunnels: Tunnels = EXAMPLE_7.parse().unwrap();
         tunnels.print();
-        let path = tunnels.quad_collect_all_keys();
-        assert_eq!(path.dist, 24);
+        let dist = tunnels.quad_collect_all_keys();
+        assert_eq!(dist, Some(24));
     }
     #[test]
     fn example_8() {
-        let mut tunnels: Tunnels = EXAMPLE_8.parse().unwrap();
+        let tunnels: Tunnels = EXAMPLE_8.parse().unwrap();
         tunnels.print();
-        let path = tunnels.quad_collect_all_keys();
-        assert_eq!(path.dist, 32);
+        let dist = tunnels.quad_collect_all_keys();
+        assert_eq!(dist, Some(32));
     }
     #[test]
     fn example_9() {
-        let mut tunnels: Tunnels = EXAMPLE_9.parse().unwrap();
+        let tunnels: Tunnels = EXAMPLE_9.parse().unwrap();
         tunnels.print();
-        let path = tunnels.quad_collect_all_keys();
-        path.print();
-        assert_eq!(path.dist, 72);
+        let dist = tunnels.quad_collect_all_keys();
+        assert_eq!(dist, Some(72));
     }
 }
