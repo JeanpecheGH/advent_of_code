@@ -19,17 +19,17 @@ fn main() {
         first_bus.0 * first_bus.1
     );
 
-    let buses_and_delays: Vec<(isize, isize)> = bus_line
+    let buses_and_delays: Vec<(i128, i128)> = bus_line
         .split(',')
         .enumerate()
         .filter_map(|(delay, w)| {
-            if let Ok(bus) = w.parse() {
-                Some((bus, -(delay as isize)))
+            if let Ok(bus) = w.parse::<i128>() {
+                Some((bus, -(delay as i128)))
             } else {
                 None
             }
         })
         .collect();
-    let solution: isize = smallest_remainder(buses_and_delays);
+    let solution: isize = smallest_remainder(buses_and_delays) as isize;
     println!("Part2: The earliest timestamp that solves the bus delays is {solution}");
 }

@@ -42,9 +42,9 @@ fn main() {
 
     //Part1 using extended Euclid algorithm
     let now = std::time::Instant::now();
-    let discs_and_delays: Vec<(isize, isize)> = aligned_discs
+    let discs_and_delays: Vec<(i128, i128)> = aligned_discs
         .iter()
-        .map(|disc| (disc.period as isize, -(disc.position as isize)))
+        .map(|disc| (disc.period as i128, -(disc.position as i128)))
         .collect();
     let solution = smallest_remainder(discs_and_delays);
     println!(
@@ -76,9 +76,9 @@ fn main() {
 
     //Part2 using extended Euclid algorithm
     let now = std::time::Instant::now();
-    let discs_and_delays: Vec<(isize, isize)> = aligned_discs
+    let discs_and_delays: Vec<(i128, i128)> = aligned_discs
         .iter()
-        .map(|disc| (disc.period as isize, -(disc.position as isize)))
+        .map(|disc| (disc.period as i128, -(disc.position as i128)))
         .collect();
     let solution = smallest_remainder(discs_and_delays);
     println!(
