@@ -91,7 +91,7 @@ struct Scaffolding {
 
 impl Scaffolding {
     fn from_code(mut code: IntCode) -> Self {
-        code.compute(&mut Vec::new());
+        code.compute(Vec::new());
         let output = code.output;
         let chars: String = output
             .iter()
@@ -250,7 +250,7 @@ fn main() {
     let s = util::file_as_string("aoc_2019/input/day_17.txt").expect("Cannot open input file");
     let mut code: IntCode = s.lines().next().unwrap().parse().unwrap();
     let mut code_2: IntCode = code.clone();
-    code.compute(&mut Vec::new());
+    code.compute(Vec::new());
 
     let scaffolding: Scaffolding = Scaffolding::from_code(code);
 
@@ -272,7 +272,7 @@ fn main() {
     code_2.ops[0] = 2;
 
     //Read prompt and write commands
-    code_2.compute(&mut Vec::new());
+    code_2.compute(Vec::new());
     println!("{}{}", code_2.read_prompt().unwrap(), movements.routine);
     code_2.write_cmd(&movements.routine);
     println!("{}{}", code_2.read_prompt().unwrap(), movements.function_a);

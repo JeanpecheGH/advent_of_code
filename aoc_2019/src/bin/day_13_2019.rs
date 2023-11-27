@@ -37,7 +37,7 @@ impl Arkanoid {
     }
 
     fn frame(&mut self, input: isize) {
-        self.code.compute(&mut vec![input]);
+        self.code.compute(vec![input]);
         self.code.output.chunks(3).for_each(|chunk| {
             let [x, y, id]: [_; 3] = chunk.try_into().unwrap();
             if x == -1 {

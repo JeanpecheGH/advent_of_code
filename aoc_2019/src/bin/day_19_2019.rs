@@ -7,7 +7,7 @@ struct TractorBeam {
 
 impl TractorBeam {
     fn field_at(&mut self, x: isize, y: isize) -> isize {
-        self.intcode.compute(&mut vec![x, y]);
+        self.intcode.compute(vec![x, y]);
         let out: isize = self.intcode.output.pop().unwrap();
         self.intcode.reset();
         out

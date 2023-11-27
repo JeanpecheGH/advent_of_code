@@ -69,7 +69,7 @@ impl Robot {
     fn paint_one(&mut self) -> Result<(), Err> {
         let pos: PosI = self.position.pos;
         let input: isize = self.white.contains(&pos) as isize;
-        self.code.compute(&mut vec![input]);
+        self.code.compute(vec![input]);
         let turn: isize = self.code.output.pop().ok_or(())?;
         let color: isize = self.code.output.pop().ok_or(())?;
         self.painted.insert(pos);

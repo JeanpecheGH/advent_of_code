@@ -21,12 +21,12 @@ impl Amplifier {
     fn amplify(&mut self, input: isize, phases: &[isize], reset: bool) -> Option<isize> {
         let mut value: isize = input;
         for (i, code) in self.codes.iter_mut().enumerate() {
-            let mut inputs: Vec<isize> = if phases.is_empty() {
+            let inputs: Vec<isize> = if phases.is_empty() {
                 vec![value]
             } else {
                 vec![phases[i], value]
             };
-            code.compute(&mut inputs);
+            code.compute(inputs);
             value = code.output.pop()?;
         }
         if reset {

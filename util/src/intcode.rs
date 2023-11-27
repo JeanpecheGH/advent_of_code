@@ -10,18 +10,26 @@ pub struct IntCode {
     pub ops: Vec<isize>,
     idx: usize,
     relative_base: isize,
+    input: Vec<isize>,
     pub output: Vec<isize>,
+    infinite: bool,
 }
 
 impl IntCode {
-    pub fn compute(&mut self, inputs: &mut Vec<isize>) {
-        inputs.reverse();
+    pub fn compute(&mut self, inputs: Vec<isize>) {
+        self.set_input(inputs);
         loop {
-            let res: Result<(), Err> = self.one_op(inputs);
+            let res: Result<(), Err> = self.one_op();
             if res.is_err() {
                 break;
             }
         }
+    }
+
+    pub fn set_input(&mut self, input: Vec<isize>) {
+        let mut rev = input.clone();
+        rev.reverse();
+        self.input = rev;
     }
 
     fn get_value(&self, offset: usize, params: &[isize]) -> Result<isize, Err> {
@@ -58,9 +66,18 @@ impl IntCode {
         }
     }
 
-    fn one_op(&mut self, inputs: &mut Vec<isize>) -> Result<(), Err> {
+    fn get_input(&mut self) -> Result<isize, Err> {
+        if self.infinite {
+            Ok(self.input.pop().unwrap_or(-1))
+        } else {
+            self.input.pop().ok_or(())
+        }
+    }
+
+    fn one_op(&mut self) -> Result<(), Err> {
         let i: usize = self.idx;
         let (op, params) = self.op_and_params(i);
+        println!("{}, {:?}", op, params);
         match op {
             1 => {
                 //Add
@@ -80,7 +97,8 @@ impl IntCode {
             }
             3 => {
                 //Read input
-                self.write_value(1, inputs.pop().ok_or(())?, &params)?;
+                let input: isize = self.get_input()?;
+                self.write_value(1, input, &params)?;
                 self.idx += 2;
                 Ok(())
             }
@@ -156,7 +174,7 @@ impl IntCode {
     pub fn write_cmd(&mut self, cmd: &str) {
         let mut input: Vec<isize> = cmd.as_bytes().iter().map(|&c| c as isize).collect();
         input.push(10);
-        self.compute(&mut input);
+        self.compute(input);
     }
 
     pub fn read_prompt(&mut self) -> Option<String> {
@@ -168,6 +186,10 @@ impl IntCode {
         } else {
             None
         }
+    }
+
+    pub fn set_inifinite(&mut self) {
+        self.infinite = true;
     }
 
     pub fn reset(&mut self) {
@@ -190,7 +212,9 @@ impl FromStr for IntCode {
             ops,
             idx: 0,
             relative_base: 0,
+            input: Vec::new(),
             output: Vec::new(),
+            infinite: false,
         })
     }
 }

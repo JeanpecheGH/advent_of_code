@@ -6,7 +6,7 @@ struct SpringDroid {
 
 impl SpringDroid {
     fn walk(&mut self) -> isize {
-        self.intcode.compute(&mut Vec::new());
+        self.intcode.compute(Vec::new());
         print!("{}", self.intcode.read_prompt().unwrap());
 
         // Given we see only 4 steps ahead, we have to jump every time there is a hole (in A, B or C) and D is present
@@ -22,7 +22,7 @@ impl SpringDroid {
     }
 
     fn run(&mut self) -> isize {
-        self.intcode.compute(&mut Vec::new());
+        self.intcode.compute(Vec::new());
         print!("{}", self.intcode.read_prompt().unwrap());
 
         // We keep the instructions from the first part

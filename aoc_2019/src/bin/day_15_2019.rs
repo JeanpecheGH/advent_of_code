@@ -162,7 +162,7 @@ impl Droid {
     }
 
     fn move_one(&mut self, dir: &Dir, first: bool) {
-        self.code.compute(&mut vec![Self::dir_code(dir)]);
+        self.code.compute(vec![Self::dir_code(dir)]);
         let res: isize = self.code.output.pop().unwrap();
         let dist: usize = self.tiles.get(&self.pos.pos).unwrap().1 + 1;
         match res {
