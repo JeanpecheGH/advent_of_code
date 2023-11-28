@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::str::FromStr;
 
 const MEMSIZE: usize = 20000;
@@ -10,14 +11,14 @@ pub struct IntCode {
     pub ops: Vec<isize>,
     idx: usize,
     relative_base: isize,
-    input: Vec<isize>,
+    input: VecDeque<isize>,
     pub output: Vec<isize>,
     infinite: bool,
 }
 
 impl IntCode {
     pub fn compute(&mut self, inputs: Vec<isize>) {
-        self.set_input(inputs);
+        self.add_input(inputs);
         loop {
             let res: Result<(), Err> = self.one_op();
             if res.is_err() {
@@ -26,10 +27,14 @@ impl IntCode {
         }
     }
 
-    pub fn set_input(&mut self, input: Vec<isize>) {
-        let mut rev = input.clone();
-        rev.reverse();
-        self.input = rev;
+    pub fn add_input(&mut self, input: Vec<isize>) {
+        input.into_iter().for_each(|i| {
+            self.input.push_front(i);
+        })
+    }
+
+    pub fn compute_one(&mut self) {
+        let _ = self.one_op();
     }
 
     fn get_value(&self, offset: usize, params: &[isize]) -> Result<isize, Err> {
@@ -68,16 +73,15 @@ impl IntCode {
 
     fn get_input(&mut self) -> Result<isize, Err> {
         if self.infinite {
-            Ok(self.input.pop().unwrap_or(-1))
+            Ok(self.input.pop_back().unwrap_or(-1))
         } else {
-            self.input.pop().ok_or(())
+            self.input.pop_back().ok_or(())
         }
     }
 
     fn one_op(&mut self) -> Result<(), Err> {
         let i: usize = self.idx;
         let (op, params) = self.op_and_params(i);
-        println!("{}, {:?}", op, params);
         match op {
             1 => {
                 //Add
@@ -196,6 +200,7 @@ impl IntCode {
         self.ops = self.start_ops.clone();
         self.idx = 0;
         self.relative_base = 0;
+        self.input.clear();
         self.output.clear();
     }
 }
@@ -212,7 +217,7 @@ impl FromStr for IntCode {
             ops,
             idx: 0,
             relative_base: 0,
-            input: Vec::new(),
+            input: VecDeque::new(),
             output: Vec::new(),
             infinite: false,
         })
