@@ -23,7 +23,7 @@ impl Pos {
         i.neighbours()
             .into_iter()
             .filter_map(|PosI(a, b)| {
-                if a >= 0 && a <= max_x as isize && b >= 0 && b <= max_y as isize {
+                if a >= 0 && a < max_x as isize && b >= 0 && b < max_y as isize {
                     Some(Pos(a as usize, b as usize))
                 } else {
                     None
