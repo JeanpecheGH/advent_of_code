@@ -1,5 +1,9 @@
 use std::str::FromStr;
 
+const DIGITS: [&str; 10] = [
+    "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+];
+
 struct Calibration {
     values: Vec<String>,
 }
@@ -21,46 +25,21 @@ impl Calibration {
         self.values
             .iter()
             .map(|l| {
-                let chars: Vec<char> = l.chars().collect();
-                let len: usize = chars.len();
-                let mut i = 0;
-                let mut digits: Vec<u32> = Vec::new();
-                while i < len {
-                    //Digit can be written with 1 (already a digit), 3, 4 or 5 letters
-                    if let Some(d) = chars[i].to_digit(10) {
-                        digits.push(d);
-                        i += 1;
-                    } else {
-                        if i + 3 <= len {
-                            match &l[i..i + 3] {
-                                "one" => digits.push(1),
-                                "two" => digits.push(2),
-                                "six" => digits.push(6),
-                                _ => (),
+                let digits: Vec<u32> = (0..l.len())
+                    .filter_map(|n| {
+                        let sub: &str = &l[n..];
+                        if let Some(d) = sub.chars().next().unwrap().to_digit(10) {
+                            Some(d)
+                        } else {
+                            for (i, n) in DIGITS.iter().enumerate() {
+                                if sub.starts_with(n) {
+                                    return Some(i as u32);
+                                }
                             }
+                            None
                         }
-
-                        if i + 4 <= len {
-                            match &l[i..i + 4] {
-                                "four" => digits.push(4),
-                                "five" => digits.push(5),
-                                "nine" => digits.push(9),
-                                _ => (),
-                            }
-                        }
-
-                        if i + 5 <= len {
-                            match &l[i..i + 5] {
-                                "three" => digits.push(3),
-                                "seven" => digits.push(7),
-                                "eight" => digits.push(8),
-                                _ => (),
-                            }
-                        }
-                        i += 1;
-                    }
-                }
-
+                    })
+                    .collect();
                 let first: u32 = digits.first().copied().unwrap();
                 let last: u32 = digits.last().copied().unwrap();
                 first * 10 + last
