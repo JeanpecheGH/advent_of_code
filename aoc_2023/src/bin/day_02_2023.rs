@@ -6,7 +6,6 @@ use util::coord::Pos3;
 const MAX: Pos3 = Pos3(12, 13, 14);
 
 struct Game {
-    id: usize,
     draws: Vec<Pos3>,
 }
 
@@ -30,31 +29,14 @@ impl Game {
         r * g * b
     }
 }
-struct Conundrum {
-    games: Vec<Game>,
-}
 
-impl Conundrum {
-    fn possible_games(&self, max: Pos3) -> usize {
-        self.games
-            .iter()
-            .filter_map(|g| if g.is_possible(max) { Some(g.id) } else { None })
-            .sum()
-    }
-
-    fn games_powers_sum(&self) -> usize {
-        self.games.iter().map(|g| g.power()).sum()
-    }
-}
-
-impl FromStr for Conundrum {
+impl FromStr for Game {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn rgb(s: &str) -> Pos3 {
-            let cubes: Vec<&str> = s.split(',').collect();
-            let map: HashMap<&str, usize> = cubes
-                .into_iter()
+            let map: HashMap<&str, usize> = s
+                .split(',')
                 .map(|pair| {
                     let split: Vec<&str> = pair.split_whitespace().collect();
                     let value: usize = split[0].parse().unwrap();
@@ -69,18 +51,40 @@ impl FromStr for Conundrum {
                 map.get("blue").copied().unwrap_or(0),
             )
         }
-        let games: Vec<Game> = s
-            .lines()
-            .map(|l| {
-                let parts: Vec<&str> = l.split(':').collect();
-                let game: Vec<&str> = parts[0].split_whitespace().collect();
-                let id: usize = game[1].parse().unwrap();
-                let draw_parts: Vec<&str> = parts[1].split(';').collect();
-                let draws: Vec<Pos3> = draw_parts.iter().map(|p| rgb(p)).collect();
+        let draws: Vec<Pos3> = s.split_once(':').unwrap().1.split(';').map(rgb).collect();
 
-                Game { id, draws }
+        Ok(Game { draws })
+    }
+}
+struct Conundrum {
+    games: Vec<Game>,
+}
+
+impl Conundrum {
+    fn possible_games(&self, max: Pos3) -> usize {
+        self.games
+            .iter()
+            .enumerate()
+            .filter_map(|(id, g)| {
+                if g.is_possible(max) {
+                    Some(id + 1)
+                } else {
+                    None
+                }
             })
-            .collect();
+            .sum()
+    }
+
+    fn games_powers_sum(&self) -> usize {
+        self.games.iter().map(|g| g.power()).sum()
+    }
+}
+
+impl FromStr for Conundrum {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let games: Vec<Game> = s.lines().map(|l| l.parse().unwrap()).collect();
         Ok(Conundrum { games })
     }
 }
