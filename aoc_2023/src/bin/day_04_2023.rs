@@ -1,9 +1,10 @@
+use std::cmp::min;
 use std::collections::HashSet;
 use std::str::FromStr;
 
 struct ScratchCard {
     winning: HashSet<usize>,
-    numbers: Vec<usize>,
+    numbers: HashSet<usize>,
 }
 
 impl ScratchCard {
@@ -15,10 +16,7 @@ impl ScratchCard {
     }
 
     fn nb_match(&self) -> usize {
-        self.numbers
-            .iter()
-            .filter(|n| self.winning.contains(*n))
-            .count()
+        self.numbers.intersection(&self.winning).count()
     }
 }
 
@@ -26,17 +24,16 @@ impl FromStr for ScratchCard {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (winning, numbers) = s.split_once(':').unwrap().1.split_once('|').unwrap();
-        let winning: HashSet<usize> = winning
-            .split_whitespace()
-            .map(|segment| segment.parse().unwrap())
-            .collect();
-        let numbers: Vec<usize> = numbers
-            .split_whitespace()
-            .map(|segment| segment.parse().unwrap())
-            .collect();
-
-        Ok(ScratchCard { winning, numbers })
+        fn to_set(part: &str) -> HashSet<usize> {
+            part.split_whitespace()
+                .map(|segment| segment.parse().unwrap())
+                .collect()
+        }
+        let split = s.split_once(':').unwrap().1.split_once('|').unwrap();
+        Ok(ScratchCard {
+            winning: to_set(split.0),
+            numbers: to_set(split.1),
+        })
     }
 }
 
@@ -53,14 +50,13 @@ impl CardPile {
         let size: usize = self.cards.len();
         let mut nb_cards: Vec<usize> = vec![1; size];
 
-        for (i, card) in self.cards.iter().enumerate() {
+        //No need to scratch the last card
+        for (i, card) in self.cards[..size - 1].iter().enumerate() {
             let nb: usize = nb_cards[i];
             let nb_match: usize = card.nb_match();
 
             //Add "nb" cards to the next cards, depending on the number of match
-            (i + 1..=i + nb_match)
-                .filter(|&id| id < size)
-                .for_each(|id| nb_cards[id] += nb);
+            (i + 1..=min(i + nb_match, size - 1)).for_each(|id| nb_cards[id] += nb);
         }
 
         nb_cards.into_iter().sum()
