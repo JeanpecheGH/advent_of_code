@@ -6,21 +6,18 @@ struct BoatRace {
 }
 
 impl BoatRace {
-    fn beat_distance(&self, hold_time: usize) -> bool {
-        (self.time - hold_time) * hold_time > self.distance
-    }
-
-    //We only need to find the first and last hold times beating the distance
-    //Every hold time in between will be good too
     fn possibilities(&self) -> usize {
-        let short_hold: usize = (1..self.time)
-            .find(|hold| self.beat_distance(*hold))
-            .unwrap();
-        let long_hold: usize = (1..self.time)
-            .rev()
-            .find(|hold| self.beat_distance(*hold))
-            .unwrap();
-        long_hold - short_hold + 1
+        //We want to solve the quadratic equation: h(t-h) - d = 0 <=> -h² + th -d = 0
+        //Discriminant is t² - 4d
+        let t: f64 = self.time as f64;
+        let d: f64 = self.distance as f64;
+        let discr: f64 = (t * t - 4_f64 * d).sqrt();
+        //Root one will be the bigger one
+        //We have to beat the times, not just equal it, so we add/remove 0.0001 to make sure that floor/ceil does something
+        let root_one: usize = (((-t - discr) / -2_f64) - 0.0001).floor() as usize;
+        let root_two: usize = ((-t + discr) / -2_f64 + 0.0001).ceil() as usize;
+
+        root_one - root_two + 1
     }
 }
 
