@@ -39,11 +39,7 @@ impl HandType {
         Self::from_sets_size(first.len(), second.len())
     }
 
-    fn from_joker_cards(c: &[JokerCard]) -> HandType {
-        let mut cards: Vec<JokerCard> = c.to_vec();
-        cards.sort();
-        cards.reverse();
-
+    fn from_joker_cards(cards: &[JokerCard]) -> HandType {
         let (first, second, has_jokers): (HashSet<JokerCard>, HashSet<JokerCard>, bool) =
             cards.iter().fold(
                 (HashSet::new(), HashSet::new(), false),
