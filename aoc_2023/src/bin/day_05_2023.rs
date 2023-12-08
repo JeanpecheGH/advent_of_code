@@ -21,34 +21,30 @@ impl AlmanacRange {
     //Returns an optional transformed range if the input range overlaps with the AlmanacRange
     //Return 0, 1 or 2 ranges in a Vec for parts not overlapping with the AlmanacRange
     fn dest_range(&self, pos: Pos) -> (Option<Pos>, Vec<Pos>) {
-        match (pos.0, pos.1, self.source, self.range) {
-            (start, size, src, _) if (start + size) <= src => (None, vec![pos]), //All range is inferior
-            (start, _, src, rng) if (src + rng) <= start => (None, vec![pos]), //All range is superior
-            (start, size, src, rng) if start >= src && (start + size) <= (src + rng) => (
-                Some(Pos(self.destination + (start - src), size)),
-                Vec::new(),
-            ), //All range is inside
-            (start, size, src, rng) if start < src && (start + size) <= (src + rng) => {
-                let pos: Pos = Pos(self.destination, start + size - src);
-                let v: Vec<Pos> = vec![Pos(start, src - start)];
-                (Some(pos), v)
-            } //Part before, part inside
-            (start, size, src, rng) if start >= src && (start + size) > (src + rng) => {
-                let new_start: usize = self.destination + (start - src);
-                let new_size: usize = rng - (start - src);
-                let pos: Pos = Pos(new_start, new_size);
-                let v: Vec<Pos> = vec![Pos(src + rng, size - new_size)];
-                (Some(pos), v)
-            } //Part inside, part after
-            (start, size, src, rng) if start < src && (start + size) > (src + rng) => {
-                let pos: Pos = Pos(self.destination, rng);
-                let v: Vec<Pos> = vec![
-                    Pos(start, src - start),
-                    Pos(src + rng, size - rng - (src - start)),
-                ];
-                (Some(pos), v)
-            } //Part before, part inside, part after
-            _ => (None, Vec::new()),                                           //Should never happen
+        let dest: usize = self.destination;
+        match (pos.0, pos.1, self.source, self.source + self.range) {
+            //All range is outside (either inferior or superior)
+            (start, end, s, e) if end < s || start >= e => (None, vec![pos]),
+            //ALl range is inside
+            (start, end, s, e) if start >= s && end <= e => {
+                (Some(Pos(dest + (start - s), dest + (end - s))), Vec::new())
+            }
+            //Part before, part inside
+            (start, end, s, e) if start < s && end <= e => {
+                (Some(Pos(dest, dest + (end - s))), vec![Pos(start, s)])
+            }
+            //Part inside, part after
+            (start, end, s, e) if start >= s && end > e => (
+                Some(Pos(dest + (start - s), dest + (e - s))),
+                vec![Pos(e, end)],
+            ),
+            //Part before, part inside, part after
+            (start, end, s, e) if start < s && end > e => (
+                Some(Pos(dest, dest + (e - s))),
+                vec![Pos(start, s), Pos(e, end)],
+            ),
+            //Should never happen
+            _ => (None, Vec::new()),
         }
     }
 }
@@ -154,7 +150,7 @@ impl Almanac {
     fn lowest_range_location(&self) -> usize {
         self.seeds
             .chunks(2)
-            .map(|chunk| vec![Pos(chunk[0], chunk[1])])
+            .map(|chunk| vec![Pos(chunk[0], chunk[0] + chunk[1])])
             .map(|v| self.apply_range_maps(v))
             .flat_map(|v| v.into_iter().map(|pos| pos.0).collect::<Vec<usize>>())
             .min()
