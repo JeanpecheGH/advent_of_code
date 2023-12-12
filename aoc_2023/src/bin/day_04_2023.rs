@@ -1,6 +1,10 @@
+use nom::bytes::complete::tag;
+use nom::character::complete::space1;
+use nom::sequence::{pair, preceded, separated_pair};
 use std::cmp::min;
 use std::collections::HashSet;
 use std::str::FromStr;
+use util::basic_parser::{title, usize_list};
 
 struct ScratchCard {
     winning: HashSet<usize>,
@@ -24,15 +28,15 @@ impl FromStr for ScratchCard {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn to_set(part: &str) -> HashSet<usize> {
-            part.split_whitespace()
-                .map(|segment| segment.parse().unwrap())
-                .collect()
-        }
-        let split = s.split_once(':').unwrap().1.split_once('|').unwrap();
+        let vecs: (Vec<usize>, Vec<usize>) = preceded(
+            title,
+            separated_pair(usize_list, pair(tag(" |"), space1), usize_list),
+        )(s)
+        .unwrap()
+        .1;
         Ok(ScratchCard {
-            winning: to_set(split.0),
-            numbers: to_set(split.1),
+            winning: HashSet::from_iter(vecs.0),
+            numbers: HashSet::from_iter(vecs.1),
         })
     }
 }

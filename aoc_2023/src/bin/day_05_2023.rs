@@ -1,4 +1,6 @@
+use nom::sequence::preceded;
 use std::str::FromStr;
+use util::basic_parser::{title, usize_list};
 use util::coord::Pos;
 use util::split_blocks;
 
@@ -53,7 +55,7 @@ impl FromStr for AlmanacRange {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let values: Vec<usize> = s.split_whitespace().map(|n| n.parse().unwrap()).collect();
+        let values: Vec<usize> = usize_list(s).unwrap().1;
         Ok(AlmanacRange {
             source: values[1],
             destination: values[0],
@@ -163,13 +165,7 @@ impl FromStr for Almanac {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let blocks: Vec<&str> = split_blocks(s);
-        let seeds: Vec<usize> = blocks[0]
-            .split_once(':')
-            .unwrap()
-            .1
-            .split_whitespace()
-            .map(|n| n.parse().unwrap())
-            .collect();
+        let seeds: Vec<usize> = preceded(title, usize_list)(blocks[0]).unwrap().1;
         let maps: Vec<AlmanacMap> = (1..=7).map(|n| blocks[n].parse().unwrap()).collect();
 
         Ok(Almanac { seeds, maps })

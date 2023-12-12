@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use util::basic_parser::isize_list;
 
 struct Sequence {
     values: Vec<isize>,
@@ -31,7 +32,7 @@ impl FromStr for Sequence {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let values: Vec<isize> = s.split_whitespace().map(|n| n.parse().unwrap()).collect();
+        let values: Vec<isize> = isize_list(s).unwrap().1;
         Ok(Sequence { values })
     }
 }

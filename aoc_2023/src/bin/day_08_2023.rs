@@ -1,3 +1,6 @@
+use nom::bytes::complete::{tag, take};
+use nom::sequence::{preceded, tuple};
+use nom::IResult;
 use std::collections::HashMap;
 use std::str::FromStr;
 use util::orientation::Dir;
@@ -73,6 +76,16 @@ impl FromStr for Wasteland {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        fn parse_dict(s: &str) -> IResult<&str, (String, (String, String))> {
+            let (s, (k, l, r)) = tuple((
+                take(3usize),
+                preceded(tag(" = ("), take(3usize)),
+                preceded(tag(", "), take(3usize)),
+            ))(s)?;
+
+            Ok((s, (k.to_string(), (l.to_string(), r.to_string()))))
+        }
+
         let blocks: Vec<&str> = split_blocks(s);
         let dirs: Vec<Dir> = blocks[0]
             .chars()
@@ -85,14 +98,7 @@ impl FromStr for Wasteland {
 
         let nodes: HashMap<String, (String, String)> = blocks[1]
             .lines()
-            .map(|line| {
-                let (key, targets) = line.split_once(" = ").unwrap();
-                let (left, right) = targets.split_once(", ").unwrap();
-                let left: &str = left.strip_prefix('(').unwrap();
-                let right: &str = right.strip_suffix(')').unwrap();
-
-                (key.to_string(), (left.to_string(), right.to_string()))
-            })
+            .map(|line| parse_dict(line).unwrap().1)
             .collect();
 
         Ok(Wasteland { dirs, nodes })

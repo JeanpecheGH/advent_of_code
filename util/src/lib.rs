@@ -1,3 +1,4 @@
+pub mod basic_parser;
 pub mod chinese_remainders;
 pub mod coord;
 pub mod intcode;

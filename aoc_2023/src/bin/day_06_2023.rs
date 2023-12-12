@@ -1,4 +1,6 @@
+use nom::sequence::preceded;
 use std::str::FromStr;
+use util::basic_parser::{title, usize_list};
 
 struct BoatRace {
     time: usize,
@@ -40,15 +42,6 @@ impl FromStr for Races {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn numbers_in_line(line: &str) -> Vec<usize> {
-            line.split_once(':')
-                .unwrap()
-                .1
-                .split_whitespace()
-                .map(|n| n.parse().unwrap())
-                .collect()
-        }
-
         fn number_in_line(line: &str) -> usize {
             let mut time: String = line.split_once(':').unwrap().1.to_string();
             time.retain(|c| !c.is_whitespace());
@@ -58,8 +51,8 @@ impl FromStr for Races {
         let mut lines = s.lines();
         let first: &str = lines.next().unwrap();
         let second: &str = lines.next().unwrap();
-        let times: Vec<usize> = numbers_in_line(first);
-        let distances: Vec<usize> = numbers_in_line(second);
+        let times: Vec<usize> = preceded(title, usize_list)(first).unwrap().1;
+        let distances: Vec<usize> = preceded(title, usize_list)(second).unwrap().1;
 
         let races: Vec<BoatRace> = (0..times.len())
             .map(|i| BoatRace {
