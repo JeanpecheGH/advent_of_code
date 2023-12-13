@@ -1,6 +1,12 @@
+use nom::bytes::complete::tag;
+use nom::combinator::opt;
+use nom::multi::separated_list1;
+use nom::sequence::{pair, preceded, terminated};
+use nom::IResult;
+use nom_permutation::permutation_opt;
 use std::cmp::max;
-use std::collections::HashMap;
 use std::str::FromStr;
+use util::basic_parser::{parse_usize, title};
 use util::coord::Pos3;
 
 const MAX: Pos3 = Pos3(12, 13, 14);
@@ -34,24 +40,23 @@ impl FromStr for Game {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn rgb(s: &str) -> Pos3 {
-            let map: HashMap<&str, usize> = s
-                .split(',')
-                .map(|pair| {
-                    let split: Vec<&str> = pair.split_whitespace().collect();
-                    let value: usize = split[0].parse().unwrap();
-                    let color: &str = split[1];
-                    (color, value)
-                })
-                .collect();
-
-            Pos3(
-                map.get("red").copied().unwrap_or(0),
-                map.get("green").copied().unwrap_or(0),
-                map.get("blue").copied().unwrap_or(0),
-            )
+        fn parse_draw(s: &str) -> IResult<&str, Pos3> {
+            fn parse_red(s: &str) -> IResult<&str, usize> {
+                terminated(parse_usize, pair(tag(" red"), opt(tag(", "))))(s)
+            }
+            fn parse_green(s: &str) -> IResult<&str, usize> {
+                terminated(parse_usize, pair(tag(" green"), opt(tag(", "))))(s)
+            }
+            fn parse_blue(s: &str) -> IResult<&str, usize> {
+                terminated(parse_usize, pair(tag(" blue"), opt(tag(", "))))(s)
+            }
+            let (s, (r, g, b)) = permutation_opt((parse_red, parse_green, parse_blue))(s)?;
+            Ok((s, Pos3(r.unwrap_or(0), g.unwrap_or(0), b.unwrap_or(0))))
         }
-        let draws: Vec<Pos3> = s.split_once(':').unwrap().1.split(';').map(rgb).collect();
+        fn parse_draws(s: &str) -> IResult<&str, Vec<Pos3>> {
+            preceded(title, separated_list1(tag("; "), parse_draw))(s)
+        }
+        let draws: Vec<Pos3> = parse_draws(s).unwrap().1;
 
         Ok(Game { draws })
     }
