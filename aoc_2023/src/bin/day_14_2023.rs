@@ -106,15 +106,13 @@ impl Platform {
 
         let mut i = 0;
         //We cycle until we find the first repeated position
-        let cycle_length: usize;
-        loop {
+        let cycle_length: usize = loop {
             if let Some(old_id) = map.insert(self.clone(), i) {
-                cycle_length = i - old_id;
-                break;
+                break i - old_id;
             }
             self.cycle();
             i += 1;
-        }
+        };
 
         //Compute the number of remaining cycles needed to simulate nb_cycle iterations
         let remaining: usize = (nb_cycle - i) % cycle_length;
