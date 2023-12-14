@@ -1,5 +1,5 @@
 use itertools::Either;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::str::FromStr;
 use util::coord::Pos;
 use util::orientation::Dir;
@@ -102,27 +102,21 @@ impl Platform {
     }
 
     fn n_cycles(&mut self, nb_cycle: usize) {
-        let mut set: HashSet<Platform> = HashSet::new();
+        let mut map: HashMap<Platform, usize> = HashMap::new();
 
         let mut i = 0;
         //We cycle until we find the first repeated position
-        while set.insert(self.clone()) {
+        let cycle_length: usize;
+        loop {
+            if let Some(old_id) = map.insert(self.clone(), i) {
+                cycle_length = i - old_id;
+                break;
+            }
             self.cycle();
             i += 1;
         }
 
-        //We now find the number of cycles we need to find this position again
-        let cycles_start: Platform = self.clone();
-        let mut cycle_length: usize = 0;
-        loop {
-            self.cycle();
-            cycle_length += 1;
-            if *self == cycles_start {
-                break;
-            }
-        }
-
-        //We compute the number of remaining cycles needed to simulate nb_cycle iterations
+        //Compute the number of remaining cycles needed to simulate nb_cycle iterations
         let remaining: usize = (nb_cycle - i) % cycle_length;
         for _ in 0..remaining {
             self.cycle();
