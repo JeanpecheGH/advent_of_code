@@ -1,3 +1,4 @@
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use std::str::FromStr;
 
 enum LensOperation {
@@ -31,7 +32,7 @@ impl Library {
         }
 
         let power: usize = boxes
-            .into_iter()
+            .into_par_iter()
             .enumerate()
             .map(|(i, b)| {
                 b.into_iter()

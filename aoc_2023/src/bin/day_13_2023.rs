@@ -1,3 +1,4 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::str::FromStr;
 use util::split_blocks;
 
@@ -77,7 +78,7 @@ struct Notes {
 
 impl Notes {
     fn summarize(&self, diff: usize) -> usize {
-        self.mirrors.iter().map(|m| m.score(diff)).sum()
+        self.mirrors.par_iter().map(|m| m.score(diff)).sum()
     }
 }
 
