@@ -28,6 +28,10 @@ pub fn title(s: &str) -> IResult<&str, &str> {
     terminated(take_while(|c| c != ':'), preceded(char(':'), space1))(s)
 }
 
+pub fn from_hex(input: &str) -> Result<usize, std::num::ParseIntError> {
+    usize::from_str_radix(input, 16)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -55,5 +59,10 @@ mod tests {
             title("Level 3: \t a rabbit").unwrap(),
             ("a rabbit", "Level 3")
         );
+    }
+
+    #[test]
+    fn hex_parser() {
+        assert_eq!(from_hex("70c71"), Ok(461937))
     }
 }
