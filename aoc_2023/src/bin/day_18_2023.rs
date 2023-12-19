@@ -59,7 +59,7 @@ impl FromStr for Trench {
         }
 
         let (_, (dir, (size, (big_size, big_dir)))) = separated_pair(
-            map_res(anychar, |c| Dir::from_char(c)),
+            map_res(anychar, Dir::from_char),
             char(' '),
             separated_pair(
                 parse_usize,
@@ -67,8 +67,8 @@ impl FromStr for Trench {
                 delimited(
                     tag("(#"),
                     pair(
-                        map_res(take(5_usize), |s| from_hex(s)),
-                        map_res(anychar, |c| dir_from_n(c)),
+                        map_res(take(5_usize), from_hex),
+                        map_res(anychar, dir_from_n),
                     ),
                     char(')'),
                 ),
@@ -110,38 +110,39 @@ impl LavaLagoon {
         trenches_dir.push(last_dir);
         trenches_dir.reverse();
 
-        let mut i = 0;
-        let mut outside_nodes: Vec<PosI> = Vec::new();
-        for pair in trenches_dir.windows(2) {
-            let PosI(x, y): PosI = nodes[i];
+        let outside_nodes: Vec<PosI> = trenches_dir
+            .windows(2)
+            .enumerate()
+            .map(|(i, pair)| {
+                let PosI(x, y): PosI = nodes[i];
 
-            let mod_pos: PosI = match (pair[0], pair[1], ext_is_right) {
-                (Dir::North, Dir::East, true) => PosI(x + 1, y + 1),
-                (Dir::North, Dir::East, false) => PosI(x, y),
-                (Dir::North, Dir::West, true) => PosI(x + 1, y),
-                (Dir::North, Dir::West, false) => PosI(x, y + 1),
-                (Dir::South, Dir::East, true) => PosI(x, y + 1),
-                (Dir::South, Dir::East, false) => PosI(x + 1, y),
-                (Dir::South, Dir::West, true) => PosI(x, y),
-                (Dir::South, Dir::West, false) => PosI(x + 1, y + 1),
-                (Dir::East, Dir::North, true) => PosI(x + 1, y + 1),
-                (Dir::East, Dir::North, false) => PosI(x, y),
-                (Dir::East, Dir::South, true) => PosI(x, y + 1),
-                (Dir::East, Dir::South, false) => PosI(x + 1, y),
-                (Dir::West, Dir::North, true) => PosI(x + 1, y),
-                (Dir::West, Dir::North, false) => PosI(x, y + 1),
-                (Dir::West, Dir::South, true) => PosI(x, y),
-                (Dir::West, Dir::South, false) => PosI(x + 1, y + 1),
-                _ => panic!(
-                    "Impossible Direction combination: {:?} {:?}",
-                    pair[0], pair[1]
-                ),
-            };
-            outside_nodes.push(mod_pos);
-            i += 1;
-        }
+                let mod_pos: PosI = match (pair[0], pair[1], ext_is_right) {
+                    (Dir::North, Dir::East, true) => PosI(x + 1, y + 1),
+                    (Dir::North, Dir::East, false) => PosI(x, y),
+                    (Dir::North, Dir::West, true) => PosI(x + 1, y),
+                    (Dir::North, Dir::West, false) => PosI(x, y + 1),
+                    (Dir::South, Dir::East, true) => PosI(x, y + 1),
+                    (Dir::South, Dir::East, false) => PosI(x + 1, y),
+                    (Dir::South, Dir::West, true) => PosI(x, y),
+                    (Dir::South, Dir::West, false) => PosI(x + 1, y + 1),
+                    (Dir::East, Dir::North, true) => PosI(x + 1, y + 1),
+                    (Dir::East, Dir::North, false) => PosI(x, y),
+                    (Dir::East, Dir::South, true) => PosI(x, y + 1),
+                    (Dir::East, Dir::South, false) => PosI(x + 1, y),
+                    (Dir::West, Dir::North, true) => PosI(x + 1, y),
+                    (Dir::West, Dir::North, false) => PosI(x, y + 1),
+                    (Dir::West, Dir::South, true) => PosI(x, y),
+                    (Dir::West, Dir::South, false) => PosI(x + 1, y + 1),
+                    _ => panic!(
+                        "Impossible Direction combination: {:?} {:?}",
+                        pair[0], pair[1]
+                    ),
+                };
+                mod_pos
+            })
+            .collect();
 
-        //Use formula to compute area
+        //Use shoelace formula to compute area
         let a: isize = outside_nodes
             .windows(2)
             .map(|pair| pair[0].0 * pair[1].1)
