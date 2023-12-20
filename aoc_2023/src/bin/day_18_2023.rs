@@ -203,7 +203,7 @@ U 2 (#7a21e3)
         assert_eq!(lagoon.volume(false, false), 62);
     }
     #[test]
-    fn part_2_test_1() {
+    fn part_2() {
         let lagoon: LavaLagoon = EXAMPLE_1.parse().unwrap();
         assert_eq!(lagoon.volume(false, true), 952408144115);
     }

@@ -396,7 +396,7 @@ hdj{m>838:A,pv}
         assert_eq!(sorter.ratings(), 19114);
     }
     #[test]
-    fn part_2_test_1() {
+    fn part_2() {
         let sorter: XmasSorter = EXAMPLE_1.parse().unwrap();
         assert_eq!(sorter.valid_parts(), 167409079868000);
     }

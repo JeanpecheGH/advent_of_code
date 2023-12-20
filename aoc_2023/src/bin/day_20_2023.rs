@@ -271,9 +271,6 @@ mod tests {
     #[test]
     fn part_1_test_1() {
         let mut system: PulseSystem = EXAMPLE_1.parse().unwrap();
-        println!("{:?}", system);
-        system.reset();
-        println!("{:?}", system);
         assert_eq!(system.push_times(1000), 32000000);
     }
     #[test]
