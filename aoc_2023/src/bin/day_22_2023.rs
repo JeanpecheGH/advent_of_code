@@ -2,7 +2,6 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
 use nom::IResult;
-use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -21,9 +20,6 @@ impl Brick {
             .iter()
             .any(|&Pos3(x, y, z)| other_parts.contains(&Pos3(x, y, z + 1)))
     }
-    fn low_z(&self) -> usize {
-        min(self.start.2, self.end.2)
-    }
 
     fn lower(&self) -> Brick {
         let Pos3(x, y, z): Pos3 = self.start;
@@ -36,17 +32,10 @@ impl Brick {
     }
 
     fn parts(&self) -> Vec<Pos3> {
-        let min_z: usize = min(self.start.2, self.end.2);
-        let max_z: usize = max(self.start.2, self.end.2);
-        let min_y: usize = min(self.start.1, self.end.1);
-        let max_y: usize = max(self.start.1, self.end.1);
-        let min_x: usize = min(self.start.0, self.end.0);
-        let max_x: usize = max(self.start.0, self.end.0);
-
         let mut parts: Vec<Pos3> = Vec::new();
-        for z in min_z..=max_z {
-            for y in min_y..=max_y {
-                for x in min_x..=max_x {
+        for z in self.start.2..=self.end.2 {
+            for y in self.start.1..=self.end.1 {
+                for x in self.start.0..=self.end.0 {
                     parts.push(Pos3(x, y, z))
                 }
             }
@@ -147,7 +136,7 @@ impl BrickPile {
             .iter()
             .map(|s| match s.len() {
                 0 => 0,
-                _ => Self::all_above(&supports, &s).len(),
+                _ => Self::all_above(&supports, s).len(),
             })
             .sum();
 
@@ -156,23 +145,18 @@ impl BrickPile {
 
     fn stack_bricks(&self) -> Vec<Brick> {
         let mut sorted_pile = self.pile.clone();
-        sorted_pile.sort_by(|a, b| a.low_z().cmp(&b.low_z()));
+        //Sort by lowest altitude
+        sorted_pile.sort_by(|a, b| a.start.2.cmp(&b.start.2));
 
-        //Build a flat surface to lay bricks onto
         let mut all_parts: HashSet<Pos3> = HashSet::new();
-        for y in 0..10 {
-            for x in 0..10 {
-                all_parts.insert(Pos3(x, y, 0));
-            }
-        }
 
         let mut final_pile: Vec<Brick> = Vec::new();
         for b in sorted_pile.iter() {
-            let mut br: Brick = b.clone();
+            let mut br: Brick = *b;
             let mut parts = b.parts();
             while !parts
                 .iter()
-                .any(|&Pos3(x, y, z)| all_parts.contains(&Pos3(x, y, z - 1)))
+                .any(|&Pos3(x, y, z)| z == 1 || all_parts.contains(&Pos3(x, y, z - 1)))
             {
                 br = br.lower();
                 parts = br.parts();
