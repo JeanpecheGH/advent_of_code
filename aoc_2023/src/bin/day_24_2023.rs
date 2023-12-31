@@ -1,57 +1,48 @@
+use itertools::Itertools;
 use nom::bytes::complete::tag;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
-use util::coord::Pos3I;
+use util::coord::{Pos3I, PosI};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-struct HailStone {
-    pos: Pos3I,
-    vel: Pos3I,
+struct HailStone2D {
+    pos: PosI,
+    vel: PosI,
 }
 
-impl HailStone {
-    fn change_vel(&self, x: isize, y: isize, z: isize) -> HailStone {
-        let new_vel: Pos3I = Pos3I(self.vel.0 + x, self.vel.1 + y, self.vel.2 + z);
-        HailStone {
+impl HailStone2D {
+    fn change_vel(&self, x: isize, y: isize) -> HailStone2D {
+        let new_vel: PosI = PosI(self.vel.0 + x, self.vel.1 + y);
+        HailStone2D {
             pos: self.pos,
             vel: new_vel,
         }
     }
-    //fn score(&self) -> isize {
-    //     self.pos.0 + self.pos.1 + self.pos.2
-    // }
-    fn equation_xy(&self) -> (f64, f64) {
+
+    fn equation(&self) -> (f64, f64) {
         let a: f64 = self.vel.1 as f64 / self.vel.0 as f64;
         let b: f64 = self.pos.1 as f64 - (self.pos.0 as f64) * a;
 
         (a, b)
     }
-    fn equation_xz(&self) -> (f64, f64) {
-        let a: f64 = self.vel.2 as f64 / self.vel.0 as f64;
-        let b: f64 = self.pos.2 as f64 - (self.pos.0 as f64) * a;
-
-        (a, b)
-    }
-
-    fn crossing_point_xy(&self, other: HailStone) -> (f64, f64) {
+    fn crossing_point(&self, other: &HailStone2D) -> (f64, f64) {
         if self.vel.0 == 0 {
-            let y0: f64 = self.pos.1 as f64;
-            let (i, j) = other.equation_xy();
-            //y0 - ix0 = j
-            let x0: f64 = (y0 - j) / i;
+            let x0: f64 = self.pos.0 as f64;
+            let (i, j) = other.equation();
+            let y0: f64 = i * x0 + j;
             (x0, y0)
         } else if other.vel.0 == 0 {
-            let y0: f64 = other.pos.1 as f64;
-            let (a, b) = self.equation_xy();
-            //y0 - ax0 = b
-            let x0: f64 = (y0 - b) / a;
+            let x0: f64 = other.pos.0 as f64;
+            let (a, b) = self.equation();
+            let y0: f64 = a * x0 + b;
             (x0, y0)
         } else {
-            let (a, b) = self.equation_xy();
-            let (i, j) = other.equation_xy();
+            let (a, b) = self.equation();
+            let (i, j) = other.equation();
             //y0 - ax0 = b
             //y0 - ix0 = j
 
@@ -65,43 +56,15 @@ impl HailStone {
         }
     }
 
-    fn crossing_point_xz(&self, other: HailStone) -> (f64, f64) {
-        if self.vel.0 == 0 {
-            let z0: f64 = self.pos.2 as f64;
-            let (i, k) = other.equation_xz();
-            //y0 - ix0 = k
-            let x0: f64 = (z0 - k) / i;
-            (x0, z0)
-        } else if other.vel.0 == 0 {
-            let z0: f64 = other.pos.2 as f64;
-            let (a, c) = self.equation_xz();
-            //y0 - ax0 = c
-            let x0: f64 = (z0 - c) / a;
-            (x0, z0)
-        } else {
-            let (a, c) = self.equation_xz();
-            let (i, k) = other.equation_xz();
-            //y0 - ax0 = c
-            //y0 - ix0 = k
-
-            //y0 - ax0 = c
-            //(a-i)x0 = k - c
-
-            let x0: f64 = (k - c) / (a - i);
-            let z0: f64 = a * x0 + c;
-
-            (x0, z0)
-        }
-    }
-
     fn x_is_after(&self, x: f64) -> bool {
-        if self.vel.0 > 0 {
-            x > self.pos.0 as f64
-        } else {
-            x < self.pos.0 as f64
+        match self.vel.0.cmp(&0) {
+            Ordering::Less => x < self.pos.0 as f64,
+            Ordering::Equal => x == self.pos.0 as f64,
+            Ordering::Greater => x > self.pos.0 as f64,
         }
     }
-    fn intersect_2d_xy(&self, other: HailStone, min: isize, max: isize) -> Option<(f64, f64)> {
+
+    fn intersect_2d(&self, other: &HailStone2D) -> Result<Option<PosI>, ()> {
         let a_x: isize = self.vel.0;
         let b_x: isize = other.vel.0;
 
@@ -109,41 +72,59 @@ impl HailStone {
         let b_y: isize = other.vel.1;
         //Check if the path are parallel
         let par: bool = a_x * b_y == b_x * a_y;
-        if !par {
+        if par {
+            Err(())
+        } else {
             //Compute crossing point
-            let min_f: f64 = min as f64;
-            let max_f: f64 = max as f64;
-            let (c_x, c_y): (f64, f64) = self.crossing_point_xy(other);
-            //println!("{c_x} {c_y}");
-            //Check if crossing point is within the limits
-            if !(c_x < min_f || c_x > max_f || c_y < min_f || c_y > max_f) {
-                //Chech if cross happened in past for any stone
-                if self.x_is_after(c_x) && other.x_is_after(c_x) {
-                    return Some((c_x, c_y));
-                }
-            }
-        }
-        None
-    }
-
-    fn intersect_2d_xz(&self, other: HailStone) -> Option<(f64, f64)> {
-        let a_x: isize = self.vel.0;
-        let b_x: isize = other.vel.0;
-
-        let a_z: isize = self.vel.2;
-        let b_z: isize = other.vel.2;
-        //Check if the path are parallel
-        let par: bool = a_x * b_z == b_x * a_z;
-        if !par {
-            //Compute crossing point
-            let (c_x, c_z): (f64, f64) = self.crossing_point_xz(other);
-            //println!("{c_x} {c_y}");
+            let (c_x, c_y): (f64, f64) = self.crossing_point(other);
             //Chech if cross happened in past for any stone
             if self.x_is_after(c_x) && other.x_is_after(c_x) {
-                return Some((c_x, c_z));
+                Ok(Some(PosI(c_x.round() as isize, c_y.round() as isize)))
+            } else {
+                Ok(None)
             }
         }
-        None
+    }
+    fn intersect_2d_min_max(&self, other: &HailStone2D, min: isize, max: isize) -> Option<PosI> {
+        match self.intersect_2d(other) {
+            Ok(Some(PosI(x, y))) => {
+                if (min..=max).contains(&x) && (min..=max).contains(&y) {
+                    Some(PosI(x, y))
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+struct HailStone {
+    pos: Pos3I,
+    vel: Pos3I,
+}
+
+impl HailStone {
+    fn as_xy(&self) -> HailStone2D {
+        HailStone2D {
+            pos: PosI(self.pos.0, self.pos.1),
+            vel: PosI(self.vel.0, self.vel.1),
+        }
+    }
+
+    fn as_xz(&self) -> HailStone2D {
+        HailStone2D {
+            pos: PosI(self.pos.0, self.pos.2),
+            vel: PosI(self.vel.0, self.vel.2),
+        }
+    }
+
+    fn as_yz(&self) -> HailStone2D {
+        HailStone2D {
+            pos: PosI(self.pos.1, self.pos.2),
+            vel: PosI(self.vel.1, self.vel.2),
+        }
     }
 }
 
@@ -170,12 +151,20 @@ struct HailCloud {
 
 impl HailCloud {
     fn nb_intersection_in_2d(&self, min: isize, max: isize) -> usize {
+        let stones_2d: Vec<HailStone2D> = self
+            .stones
+            .iter()
+            .map(|s| HailStone2D {
+                pos: PosI(s.pos.0, s.pos.1),
+                vel: PosI(s.vel.0, s.vel.1),
+            })
+            .collect();
         let mut nb_intersect: usize = 0;
-        for i in 0..self.stones.len() {
-            for j in i + 1..self.stones.len() {
-                let a: HailStone = self.stones[i];
-                let b: HailStone = self.stones[j];
-                if a.intersect_2d_xy(b, min, max).is_some() {
+        for i in 0..stones_2d.len() {
+            for j in i + 1..stones_2d.len() {
+                let a: HailStone2D = stones_2d[i];
+                let b: HailStone2D = stones_2d[j];
+                if a.intersect_2d_min_max(&b, min, max).is_some() {
                     nb_intersect += 1;
                 }
             }
@@ -183,43 +172,59 @@ impl HailCloud {
         nb_intersect
     }
 
-    fn rock_score(&self) -> isize {
-        let y: isize = 27;
-        for x in -300..=300 {
-            for z in -1000..1000 {
-                let modified_stones: Vec<HailStone> = self.stones[0..6]
-                    .iter()
-                    .map(|stone| stone.change_vel(x, y, z))
-                    .collect();
-                let mut crossings: Vec<(f64, f64)> = Vec::new();
-
-                for i in 0..modified_stones.len() {
-                    for j in i + 1..modified_stones.len() {
-                        let a: HailStone = modified_stones[i];
-                        let b: HailStone = modified_stones[j];
-                        if let Some(cross) = a.intersect_2d_xz(b) {
-                            crossings.push(cross);
-                        }
+    fn rock_score(&self, min: isize, max: isize) -> Option<isize> {
+        fn inner(
+            stones: &[HailStone2D],
+            min_a: isize,
+            max_a: isize,
+            min_b: isize,
+            max_b: isize,
+        ) -> Option<(isize, isize, isize, isize)> {
+            for a in min_a..=max_a {
+                for b in min_b..=max_b {
+                    let crossings: Vec<Option<PosI>> = stones
+                        .iter()
+                        .map(|s| s.change_vel(a, b))
+                        .circular_tuple_windows::<(_, _)>()
+                        .filter_map(|(s_1, s_2)| {
+                            if let Ok(cross_opt) = s_1.intersect_2d(&s_2) {
+                                Some(cross_opt)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+                    if !crossings.is_empty()
+                        && crossings[0].is_some()
+                        && crossings.iter().all_equal()
+                    {
+                        let PosI(x, y) = crossings[0].unwrap();
+                        return Some((a, b, x, y));
                     }
                 }
-                if crossings.windows(2).all(|pair| {
-                    let (x, y) = pair[0];
-                    let (a, b) = pair[1];
-                    (x - a).abs() < 1.0 && (y - b).abs() < 1.0
-                }) && crossings.len() > 4
-                {
-                    println!("{x} {y}: {:?}", crossings);
-                }
             }
+            None
         }
-        //X = -277
-        //Y = 27
-        //Z = 27
 
-        let x0: isize = 108375683349444;
-        let y0: isize = 289502736377988;
-        let z0: isize = 220656145109505;
-        x0 + y0 + z0
+        let stones_xy: Vec<HailStone2D> = self.stones[0..5].iter().map(|s| s.as_xy()).collect();
+        let stones_xz: Vec<HailStone2D> = self.stones[0..5].iter().map(|s| s.as_xz()).collect();
+        let stones_yz: Vec<HailStone2D> = self.stones[0..5].iter().map(|s| s.as_yz()).collect();
+
+        let Some((vel_x, vel_y, x_0_1, y_0_1)) = inner(&stones_xy, min, max, min, max) else {
+            return None;
+        };
+        let Some((_, vel_z, x_0_2, z_0_1)) = inner(&stones_xz, vel_x, vel_x, min, max) else {
+            return None;
+        };
+        let Some((_, _, y_0_2, z_0_2)) = inner(&stones_yz, vel_y, vel_y, vel_z, vel_z) else {
+            return None;
+        };
+
+        if x_0_1 != x_0_2 || y_0_1 != y_0_2 || z_0_1 != z_0_2 {
+            None
+        } else {
+            Some(x_0_1 + y_0_1 + z_0_2)
+        }
     }
 }
 
@@ -237,10 +242,14 @@ fn main() {
     let s = util::file_as_string("aoc_2023/input/day_24.txt").expect("Cannot open input file");
     let cloud: HailCloud = s.parse().unwrap();
     println!(
-        "Part1: {}",
+        "Part1: {} intersections are occurring in the test area",
         cloud.nb_intersection_in_2d(200_000_000_000_000, 400_000_000_000_000)
     );
-    println!("Part2: {}", cloud.rock_score());
+    println!(
+        "Part2: The sum of the coordinates of the rock at launch is {:?}",
+        cloud.rock_score(-500, 500).unwrap()
+    );
+    assert_eq!(cloud.rock_score(-500, 500), Some(618_534_564_836_937));
     println!("Computing time: {:?}", now.elapsed());
 }
 
@@ -263,6 +272,6 @@ mod tests {
     #[test]
     fn part_2() {
         let cloud: HailCloud = EXAMPLE_1.parse().unwrap();
-        assert_eq!(cloud.rock_score(), 47);
+        assert_eq!(cloud.rock_score(-20, 20), Some(47));
     }
 }
