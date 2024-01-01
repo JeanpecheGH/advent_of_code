@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::str::FromStr;
@@ -92,38 +93,25 @@ impl PartialOrd for ANode {
 
 #[derive(Clone, Debug)]
 struct NoIceNode {
-    pos: Pos,
-    visited: HashSet<Pos>,
+    pos: usize,
+    visited: usize,
     steps: usize,
 }
 
 impl NoIceNode {
-    fn neighbours(&self, graph: &HashMap<(Pos, Pos), usize>) -> Vec<NoIceNode> {
-        let keys: Vec<(Pos, Pos)> = graph
-            .keys()
-            .filter(|&&(l, r)| {
-                (l == self.pos && !self.visited.contains(&r))
-                    || (r == self.pos && !self.visited.contains(&l))
-            })
-            .copied()
-            .collect();
-
-        keys.into_iter()
-            .map(|(l, r)| {
-                let add = graph.get(&(l, r)).copied().unwrap();
-                let steps: usize = self.steps + add;
-                let mut visited: HashSet<Pos> = self.visited.clone();
-                let pos: Pos = if l == self.pos {
-                    visited.insert(r);
-                    r
+    fn neighbours(&self, graph: &HashMap<usize, usize>) -> Vec<NoIceNode> {
+        graph
+            .iter()
+            .filter_map(|(&k, &v)| {
+                let new_pos: usize = k ^ self.pos;
+                if k & self.pos > 0 && self.visited & new_pos == 0 {
+                    Some(NoIceNode {
+                        pos: new_pos,
+                        visited: self.visited | k,
+                        steps: self.steps + v,
+                    })
                 } else {
-                    visited.insert(l);
-                    l
-                };
-                NoIceNode {
-                    pos,
-                    visited,
-                    steps,
+                    None
                 }
             })
             .collect()
@@ -224,20 +212,50 @@ impl TrailMap {
 
     fn longest_hike_no_ice(&self) -> usize {
         let graph: HashMap<(Pos, Pos), usize> = self.build_graph();
+
+        //Map every node to a different bit of an usize
+        let mut nodes: Vec<Pos> = Vec::new();
+        let mut nodes_set: HashSet<Pos> = HashSet::new();
+        let mut small_graph: HashMap<usize, usize> = HashMap::new();
+
+        graph.into_iter().for_each(|((l, r), v)| {
+            let l_idx: usize = if nodes_set.insert(l) {
+                let offset: usize = nodes.len();
+                nodes.push(l);
+                1 << offset
+            } else {
+                let offset: usize = nodes.iter().find_position(|&&p| p == l).unwrap().0;
+                1 << offset
+            };
+            let r_idx: usize = if nodes_set.insert(r) {
+                let offset: usize = nodes.len();
+                nodes.push(r);
+                1 << offset
+            } else {
+                let offset: usize = nodes.iter().find_position(|&&p| p == r).unwrap().0;
+                1 << offset
+            };
+            small_graph.insert(l_idx | r_idx, v);
+        });
+
+        let start: usize = 1 << nodes.iter().find_position(|&&p| p == self.start).unwrap().0;
+        let end: usize = 1 << nodes.iter().find_position(|&&p| p == self.end).unwrap().0;
+
         let start_node: NoIceNode = NoIceNode {
-            pos: Pos(1, 0),
-            visited: HashSet::from_iter(vec![Pos(1, 0)]),
+            pos: start,
+            visited: start,
             steps: 0,
         };
         let mut current_nodes: Vec<NoIceNode> = vec![start_node];
 
         let mut max_steps: usize = 0;
         while let Some(node) = current_nodes.pop() {
-            if node.pos == self.end && node.steps > max_steps {
+            if node.pos == end && node.steps > max_steps {
+                //println!("New max at {} {}", node.pos, node.steps);
                 max_steps = node.steps;
             }
 
-            node.neighbours(&graph)
+            node.neighbours(&small_graph)
                 .into_iter()
                 .for_each(|n| current_nodes.push(n));
         }
@@ -342,5 +360,6 @@ mod tests {
     fn part_2() {
         let map: TrailMap = EXAMPLE_1.parse().unwrap();
         assert_eq!(map.longest_hike_no_ice(), 154);
+        assert_eq!(map.longest_hike_no_ice_b(), 154);
     }
 }
