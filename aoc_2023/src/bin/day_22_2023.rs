@@ -184,8 +184,11 @@ fn main() {
     let s = util::file_as_string("aoc_2023/input/day_22.txt").expect("Cannot open input file");
     let pile: BrickPile = s.parse().unwrap();
     let (disintegrate, falling_bricks) = pile.compute();
-    println!("Part1: {}", disintegrate);
-    println!("Part2: {}", falling_bricks);
+    println!("Part1: We can safely disintegrate {} bricks", disintegrate);
+    println!(
+        "Part2: The sum of the number of falling bricks is {}",
+        falling_bricks
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 

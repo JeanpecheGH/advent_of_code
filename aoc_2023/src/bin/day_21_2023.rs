@@ -124,8 +124,14 @@ fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2023/input/day_21.txt").expect("Cannot open input file");
     let garden: Garden = s.parse().unwrap();
-    println!("Part1: {}", garden.plots_in_steps(garden.start, 64));
-    println!("Part2: {}", garden.infinite_plots_in_steps(26501365));
+    println!(
+        "Part1: In 64 steps, the Elf could reach {} garden plots",
+        garden.plots_in_steps(garden.start, 64)
+    );
+    println!(
+        "Part2: In 26501365 steps, the Elf could reach {} garden plots",
+        garden.infinite_plots_in_steps(26_501_365)
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
