@@ -5,15 +5,15 @@ enum Exp {
     Value(usize),
     Mul,
     Add,
-    Exp(Vec<Exp>),
+    Exps(Vec<Exp>),
 }
 
 impl Exp {
     fn value(&self) -> usize {
         match self {
             Exp::Value(n) => *n,
-            //Left operation takes precendence
-            Exp::Exp(values) => {
+            //Left operation takes precedence
+            Exp::Exps(values) => {
                 let mut res = values[0].value();
                 for i in (1..values.len()).step_by(2) {
                     match values[i] {
@@ -32,7 +32,7 @@ impl Exp {
         match self {
             Exp::Value(n) => *n,
             //Add operation takes precendence over Mul
-            Exp::Exp(values) => {
+            Exp::Exps(values) => {
                 let mut copy: Vec<Exp> = values.clone();
                 while copy.contains(&Exp::Add) {
                     let pos: usize = copy.iter().position(|e| *e == Exp::Add).unwrap();
@@ -102,7 +102,7 @@ impl FromStr for Exp {
                 }
             }
         }
-        Ok(Exp::Exp(exps))
+        Ok(Exp::Exps(exps))
     }
 }
 
@@ -111,10 +111,7 @@ fn main() {
     let s = util::file_as_string("aoc_2020/input/day_18.txt").expect("Cannot open input file");
     let exps: Vec<Exp> = s.lines().map(|l| l.parse().unwrap()).collect();
     let sums: usize = exps.iter().map(|e| e.value()).sum();
-    println!(
-        "Part1: When adding the results of all the lines, we obtain {sums}"
-
-    );
+    println!("Part1: When adding the results of all the lines, we obtain {sums}");
     let sums: usize = exps.iter().map(|e| e.advanced_value()).sum();
     println!(
         "Part2: When adding the results of all the lines following the advanced precedence levels, we obtain {sums}"
