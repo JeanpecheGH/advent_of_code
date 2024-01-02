@@ -32,6 +32,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc_2018"
+version = "0.1.0"
+dependencies = [
+ "itertools",
+ "md5",
+ "nom",
+ "nom_permutation",
+ "rand",
+ "rayon",
+ "util",
+]
+
+[[package]]
 name = "aoc_2019"
 version = "0.1.0"
 dependencies = [
