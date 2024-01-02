@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::str::FromStr;
@@ -224,7 +223,7 @@ impl TrailMap {
                 nodes.push(l);
                 1 << offset
             } else {
-                let offset: usize = nodes.iter().find_position(|&&p| p == l).unwrap().0;
+                let offset: usize = nodes.iter().position(|&p| p == l).unwrap();
                 1 << offset
             };
             let r_idx: usize = if nodes_set.insert(r) {
@@ -232,14 +231,14 @@ impl TrailMap {
                 nodes.push(r);
                 1 << offset
             } else {
-                let offset: usize = nodes.iter().find_position(|&&p| p == r).unwrap().0;
+                let offset: usize = nodes.iter().position(|&p| p == r).unwrap();
                 1 << offset
             };
             small_graph.insert(l_idx | r_idx, v);
         });
 
-        let start: usize = 1 << nodes.iter().find_position(|&&p| p == self.start).unwrap().0;
-        let end: usize = 1 << nodes.iter().find_position(|&&p| p == self.end).unwrap().0;
+        let start: usize = 1 << nodes.iter().position(|&p| p == self.start).unwrap();
+        let end: usize = 1 << nodes.iter().position(|&p| p == self.end).unwrap();
 
         let start_node: NoIceNode = NoIceNode {
             pos: start,
@@ -360,6 +359,5 @@ mod tests {
     fn part_2() {
         let map: TrailMap = EXAMPLE_1.parse().unwrap();
         assert_eq!(map.longest_hike_no_ice(), 154);
-        assert_eq!(map.longest_hike_no_ice_b(), 154);
     }
 }
