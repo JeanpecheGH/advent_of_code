@@ -5,44 +5,27 @@ struct Polymer {
 }
 
 impl Polymer {
-    fn compute(&self) -> (usize, usize) {
-        let v = Self::reaction(self.formula.chars(), None);
+    fn reduction(&self) -> (usize, usize) {
+        let v = Self::reaction(self.formula.chars().map(|c| c as u8));
 
-        let min = ('a'..='z')
-            .map(|r| Self::reaction(v.iter().copied(), Some(r)).len())
+        let min = (b'a'..=b'z')
+            .map(|r| Self::reaction(v.iter().copied().filter(|&c| c | 32 != r)).len())
             .min()
             .unwrap();
 
         (v.len(), min)
     }
-    fn react(a: char, b: char) -> bool {
-        a != b && a.to_lowercase().eq(b.to_lowercase())
-    }
-    fn reaction<I>(mut it: I, remove: Option<char>) -> Vec<char>
-    where
-        I: Iterator<Item = char>,
-    {
-        let mut store: Vec<char> = Vec::new();
-        let mut left: char = it.next().unwrap();
-        while remove.iter().copied().eq(left.to_lowercase()) {
-            left = it.next().unwrap();
-        }
+    fn reaction(it: impl Iterator<Item = u8>) -> Vec<u8> {
+        let mut store: Vec<u8> = Vec::new();
 
-        while let Some(right) = it.next() {
-            if remove.iter().copied().eq(right.to_lowercase()) {
-                //Skip this value
-            } else if Self::react(left, right) {
-                if !store.is_empty() {
-                    left = store.pop().unwrap();
-                } else {
-                    left = it.next().unwrap();
+        for r in it {
+            match store.last() {
+                Some(&l) if l ^ r == 32 => {
+                    store.pop();
                 }
-            } else {
-                store.push(left);
-                left = right;
+                _ => store.push(r),
             }
         }
-        store.push(left);
         store
     }
 }
@@ -61,7 +44,7 @@ fn main() {
     let s = util::file_as_string("aoc_2018/input/day_05.txt").expect("Cannot open input file");
     let polymer: Polymer = s.parse().unwrap();
 
-    let (reacted, shortest) = polymer.compute();
+    let (reacted, shortest) = polymer.reduction();
 
     println!("Part1: After reaction, the polymer contains {reacted} unit");
     println!("Part2: The shortest polymer obtainable when removing a specific unit type contains {shortest} units");
@@ -76,6 +59,6 @@ mod tests {
     #[test]
     fn part_1() {
         let polymer: Polymer = EXAMPLE_1.parse().unwrap();
-        assert_eq!(polymer.compute(), (10, 4));
+        assert_eq!(polymer.reduction(), (10, 4));
     }
 }
