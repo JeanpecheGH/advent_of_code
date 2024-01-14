@@ -24,14 +24,6 @@ impl Trench {
         }
     }
 
-    fn dir(&self, big: bool) -> Dir {
-        if big {
-            self.big_dir
-        } else {
-            self.dir
-        }
-    }
-
     fn dig_to(&self, PosI(x, y): PosI, big: bool) -> PosI {
         let (l, d): (usize, Dir) = self.size_and_dir(big);
 
@@ -89,9 +81,7 @@ struct LavaLagoon {
 }
 
 impl LavaLagoon {
-    fn volume(&self, ext_is_right: bool, big: bool) -> usize {
-        //TODO: compute outside ? (ext_is_right)
-
+    fn volume(&self, big: bool) -> usize {
         //Build a vec of all the corner we get to while digging
         let mut pos: PosI = PosI(0, 0);
         let mut nodes: Vec<PosI> = vec![pos];
@@ -101,58 +91,28 @@ impl LavaLagoon {
             nodes.push(pos);
         }
 
-        //Transform nodes to "outside nodes" depending on how we rotate
-        let mut trenches_dir: Vec<Dir> = self.trenches.iter().map(|tr| tr.dir(big)).collect();
-
-        let last_dir: Dir = trenches_dir.iter().last().copied().unwrap();
-        trenches_dir.push(trenches_dir.first().copied().unwrap());
-        trenches_dir.reverse();
-        trenches_dir.push(last_dir);
-        trenches_dir.reverse();
-
-        let outside_nodes: Vec<PosI> = trenches_dir
+        //Use shoelace formula to compute the "inside" area
+        let shoelace: usize = nodes
             .windows(2)
-            .enumerate()
-            .map(|(i, pair)| {
-                let PosI(x, y): PosI = nodes[i];
+            .map(|pair| pair[0].0 * pair[1].1 - pair[0].1 * pair[1].0)
+            .sum::<isize>()
+            .unsigned_abs()
+            / 2;
 
-                let mod_pos: PosI = match (pair[0], pair[1], ext_is_right) {
-                    (Dir::North, Dir::East, true) => PosI(x + 1, y + 1),
-                    (Dir::North, Dir::East, false) => PosI(x, y),
-                    (Dir::North, Dir::West, true) => PosI(x + 1, y),
-                    (Dir::North, Dir::West, false) => PosI(x, y + 1),
-                    (Dir::South, Dir::East, true) => PosI(x, y + 1),
-                    (Dir::South, Dir::East, false) => PosI(x + 1, y),
-                    (Dir::South, Dir::West, true) => PosI(x, y),
-                    (Dir::South, Dir::West, false) => PosI(x + 1, y + 1),
-                    (Dir::East, Dir::North, true) => PosI(x + 1, y + 1),
-                    (Dir::East, Dir::North, false) => PosI(x, y),
-                    (Dir::East, Dir::South, true) => PosI(x, y + 1),
-                    (Dir::East, Dir::South, false) => PosI(x + 1, y),
-                    (Dir::West, Dir::North, true) => PosI(x + 1, y),
-                    (Dir::West, Dir::North, false) => PosI(x, y + 1),
-                    (Dir::West, Dir::South, true) => PosI(x, y),
-                    (Dir::West, Dir::South, false) => PosI(x + 1, y + 1),
-                    _ => panic!(
-                        "Impossible Direction combination: {:?} {:?}",
-                        pair[0], pair[1]
-                    ),
-                };
-                mod_pos
-            })
-            .collect();
+        // We have 2n+5 points in "nodes"
+        // n "inside" corners, n+4 "outside" corners and the starting point (0,0) twice
+        // An outside corner adds 3/4, an inside one adds 1/4, so we have n+3 added area from the corners
+        let corners_area: usize = (nodes.len() - 5) / 2 + 3;
 
-        //Use shoelace formula to compute area
-        let a: isize = outside_nodes
-            .windows(2)
-            .map(|pair| pair[0].0 * pair[1].1)
-            .sum();
-        let b: isize = outside_nodes
-            .windows(2)
-            .map(|pair| pair[0].1 * pair[1].0)
-            .sum();
+        //For each side, the added area is (length-1)/2
+        let sides_area: usize = self
+            .trenches
+            .iter()
+            .map(|tr| tr.size_and_dir(big).0 - 1)
+            .sum::<usize>()
+            / 2;
 
-        (a - b).unsigned_abs() / 2
+        shoelace + corners_area + sides_area
     }
 }
 
@@ -171,9 +131,9 @@ fn main() {
     let lagoon: LavaLagoon = s.parse().unwrap();
     println!(
         "Part1: The lagoon will hold {} cubic meters of lava ",
-        lagoon.volume(false, false)
+        lagoon.volume(false)
     );
-    println!("Part2: With the right instructions, the lagoon will be able to hold {} cubic meters of lava", lagoon.volume(false, true));
+    println!("Part2: With the right instructions, the lagoon will be able to hold {} cubic meters of lava", lagoon.volume( true));
     println!("Computing time: {:?}", now.elapsed());
 }
 
@@ -200,11 +160,11 @@ U 2 (#7a21e3)
     #[test]
     fn part_1() {
         let lagoon: LavaLagoon = EXAMPLE_1.parse().unwrap();
-        assert_eq!(lagoon.volume(false, false), 62);
+        assert_eq!(lagoon.volume(false), 62);
     }
     #[test]
     fn part_2() {
         let lagoon: LavaLagoon = EXAMPLE_1.parse().unwrap();
-        assert_eq!(lagoon.volume(false, true), 952408144115);
+        assert_eq!(lagoon.volume(true), 952408144115);
     }
 }
