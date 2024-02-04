@@ -60,6 +60,7 @@ impl PotsRow {
 
     fn next_generation(&mut self) {
         let l: usize = self.pots.len();
+        //We add enough empty pots to the left in order to compute the leftmost pot
         let add_back: usize = match (self.pots[l - 1], self.pots[l - 2], self.pots[l - 3]) {
             (true, _, _) => 3,
             (_, true, _) => 2,
@@ -68,6 +69,7 @@ impl PotsRow {
         };
         (0..add_back).for_each(|_| self.pots.push_back(false));
 
+        //We add enough empty pots to the right in order to compute the rightmost pot
         let add_front: usize = match (self.pots[0], self.pots[1], self.pots[2]) {
             (true, _, _) => 3,
             (_, true, _) => 2,
