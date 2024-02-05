@@ -38,14 +38,11 @@ impl RecipeBook {
             .fold(0, |acc, n| acc * 10 + n)
     }
 
-    fn recipes_before(&mut self, n: usize) -> usize {
-        let mut pattern: Vec<usize> = Vec::new();
-        let mut rest: usize = n;
-        while rest > 0 {
-            pattern.push(rest % 10);
-            rest /= 10;
-        }
-        pattern.reverse();
+    fn recipes_before(&mut self, pattern_str: &str) -> usize {
+        let pattern: Vec<usize> = pattern_str
+            .chars()
+            .map(|c| c.to_digit(10).unwrap() as usize)
+            .collect();
         let pat_len: usize = pattern.len();
 
         loop {
@@ -70,7 +67,7 @@ fn main() {
     );
     println!(
         "Part2: {} recipes are on the left when we first see the sequence 554401",
-        book.recipes_before(554401)
+        book.recipes_before("554401")
     );
     println!("Computing time: {:?}", now.elapsed());
 }
@@ -106,24 +103,24 @@ mod tests {
     #[test]
     fn part_2_test_1() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.recipes_before(51589), 9);
+        assert_eq!(book.recipes_before("51589"), 9);
     }
 
     #[test]
     fn part_2_test_2() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.recipes_before(01245), 5);
+        assert_eq!(book.recipes_before("01245"), 5);
     }
 
     #[test]
     fn part_2_test_3() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.recipes_before(92510), 18);
+        assert_eq!(book.recipes_before("92510"), 18);
     }
 
     #[test]
     fn part_2_test_4() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.recipes_before(59414), 2018);
+        assert_eq!(book.recipes_before("59414"), 2018);
     }
 }
