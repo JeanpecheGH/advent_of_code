@@ -73,4 +73,11 @@ impl PosI {
             .map(|(i, j)| PosI(self.0 + i, self.1 + j))
             .collect()
     }
+
+    pub fn neighbours_diag_limit(&self, max_x: isize, max_y: isize) -> Vec<PosI> {
+        self.neighbours_diag()
+            .into_iter()
+            .filter(|&PosI(x, y)| x >= 0 && x < max_x && y >= 0 && y < max_y)
+            .collect()
+    }
 }
