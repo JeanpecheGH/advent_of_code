@@ -210,15 +210,9 @@ impl HailCloud {
         let stones_xz: Vec<HailStone2D> = self.stones[0..5].iter().map(|s| s.as_xz()).collect();
         let stones_yz: Vec<HailStone2D> = self.stones[0..5].iter().map(|s| s.as_yz()).collect();
 
-        let Some((vel_x, vel_y, x_0_1, y_0_1)) = inner(&stones_xy, min, max, min, max) else {
-            return None;
-        };
-        let Some((_, vel_z, x_0_2, z_0_1)) = inner(&stones_xz, vel_x, vel_x, min, max) else {
-            return None;
-        };
-        let Some((_, _, y_0_2, z_0_2)) = inner(&stones_yz, vel_y, vel_y, vel_z, vel_z) else {
-            return None;
-        };
+        let (vel_x, vel_y, x_0_1, y_0_1) = inner(&stones_xy, min, max, min, max)?;
+        let (_, vel_z, x_0_2, z_0_1) = inner(&stones_xz, vel_x, vel_x, min, max)?;
+        let (_, _, y_0_2, z_0_2) = inner(&stones_yz, vel_y, vel_y, vel_z, vel_z)?;
 
         if x_0_1 != x_0_2 || y_0_1 != y_0_2 || z_0_1 != z_0_2 {
             None
