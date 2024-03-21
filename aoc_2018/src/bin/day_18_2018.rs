@@ -19,7 +19,7 @@ impl Tile {
         }
     }
 
-    fn to_char(&self) -> char {
+    fn as_char(&self) -> char {
         match self {
             Tile::OpenGround => '.',
             Tile::Tree => '|',
@@ -146,7 +146,7 @@ impl Forest {
     fn print(&self) {
         for row in &self.grid {
             for t in row {
-                print!("{}", t.to_char());
+                print!("{}", t.as_char());
             }
 
             println!();
@@ -160,7 +160,7 @@ impl FromStr for Forest {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let grid: Vec<Vec<Tile>> = s
             .lines()
-            .map(|l| l.chars().map(|c| Tile::from_char(c)).collect())
+            .map(|l| l.chars().map(Tile::from_char).collect())
             .collect();
 
         Ok(Forest { grid, minute: 0 })
@@ -172,8 +172,14 @@ fn main() {
     let s = util::file_as_string("aoc_2018/input/day_18.txt").expect("Cannot open input file");
     let mut forest: Forest = s.parse().unwrap();
 
-    println!("Part1: {}", forest.minutes(10));
-    println!("Part2: {}", forest.minutes_until_loop(1_000_000_000));
+    println!(
+        "Part1: After 10 minutes, the resource value is {}",
+        forest.minutes(10)
+    );
+    println!(
+        "Part2: After 1_000_000_000 minutes, the resource value is {}",
+        forest.minutes_until_loop(1_000_000_000)
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
