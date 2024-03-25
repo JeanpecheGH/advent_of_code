@@ -4,6 +4,7 @@ pub mod coord;
 pub mod intcode;
 pub mod orientation;
 pub mod registry;
+pub mod wrist_device;
 
 use std::fs::File;
 use std::io::{Error, Read};

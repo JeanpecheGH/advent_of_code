@@ -7,67 +7,31 @@ use nom::IResult;
 use std::str::FromStr;
 use util::basic_parser::{parse_usize, title};
 use util::split_blocks;
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-enum Opcode {
-    Addr,
-    Addi,
-    Mulr,
-    Muli,
-    Banr,
-    Bani,
-    Borr,
-    Bori,
-    Setr,
-    Seti,
-    Gtir,
-    Gtri,
-    Gtrr,
-    Eqir,
-    Eqri,
-    Eqrr,
-}
-
-impl Opcode {
-    fn all() -> Vec<Opcode> {
-        vec![
-            Opcode::Addr,
-            Opcode::Addi,
-            Opcode::Mulr,
-            Opcode::Muli,
-            Opcode::Banr,
-            Opcode::Bani,
-            Opcode::Borr,
-            Opcode::Bori,
-            Opcode::Setr,
-            Opcode::Seti,
-            Opcode::Gtir,
-            Opcode::Gtri,
-            Opcode::Gtrr,
-            Opcode::Eqir,
-            Opcode::Eqri,
-            Opcode::Eqrr,
-        ]
-    }
-}
+use util::wrist_device::{Instruction, Opcode, WristDevice};
 
 #[derive(Debug, Copy, Clone)]
-struct Instruction {
+struct HiddenInstruction {
     opcode: usize,
     a: usize,
     b: usize,
     c: usize,
 }
 
-impl FromStr for Instruction {
+impl HiddenInstruction {
+    fn as_instr_with_op(&self, op: Opcode) -> Instruction {
+        Instruction::from_op(op, self.a, self.b, self.c)
+    }
+}
+
+impl FromStr for HiddenInstruction {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn parse_instruction(s: &str) -> IResult<&str, Instruction> {
+        fn parse_instruction(s: &str) -> IResult<&str, HiddenInstruction> {
             let (s, v) = separated_list1(space1, parse_usize)(s)?;
             Ok((
                 s,
-                Instruction {
+                HiddenInstruction {
                     opcode: v[0],
                     a: v[1],
                     b: v[2],
@@ -79,29 +43,29 @@ impl FromStr for Instruction {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 struct Sample {
-    before: [usize; 4],
-    instruction: Instruction,
-    after: [usize; 4],
+    before: Vec<usize>,
+    instruction: HiddenInstruction,
+    after: Vec<usize>,
 }
 
 impl FromStr for Sample {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn parse_state(s: &str) -> IResult<&str, [usize; 4]> {
+        fn parse_state(s: &str) -> IResult<&str, Vec<usize>> {
             let (s, _) = title(s)?;
             let (s, v) = delimited(
                 char('['),
                 separated_list1(tag(", "), parse_usize),
                 char(']'),
             )(s)?;
-            Ok((s, [v[0], v[1], v[2], v[3]]))
+            Ok((s, v))
         }
         let lines: Vec<&str> = s.lines().collect();
         let before = parse_state(lines[0]).unwrap().1;
-        let instruction: Instruction = lines[1].parse().unwrap();
+        let instruction: HiddenInstruction = lines[1].parse().unwrap();
         let after = parse_state(lines[2]).unwrap().1;
         Ok(Sample {
             before,
@@ -112,13 +76,12 @@ impl FromStr for Sample {
 }
 
 #[derive(Debug, Clone)]
-struct WristDevice {
-    registers: [usize; 4],
+struct ClassificationDevice {
     samples: Vec<Sample>,
-    instructions: Vec<Instruction>,
+    instructions: Vec<HiddenInstruction>,
 }
 
-impl WristDevice {
+impl ClassificationDevice {
     fn samples_behave_like(&mut self) -> (usize, FxHashMap<usize, FxHashSet<Opcode>>) {
         let mut op_map: FxHashMap<usize, FxHashSet<Opcode>> = FxHashMap::default();
         let samples = self.samples.clone();
@@ -153,55 +116,41 @@ impl WristDevice {
             }
         }
 
-        self.registers = [0; 4];
-        for i in 0..self.instructions.len() {
-            let instr = self.instructions[i];
-            let op: Opcode = final_op_map.get(&instr.opcode).copied().unwrap();
-            self.apply_instruction(op, &instr);
-        }
+        let new_instrs: Vec<Instruction> = self
+            .instructions
+            .iter()
+            .map(|i| {
+                let op: Opcode = final_op_map.get(&i.opcode).copied().unwrap();
+                i.as_instr_with_op(op)
+            })
+            .collect();
 
-        (nb_behave, self.registers[0])
+        let mut device: WristDevice = WristDevice::from_size_and_instructions(4, new_instrs);
+        device.apply_all();
+
+        (nb_behave, device.reg_value(0))
     }
-    fn apply_instruction(&mut self, op: Opcode, instruction: &Instruction) {
-        let (a, b, c) = (instruction.a, instruction.b, instruction.c);
-        match op {
-            Opcode::Addr => self.registers[c] = self.registers[a] + self.registers[b],
-            Opcode::Addi => self.registers[c] = self.registers[a] + b,
-            Opcode::Mulr => self.registers[c] = self.registers[a] * self.registers[b],
-            Opcode::Muli => self.registers[c] = self.registers[a] * b,
-            Opcode::Banr => self.registers[c] = self.registers[a] & self.registers[b],
-            Opcode::Bani => self.registers[c] = self.registers[a] & b,
-            Opcode::Borr => self.registers[c] = self.registers[a] | self.registers[b],
-            Opcode::Bori => self.registers[c] = self.registers[a] | b,
-            Opcode::Setr => self.registers[c] = self.registers[a],
-            Opcode::Seti => self.registers[c] = a,
-            Opcode::Gtir => self.registers[c] = (a > self.registers[b]) as usize,
-            Opcode::Gtri => self.registers[c] = (self.registers[a] > b) as usize,
-            Opcode::Gtrr => self.registers[c] = (self.registers[a] > self.registers[b]) as usize,
-            Opcode::Eqir => self.registers[c] = (a == self.registers[b]) as usize,
-            Opcode::Eqri => self.registers[c] = (self.registers[a] == b) as usize,
-            Opcode::Eqrr => self.registers[c] = (self.registers[a] == self.registers[b]) as usize,
-        }
-    }
+
     fn test_sample(&mut self, sample: &Sample) -> Vec<Opcode> {
         Opcode::all()
             .into_iter()
             .filter(|&op| {
-                self.registers = sample.before;
-                self.apply_instruction(op, &sample.instruction);
-                self.registers == sample.after
+                let mut device: WristDevice = WristDevice::from_registers(&sample.before);
+                let instr: Instruction = sample.instruction.as_instr_with_op(op);
+                device.apply_instruction(&instr);
+                device.has_state(&sample.after)
             })
             .collect()
     }
 }
 
-impl FromStr for WristDevice {
+impl FromStr for ClassificationDevice {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut blocks: Vec<&str> = split_blocks(s);
 
-        let instructions: Vec<Instruction> = blocks
+        let instructions: Vec<HiddenInstruction> = blocks
             .pop()
             .unwrap()
             .lines()
@@ -213,7 +162,6 @@ impl FromStr for WristDevice {
         let samples: Vec<Sample> = blocks.into_iter().map(|b| b.parse().unwrap()).collect();
 
         Ok(Self {
-            registers: [0; 4],
             samples,
             instructions,
         })
@@ -223,7 +171,7 @@ impl FromStr for WristDevice {
 fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2018/input/day_16.txt").expect("Cannot open input file");
-    let mut device: WristDevice = s.parse().unwrap();
+    let mut device: ClassificationDevice = s.parse().unwrap();
 
     let (nb_behave, reg_zero) = device.sample_and_execute();
 
@@ -248,8 +196,7 @@ After:  [3, 2, 2, 1]";
     #[test]
     fn part_1() {
         let sample: Sample = EXAMPLE_1.parse().unwrap();
-        let mut device: WristDevice = WristDevice {
-            registers: [0; 4],
+        let mut device: ClassificationDevice = ClassificationDevice {
             samples: vec![sample],
             instructions: Vec::new(),
         };
