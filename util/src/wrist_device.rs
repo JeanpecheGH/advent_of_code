@@ -1,8 +1,9 @@
 use crate::basic_parser::parse_usize;
+use nom::bytes::complete::tag;
 use nom::character::complete::{alpha1, space1};
 use nom::combinator::map;
 use nom::multi::separated_list1;
-use nom::sequence::terminated;
+use nom::sequence::{preceded, terminated};
 use nom::IResult;
 use std::str::FromStr;
 
@@ -89,6 +90,30 @@ impl Instruction {
     }
 }
 
+impl FromStr for Instruction {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        fn parse_instruction(s: &str) -> IResult<&str, Instruction> {
+            let (s, op) = map(terminated(alpha1, space1), |op_name: &str| {
+                op_name.parse::<Opcode>().unwrap()
+            })(s)?;
+            let (s, v) = separated_list1(space1, parse_usize)(s)?;
+            Ok((
+                s,
+                Instruction {
+                    opcode: op,
+                    a: v[0],
+                    b: v[1],
+                    c: v[2],
+                },
+            ))
+        }
+        Ok(parse_instruction(s).unwrap().1)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct WristDevice {
     reg_pointer: Option<usize>,
     registers: Vec<usize>,
@@ -147,6 +172,20 @@ impl WristDevice {
         }
     }
 
+    pub fn apply_all_with_pointer(&mut self, stop_after_init: bool) {
+        let pointer: usize = self.reg_pointer.unwrap();
+        while self.registers[pointer] < self.instructions.len() {
+            let instr_idx: usize = self.registers[pointer];
+            let instr: Instruction = self.instructions[instr_idx];
+            self.apply_instruction(&instr);
+            self.registers[pointer] += 1;
+            //Stopping after the first "init" loop
+            if instr_idx >= self.registers[pointer] && stop_after_init {
+                break;
+            }
+        }
+    }
+
     pub fn has_state(&self, registers: &[usize]) -> bool {
         self.registers == registers
     }
@@ -154,28 +193,31 @@ impl WristDevice {
     pub fn reg_value(&self, reg_index: usize) -> usize {
         self.registers[reg_index]
     }
+
+    pub fn set_reg_value(&mut self, reg_index: usize, value: usize) {
+        self.registers[reg_index] = value;
+    }
 }
 
-impl FromStr for Instruction {
+impl FromStr for WristDevice {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn parse_instruction(s: &str) -> IResult<&str, Instruction> {
-            let (s, op) = map(terminated(alpha1, space1), |op_name: &str| {
-                op_name.parse::<Opcode>().unwrap()
-            })(s)?;
-            let (s, v) = separated_list1(space1, parse_usize)(s)?;
-            Ok((
-                s,
-                Instruction {
-                    opcode: op,
-                    a: v[0],
-                    b: v[1],
-                    c: v[2],
-                },
-            ))
+        fn parse_pointer(s: &str) -> IResult<&str, usize> {
+            preceded(tag("#ip "), parse_usize)(s)
         }
-        Ok(parse_instruction(s).unwrap().1)
+
+        let mut lines = s.lines();
+        //Parse instruction pointer register
+        let reg_pointer: Option<usize> = parse_pointer(lines.next().unwrap()).map(|r| r.1).ok();
+        //Parse instructions
+        let instructions: Vec<Instruction> = lines.map(|l| l.parse().unwrap()).collect();
+
+        Ok(WristDevice {
+            reg_pointer,
+            registers: vec![0; 6],
+            instructions,
+        })
     }
 }
 

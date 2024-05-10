@@ -197,7 +197,7 @@ impl IntCode {
     }
 
     pub fn reset(&mut self) {
-        self.ops = self.start_ops.clone();
+        self.ops.clone_from(&self.start_ops);
         self.idx = 0;
         self.relative_base = 0;
         self.input.clear();
