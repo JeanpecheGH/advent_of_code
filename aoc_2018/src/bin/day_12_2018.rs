@@ -44,7 +44,7 @@ impl PotsRow {
         self.next_generation();
 
         while !cache.eq(&self.pots) {
-            cache = self.pots.clone();
+            cache.clone_from(&self.pots);
             start_pot = self.start_pot;
             self.next_generation();
         }

@@ -199,7 +199,7 @@ fn main() {
     let mut grid: Vec<Vec<bool>> = vec![vec![false; grove.grid.len()]; grove.grid.len()];
     let mut nb_round = 10;
     while !grove.equal(&grid) {
-        grid = grove.grid.clone();
+        grid.clone_from(&grove.grid);
         grove.round();
         nb_round += 1;
     }

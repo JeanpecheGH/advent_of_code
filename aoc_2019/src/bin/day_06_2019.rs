@@ -17,11 +17,11 @@ impl OrbitMap {
             let (centre, sat) = self.orbits.pop_front().unwrap();
             if sat == santa_current {
                 santa_orbits.insert(centre.clone());
-                santa_current = centre.clone();
+                santa_current.clone_from(&centre);
             }
             if sat == you_current {
                 you_orbits.insert(centre.clone());
-                you_current = centre.clone();
+                you_current.clone_from(&centre);
             }
             self.orbits.push_back((centre, sat));
         }
