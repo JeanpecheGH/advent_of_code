@@ -33,10 +33,9 @@ impl RegBranch {
         for t in &self.tokens {
             match t {
                 RegToken::Reg(m) => {
-                    let map_map = m.walk(pos, dist);
-                    for (k, v) in map_map {
-                        let _ = map.entry(k).or_insert(v);
-                    }
+                    let mut map_map = m.walk(pos, dist);
+                    map_map.extend(&map);
+                    map = map_map;
                 }
                 _ => {
                     match t {
@@ -74,10 +73,9 @@ impl RegMap {
     fn walk(&self, start_pos: PosI, current_dist: usize) -> FxHashMap<PosI, usize> {
         let mut map: FxHashMap<PosI, usize> = FxHashMap::default();
         for b in &self.branches {
-            let branch_map = b.walk(start_pos, current_dist);
-            for (k, v) in branch_map {
-                let _ = map.entry(k).or_insert(v);
-            }
+            let mut branch_map = b.walk(start_pos, current_dist);
+            branch_map.extend(&map);
+            map = branch_map;
         }
         map
     }
