@@ -1,4 +1,3 @@
-use fxhash::FxHashMap;
 use itertools::Itertools;
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
@@ -21,20 +20,8 @@ impl Nanobot {
         self.radius >= self.pos.distance(other.pos)
     }
 
-    fn contains_entirely(&self, other: &Nanobot) -> bool {
-        self.radius >= self.pos.distance(other.pos) + other.radius
-    }
-
-    fn on_edge(&self, pos: Pos3I) -> bool {
-        self.radius == self.pos.distance(pos)
-    }
-
     fn intersect(&self, other: &Nanobot) -> bool {
         self.radius + other.radius >= self.pos.distance(other.pos)
-    }
-
-    fn overlap(&self, other: &Nanobot) -> usize {
-        self.radius + other.radius - self.pos.distance(other.pos)
     }
 
     fn distance_to_center(&self) -> (isize, isize) {
@@ -103,12 +90,6 @@ impl EmergencyTeleportation {
             }
         }
 
-        for (b, i) in m.iter() {
-            println!("{b:?} intersects {}", i.len());
-        }
-
-        println!("NEAR: {} {:?} ", near.len(), near);
-
         // We get the furthest distance attained by the nearest bot
         // and the nearest distance attained by the farthest bot
         let mut max_short: isize = isize::MIN;
@@ -124,67 +105,10 @@ impl EmergencyTeleportation {
             }
             *map.entry(short).or_insert(0) += 1;
             *map.entry(long + 1).or_insert(0) -= 1;
-            println!("{b:?}: {short}-{long}")
         }
-        println!("max short {max_short}, min long {min_long}");
 
         //Getting the mean should not work in every cases, but it does in test AND our input
         (max_short as usize + min_long as usize) / 2
-        // let run = map
-        //     .iter()
-        //     .scan(0, |sum, (k, v)| {
-        //         *sum += v;
-        //         Some((k, *sum))
-        //     })
-        //     .collect::<Vec<_>>();
-        // // for &(k, v) in partial_sums.iter() {
-        // //     println!("{k} {v}");
-        // // }
-        //
-        // let max = run.iter().map(|&(_, n)| n).max().unwrap();
-        // let intervals = run
-        //     .iter()
-        //     .zip(run.iter().skip(1))
-        //     .filter_map(
-        //         |(&(a, n), &(b, _))| {
-        //             if n == max {
-        //                 Some((*a, *b - 1))
-        //             } else {
-        //                 None
-        //             }
-        //         },
-        //     )
-        //     .collect::<Vec<_>>();
-        // let response: isize = if intervals.iter().any(|&(a, b)| a <= 0 && b >= 0) {
-        //     0
-        // } else {
-        //     intervals
-        //         .iter()
-        //         .map(|&(a, b)| if b < 0 { -b } else { a })
-        //         .min()
-        //         .unwrap()
-        // };
-        //
-        // println!("RESPONSE: {}", response);
-        //
-        // let size: usize = near.len();
-        // let mut min_o: usize = usize::MAX;
-        // for i in 0..size {
-        //     for j in i + 1..size {
-        //         let a = near[i];
-        //         let b = near[j];
-        //         let o: usize = a.overlap(&b);
-        //         if o < min_o {
-        //             min_o = o;
-        //         }
-        //         if o < 1 {
-        //             println!("{a:?} {b:?} overlap is {o}");
-        //         }
-        //     }
-        // }
-        // println!("min overlap {min_o}");
-        //
-        // 0
     }
 }
 
@@ -203,60 +127,14 @@ fn main() {
     let s = util::file_as_string("aoc_2018/input/day_23.txt").expect("Cannot open input file");
     let teleportation: EmergencyTeleportation = s.parse().unwrap();
 
-    println!("Part1: {}", teleportation.strongest_in_range());
-    // let a: Nanobot = Nanobot {
-    //     pos: Pos3I(14_285_788, 7_733_496, 37_713_968),
-    //     radius: 68_018_244,
-    // };
-    // let b: Nanobot = Nanobot {
-    //     pos: Pos3I(43_304_772, 85_774_477, 17_337_631),
-    //     radius: 59_418_058,
-    // };
-    // let c: Pos3I = Pos3I(43_304_772, 26_356_419, 17_337_631);
-    // let d: Pos3I = Pos3I(43_304_770, 26_356_423, 17_337_633);
-    // let e: Pos3I = Pos3I(43_304_768, 26_356_423, 17_337_631);
-    // // -x - y + z + 52_323_560
-    //
-    // println!("{} {}", a.on_edge(c), b.on_edge(c));
-    // println!("{} {}", a.on_edge(d), b.on_edge(d));
-    // println!("{} {}", a.on_edge(e), b.on_edge(e));
-    //
-    // let a: Nanobot = Nanobot {
-    //     pos: Pos3I(13_366_727, 55_030_605, 74_717_266),
-    //     radius: 75_489_826,
-    // };
-    // let b: Nanobot = Nanobot {
-    //     pos: Pos3I(90_701_741, 45_206_681, 13_508_691),
-    //     radius: 72_877_687,
-    // };
-    // let c: Pos3I = Pos3I(17_824_054, 45_206_681, 13_508_691);
-    // let d: Pos3I = Pos3I(17_824_058, 45_206_683, 13_508_693);
-    // let e: Pos3I = Pos3I(17_824_058, 45_206_685, 13_508_691);
-    // // -x + y + z - 40891318 = 0
-    //
-    // println!("{} {}", a.on_edge(c), b.on_edge(c));
-    // println!("{} {}", a.on_edge(d), b.on_edge(d));
-    // println!("{} {}", a.on_edge(e), b.on_edge(e));
-    //
-    // let a: Nanobot = Nanobot {
-    //     pos: Pos3I(-25_242_309, 50_805_992, -14_103_752),
-    //     radius: 91_418_305,
-    // };
-    // let b: Nanobot = Nanobot {
-    //     pos: Pos3I(43_274_503, 40_946_494, 54_319_954),
-    //     radius: 55_381_711,
-    // };
-    // let c: Pos3I = Pos3I(-12_107_208, 40_946_494, 54_319_954);
-    // let d: Pos3I = Pos3I(-12_107_204, 40_946_496, 54_319_952);
-    // let e: Pos3I = Pos3I(-12_107_204, 40_946_498, 54_319_954);
-    // // x - y + z - 1266252 = 0
-    //
-    // // (26794906, 46607439, 21078785) = 94481130
-    //
-    // println!("{} {}", a.on_edge(c), b.on_edge(c));
-    // println!("{} {}", a.on_edge(d), b.on_edge(d));
-    // println!("{} {}", a.on_edge(e), b.on_edge(e));
-    println!("Part2: {}", teleportation.teleport_distance());
+    println!(
+        "Part1: {} nanobots are in range of the largest nanobot",
+        teleportation.strongest_in_range()
+    );
+    println!(
+        "Part2: The closest point in range of the most nanobots is {} for the origin ",
+        teleportation.teleport_distance()
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
