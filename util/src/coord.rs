@@ -81,3 +81,9 @@ impl PosI {
             .collect()
     }
 }
+
+impl Pos3I {
+    pub fn distance(&self, Pos3I(x, y, z): Pos3I) -> usize {
+        self.0.abs_diff(x) + self.1.abs_diff(y) + self.2.abs_diff(z)
+    }
+}
