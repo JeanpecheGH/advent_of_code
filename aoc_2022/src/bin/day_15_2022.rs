@@ -189,7 +189,7 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
             .find_map(|y| system.distress_beacon(y, MIN, TEST_MAX).map(|x| PosI(x, y)))
             .unwrap();
         let tuning_freq = pos.0 * MAX + pos.1;
-        assert_eq!(pos, (14, 11));
+        assert_eq!(pos, PosI(14, 11));
         assert_eq!(tuning_freq, 56_000_011);
     }
 }

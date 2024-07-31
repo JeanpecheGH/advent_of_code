@@ -178,12 +178,12 @@ wseweeenwnesenwwwswnew";
     #[test]
     fn test_tile_1() {
         let tile: Tile = "esew".parse().unwrap();
-        assert_eq!(tile.coords, (0, -1));
+        assert_eq!(tile.coords, PosI(0, -1));
     }
     #[test]
     fn test_tile_2() {
         let tile: Tile = "nwwswee".parse().unwrap();
-        assert_eq!(tile.coords, (0, 0));
+        assert_eq!(tile.coords, PosI(0, 0));
     }
 
     #[test]

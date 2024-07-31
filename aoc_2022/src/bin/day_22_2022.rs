@@ -223,11 +223,10 @@ mod tests {
 
     #[test]
     fn part_1() {
-        assert_eq!(6032, 6032);
+        let mut laby: Labyrinth = INPUT.parse().unwrap();
+        laby.move_all(false);
+        assert_eq!(6032, laby.score());
     }
 
-    #[test]
-    fn part_2() {
-        assert_eq!(1, 1);
-    }
+    //Part 2 should be 5031
 }
