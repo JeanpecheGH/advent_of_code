@@ -10,6 +10,8 @@ pub struct Pos3(pub usize, pub usize, pub usize);
 pub struct Pos3I(pub isize, pub isize, pub isize);
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Pos4(pub usize, pub usize, pub usize, pub usize);
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Pos4I(pub isize, pub isize, pub isize, pub isize);
 
 impl Pos {
     pub fn distance(&self, Pos(x, y): Pos) -> usize {
@@ -85,5 +87,11 @@ impl PosI {
 impl Pos3I {
     pub fn distance(&self, Pos3I(x, y, z): Pos3I) -> usize {
         self.0.abs_diff(x) + self.1.abs_diff(y) + self.2.abs_diff(z)
+    }
+}
+
+impl Pos4I {
+    pub fn distance(&self, Pos4I(w, x, y, z): Pos4I) -> usize {
+        self.0.abs_diff(w) + self.1.abs_diff(x) + self.2.abs_diff(y) + self.3.abs_diff(z)
     }
 }
