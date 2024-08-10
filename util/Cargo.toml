@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 itertools = "0.13.0"
+fxhash = "0.2.1"
 nom = "7.1.3"

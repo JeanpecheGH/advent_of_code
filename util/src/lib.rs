@@ -1,6 +1,7 @@
 pub mod basic_parser;
 pub mod chinese_remainders;
 pub mod coord;
+pub mod duet_tablet;
 pub mod hashers;
 pub mod intcode;
 pub mod orientation;
