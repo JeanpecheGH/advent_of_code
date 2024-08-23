@@ -18,6 +18,8 @@ enum DuetOp {
     SetReg(char, char),
     AddVal(char, isize),
     AddReg(char, char),
+    SubVal(char, isize),
+    SubReg(char, char),
     MulVal(char, isize),
     MulReg(char, char),
     ModVal(char, isize),
@@ -25,6 +27,9 @@ enum DuetOp {
     JumpGTZValVal(isize, isize),
     JumpGTZRegVal(char, isize),
     JumpGTZRegReg(char, char),
+    JumpNotZeroValVal(isize, isize),
+    JumpNotZeroRegVal(char, isize),
+    JumpNotZeroRegReg(char, char),
 }
 
 impl FromStr for DuetOp {
@@ -67,6 +72,16 @@ impl FromStr for DuetOp {
                 preceded(tag("add "), separated_pair(anychar, char(' '), anychar))(s)?;
             Ok((s, DuetOp::AddReg(r1, r2)))
         }
+        fn parse_sub_val(s: &str) -> IResult<&str, DuetOp> {
+            let (s, (r, v)) =
+                preceded(tag("sub "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+            Ok((s, DuetOp::SubVal(r, v)))
+        }
+        fn parse_sub_reg(s: &str) -> IResult<&str, DuetOp> {
+            let (s, (r1, r2)) =
+                preceded(tag("sub "), separated_pair(anychar, char(' '), anychar))(s)?;
+            Ok((s, DuetOp::SubReg(r1, r2)))
+        }
         fn parse_mul_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
                 preceded(tag("mul "), separated_pair(anychar, char(' '), parse_isize))(s)?;
@@ -87,22 +102,39 @@ impl FromStr for DuetOp {
                 preceded(tag("mod "), separated_pair(anychar, char(' '), anychar))(s)?;
             Ok((s, DuetOp::ModReg(r1, r2)))
         }
-        fn parse_jum_gtz_val_val(s: &str) -> IResult<&str, DuetOp> {
+        fn parse_jump_gtz_val_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (v1, v2)) = preceded(
                 tag("jgz "),
                 separated_pair(parse_isize, char(' '), parse_isize),
             )(s)?;
             Ok((s, DuetOp::JumpGTZValVal(v1, v2)))
         }
-        fn parse_jum_gtz_reg_val(s: &str) -> IResult<&str, DuetOp> {
+        fn parse_jump_gtz_reg_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
                 preceded(tag("jgz "), separated_pair(anychar, char(' '), parse_isize))(s)?;
             Ok((s, DuetOp::JumpGTZRegVal(r, v)))
         }
-        fn parse_jum_gtz_reg_reg(s: &str) -> IResult<&str, DuetOp> {
+        fn parse_jump_gtz_reg_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
                 preceded(tag("jgz "), separated_pair(anychar, char(' '), anychar))(s)?;
             Ok((s, DuetOp::JumpGTZRegReg(r1, r2)))
+        }
+        fn parse_jump_not_zero_val_val(s: &str) -> IResult<&str, DuetOp> {
+            let (s, (v1, v2)) = preceded(
+                tag("jnz "),
+                separated_pair(parse_isize, char(' '), parse_isize),
+            )(s)?;
+            Ok((s, DuetOp::JumpNotZeroValVal(v1, v2)))
+        }
+        fn parse_jump_not_zero_reg_val(s: &str) -> IResult<&str, DuetOp> {
+            let (s, (r, v)) =
+                preceded(tag("jnz "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+            Ok((s, DuetOp::JumpNotZeroRegVal(r, v)))
+        }
+        fn parse_jump_not_zero_reg_reg(s: &str) -> IResult<&str, DuetOp> {
+            let (s, (r1, r2)) =
+                preceded(tag("jnz "), separated_pair(anychar, char(' '), anychar))(s)?;
+            Ok((s, DuetOp::JumpNotZeroRegReg(r1, r2)))
         }
 
         Ok(alt((
@@ -114,13 +146,18 @@ impl FromStr for DuetOp {
             parse_set_reg,
             parse_add_val,
             parse_add_reg,
+            parse_sub_val,
+            parse_sub_reg,
             parse_mul_val,
             parse_mul_reg,
             parse_mod_val,
             parse_mod_reg,
-            parse_jum_gtz_val_val,
-            parse_jum_gtz_reg_val,
-            parse_jum_gtz_reg_reg,
+            parse_jump_gtz_val_val,
+            parse_jump_gtz_reg_val,
+            parse_jump_gtz_reg_reg,
+            parse_jump_not_zero_val_val,
+            parse_jump_not_zero_reg_val,
+            parse_jump_not_zero_reg_reg,
         ))(s)
         .unwrap()
         .1)
@@ -144,6 +181,7 @@ impl DuetTablet {
         let mut regs: FxHashMap<char, isize> = FxHashMap::default();
         let mut op: isize = 0;
         let mut sound: isize = 0;
+        let mut nb_mul: isize = 0;
 
         while (op as usize) < self.ops.len() {
             match self.ops[op as usize] {
@@ -172,9 +210,17 @@ impl DuetTablet {
                 DuetOp::AddReg(r1, r2) => {
                     *regs.entry(r1).or_insert(0) += *regs.entry(r2).or_insert(0)
                 }
-                DuetOp::MulVal(r, v) => *regs.entry(r).or_insert(0) *= v,
+                DuetOp::SubVal(r, v) => *regs.entry(r).or_insert(0) -= v,
+                DuetOp::SubReg(r1, r2) => {
+                    *regs.entry(r1).or_insert(0) -= *regs.entry(r2).or_insert(0)
+                }
+                DuetOp::MulVal(r, v) => {
+                    *regs.entry(r).or_insert(0) *= v;
+                    nb_mul += 1;
+                }
                 DuetOp::MulReg(r1, r2) => {
-                    *regs.entry(r1).or_insert(0) *= *regs.entry(r2).or_insert(0)
+                    *regs.entry(r1).or_insert(0) *= *regs.entry(r2).or_insert(0);
+                    nb_mul += 1;
                 }
                 DuetOp::ModVal(r, v) => *regs.entry(r).or_insert(0) %= v,
                 DuetOp::ModReg(r1, r2) => {
@@ -195,10 +241,25 @@ impl DuetTablet {
                         op += *regs.entry(r2).or_insert(0) - 1;
                     }
                 }
+                DuetOp::JumpNotZeroValVal(v1, v2) => {
+                    if v1 != 0 {
+                        op += v2 - 1;
+                    }
+                }
+                DuetOp::JumpNotZeroRegVal(r, v) => {
+                    if *regs.entry(r).or_insert(0) != 0 {
+                        op += v - 1;
+                    }
+                }
+                DuetOp::JumpNotZeroRegReg(r1, r2) => {
+                    if *regs.entry(r1).or_insert(0) != 0 {
+                        op += *regs.entry(r2).or_insert(0) - 1;
+                    }
+                }
             }
             op += 1;
         }
-        0
+        nb_mul
     }
 
     fn apply_op(
@@ -240,6 +301,8 @@ impl DuetTablet {
             }
             DuetOp::AddVal(r, v) => *regs.entry(r).or_insert(0) += v,
             DuetOp::AddReg(r1, r2) => *regs.entry(r1).or_insert(0) += *regs.entry(r2).or_insert(0),
+            DuetOp::SubVal(r, v) => *regs.entry(r).or_insert(0) -= v,
+            DuetOp::SubReg(r1, r2) => *regs.entry(r1).or_insert(0) -= *regs.entry(r2).or_insert(0),
             DuetOp::MulVal(r, v) => *regs.entry(r).or_insert(0) *= v,
             DuetOp::MulReg(r1, r2) => *regs.entry(r1).or_insert(0) *= *regs.entry(r2).or_insert(0),
             DuetOp::ModVal(r, v) => *regs.entry(r).or_insert(0) %= v,
@@ -256,6 +319,21 @@ impl DuetTablet {
             }
             DuetOp::JumpGTZRegReg(r1, r2) => {
                 if *regs.entry(r1).or_insert(0) > 0 {
+                    *op += *regs.entry(r2).or_insert(0) - 1;
+                }
+            }
+            DuetOp::JumpNotZeroValVal(v1, v2) => {
+                if v1 != 0 {
+                    *op += v2 - 1;
+                }
+            }
+            DuetOp::JumpNotZeroRegVal(r, v) => {
+                if *regs.entry(r).or_insert(0) != 0 {
+                    *op += v - 1;
+                }
+            }
+            DuetOp::JumpNotZeroRegReg(r1, r2) => {
+                if *regs.entry(r1).or_insert(0) != 0 {
                     *op += *regs.entry(r2).or_insert(0) - 1;
                 }
             }
