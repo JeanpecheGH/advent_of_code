@@ -78,6 +78,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc_2021"
+version = "0.1.0"
+dependencies = [
+ "fxhash",
+ "itertools",
+ "md5",
+ "nom",
+ "nom_permutation",
+ "rand",
+ "rayon",
+ "util",
+]
+
+[[package]]
 name = "aoc_2022"
 version = "0.1.0"
 dependencies = [
