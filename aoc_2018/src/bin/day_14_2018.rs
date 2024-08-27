@@ -79,25 +79,28 @@ mod tests {
     #[test]
     fn part_1_test_1() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.ten_scores_after(9), 5158916779);
+        assert_eq!(format!("{:0>10}", book.ten_scores_after(9)), "5158916779");
     }
 
     #[test]
     fn part_1_test_2() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.ten_scores_after(5), 0124515891);
+        assert_eq!(format!("{:0>10}", book.ten_scores_after(5)), "0124515891");
     }
 
     #[test]
     fn part_1_test_3() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.ten_scores_after(18), 9251071085);
+        assert_eq!(format!("{:0>10}", book.ten_scores_after(18)), "9251071085");
     }
 
     #[test]
     fn part_1_test_4() {
         let mut book = RecipeBook::new();
-        assert_eq!(book.ten_scores_after(2018), 5941429882);
+        assert_eq!(
+            format!("{:0>10}", book.ten_scores_after(2018)),
+            "5941429882"
+        );
     }
 
     #[test]

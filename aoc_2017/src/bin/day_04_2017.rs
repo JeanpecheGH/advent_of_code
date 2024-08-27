@@ -66,13 +66,13 @@ oiii ioii iioi iiio";
 
     #[test]
     fn part_1() {
-        let mut pass: Passphrases = EXAMPLE_1.parse().unwrap();
+        let pass: Passphrases = EXAMPLE_1.parse().unwrap();
         assert_eq!(2, pass.nb_valid());
     }
 
     #[test]
     fn part_2() {
-        let mut pass: Passphrases = EXAMPLE_2.parse().unwrap();
+        let pass: Passphrases = EXAMPLE_2.parse().unwrap();
         assert_eq!(3, pass.nb_valid_anagram());
     }
 }

@@ -63,13 +63,13 @@ mod tests {
 
     #[test]
     fn part_1() {
-        let mut trampoline: Trampoline = EXAMPLE_1.parse().unwrap();
+        let trampoline: Trampoline = EXAMPLE_1.parse().unwrap();
         assert_eq!(5, trampoline.nb_steps_outside(false));
     }
 
     #[test]
     fn part_2() {
-        let mut trampoline: Trampoline = EXAMPLE_1.parse().unwrap();
+        let trampoline: Trampoline = EXAMPLE_1.parse().unwrap();
         assert_eq!(10, trampoline.nb_steps_outside(true));
     }
 }

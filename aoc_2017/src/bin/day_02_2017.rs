@@ -77,13 +77,13 @@ mod tests {
 
     #[test]
     fn part_1() {
-        let mut checksum: Checksum = EXAMPLE_1.parse().unwrap();
+        let checksum: Checksum = EXAMPLE_1.parse().unwrap();
         assert_eq!(18, checksum.check());
     }
 
     #[test]
     fn part_2() {
-        let mut checksum: Checksum = EXAMPLE_2.parse().unwrap();
+        let checksum: Checksum = EXAMPLE_2.parse().unwrap();
         assert_eq!(9, checksum.divisible_check());
     }
 }

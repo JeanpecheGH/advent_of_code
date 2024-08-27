@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn part_1() {
-        let sum: isize = INPUT.lines().map(|l| snafu_to_dec(l)).sum();
+        let sum: isize = INPUT.lines().map(snafu_to_dec).sum();
         assert_eq!(sum, 4890);
         assert_eq!(dec_to_snafu(sum), "2=-1=0");
     }

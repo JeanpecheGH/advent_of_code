@@ -94,13 +94,13 @@ fn main() {
     let mut transmission_2: Transmission = transmission.clone();
     transmission.n_phase(100, false);
     println!(
-        "Part1: The first digits of the output are {:#8}",
+        "Part1: The first digits of the output are {:0>8}",
         transmission.first_eight()
     );
     transmission_2.multiply_and_offset(10_000);
     transmission_2.n_phase(100, true);
     println!(
-        "Part2: The 8 digits message is {:#8}",
+        "Part2: The 8 digits message is {:0>8}",
         transmission_2.first_eight()
     );
     println!("Computing time: {:?}", now.elapsed());
@@ -114,34 +114,34 @@ mod tests {
     fn test_input_1_part_1() {
         let mut transmission: Transmission = "12345678".parse().unwrap();
         transmission.phase();
-        assert_eq!(transmission.first_eight(), 48226158);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "48226158");
         transmission.phase();
-        assert_eq!(transmission.first_eight(), 34040438);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "34040438");
         transmission.phase();
-        assert_eq!(transmission.first_eight(), 03415518);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "03415518");
         transmission.phase();
-        assert_eq!(transmission.first_eight(), 01029498);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "01029498");
     }
 
     #[test]
     fn test_input_2_part_1() {
         let mut transmission: Transmission = "80871224585914546619083218645595".parse().unwrap();
         transmission.n_phase(100, false);
-        assert_eq!(transmission.first_eight(), 24176176);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "24176176");
     }
 
     #[test]
     fn test_input_3_part_1() {
         let mut transmission: Transmission = "19617804207202209144916044189917".parse().unwrap();
         transmission.n_phase(100, false);
-        assert_eq!(transmission.first_eight(), 73745418);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "73745418");
     }
 
     #[test]
     fn test_input_4_part_1() {
         let mut transmission: Transmission = "69317163492948606335995924319873".parse().unwrap();
         transmission.n_phase(100, false);
-        assert_eq!(transmission.first_eight(), 52432133);
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "52432133");
     }
 
     #[test]
@@ -160,23 +160,23 @@ mod tests {
         let mut transmission: Transmission = "03036732577212944063491565474664".parse().unwrap();
         transmission.multiply_and_offset(10_000);
         transmission.n_phase(100, true);
-        assert_eq!(transmission.offset, 0303673);
-        assert_eq!(transmission.first_eight(), 84462026);
+        assert_eq!(format!("{:0>7}", transmission.offset), "0303673");
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "84462026");
     }
     #[test]
     fn test_input_2_part_2() {
         let mut transmission: Transmission = "02935109699940807407585447034323".parse().unwrap();
         transmission.multiply_and_offset(10_000);
         transmission.n_phase(100, true);
-        assert_eq!(transmission.offset, 0293510);
-        assert_eq!(transmission.first_eight(), 78725270);
+        assert_eq!(format!("{:0>7}", transmission.offset), "0293510");
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "78725270");
     }
     #[test]
     fn test_input_3_part_2() {
         let mut transmission: Transmission = "03081770884921959731165446850517".parse().unwrap();
         transmission.multiply_and_offset(10_000);
         transmission.n_phase(100, true);
-        assert_eq!(transmission.offset, 0308177);
-        assert_eq!(transmission.first_eight(), 53553731);
+        assert_eq!(format!("{:0>7}", transmission.offset), "0308177");
+        assert_eq!(format!("{:0>8}", transmission.first_eight()), "53553731");
     }
 }
