@@ -39,6 +39,22 @@ impl Pos {
         vec![Pos(x - 1, y), Pos(x + 1, y), Pos(x, y - 1), Pos(x, y + 1)]
     }
 
+    pub fn neighbours_diag_safe(&self, max_x: usize, max_y: usize) -> Vec<Pos> {
+        let x: isize = self.0 as isize;
+        let y: isize = self.1 as isize;
+        let i = PosI(x, y);
+        i.neighbours_diag()
+            .into_iter()
+            .filter_map(|PosI(a, b)| {
+                if a >= 0 && a < max_x as isize && b >= 0 && b < max_y as isize {
+                    Some(Pos(a as usize, b as usize))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
     pub fn neighbours_diag(&self) -> Vec<Pos> {
         (-1..=1)
             .cartesian_product(-1..=1)
