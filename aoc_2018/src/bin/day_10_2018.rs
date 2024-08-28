@@ -94,12 +94,12 @@ impl StarryNight {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                let c: &str = if moved_stars.contains(&PosI(x, y)) {
-                    "██"
+                let c: char = if moved_stars.contains(&PosI(x, y)) {
+                    '█'
                 } else {
-                    "  "
+                    ' '
                 };
-                print!("{c}");
+                print!("{c}{c}");
             }
             println!();
         }

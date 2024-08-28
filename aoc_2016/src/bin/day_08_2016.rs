@@ -53,8 +53,8 @@ impl TinyLCD {
                 if index % 5 == 0 {
                     print!("  ");
                 };
-                let c = if p { '#' } else { ' ' };
-                print!("{c}");
+                let c = if p { '█' } else { ' ' };
+                print!("{c}{c}");
             });
             println!();
         })

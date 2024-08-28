@@ -115,7 +115,7 @@ impl Maze {
     fn print(&self) {
         self.grid.iter().for_each(|row| {
             row.iter().for_each(|&b| {
-                let c: char = if b { '.' } else { '#' };
+                let c: char = if b { '.' } else { '█' };
                 print!("{c}");
             });
             println!();
