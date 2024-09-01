@@ -104,6 +104,14 @@ impl Pos3I {
     pub fn distance(&self, Pos3I(x, y, z): Pos3I) -> usize {
         self.0.abs_diff(x) + self.1.abs_diff(y) + self.2.abs_diff(z)
     }
+
+    pub fn sub(&self, Pos3I(x, y, z): Pos3I) -> Pos3I {
+        Pos3I(self.0 - x, self.1 - y, self.2 - z)
+    }
+
+    pub fn add(&self, Pos3I(x, y, z): Pos3I) -> Pos3I {
+        Pos3I(self.0 + x, self.1 + y, self.2 + z)
+    }
 }
 
 impl Pos4I {
