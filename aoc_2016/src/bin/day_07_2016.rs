@@ -51,7 +51,7 @@ fn main() {
     let ips: Vec<IPv7> = s
         .lines()
         .map(|s| {
-            let words: Vec<&str> = s.split(|c| c == ']' || c == '[').collect();
+            let words: Vec<&str> = s.split(['[', ']']).collect();
             let mut supernets: Vec<String> = Vec::new();
             let mut hypernets: Vec<String> = Vec::new();
             for (index, &sequence) in words.iter().enumerate() {
