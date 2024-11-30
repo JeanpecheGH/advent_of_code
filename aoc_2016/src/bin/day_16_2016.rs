@@ -66,11 +66,7 @@ fn checksum_chunk(input: &str, chunk_start: usize, chunk_size: usize) -> char {
     //Count nb of 1 in delimiters
     let nb_delim = delimiters_ones(chunk_start, chunk_end, len);
     //Count nb of 1 in suffix
-    let suffix_size: usize = if chunk_end >= end_pairs {
-        chunk_end - end_pairs
-    } else {
-        0
-    };
+    let suffix_size: usize = chunk_end.saturating_sub(end_pairs);
     let nb_suffix = affix_ones(input, &rev, suffix_size as isize, 0, false, len);
 
     if (nb_prefix + nb_pairs + nb_delim + nb_suffix) % 2 == 0 {
