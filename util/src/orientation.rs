@@ -9,11 +9,11 @@ pub enum Dir {
 impl Dir {
     pub fn from_char(c: char) -> Result<Self, String> {
         match c {
-            'U' |'N' => Ok(Dir::North),
-            'L' |'W' => Ok(Dir::West),
-            'D' |'S' => Ok(Dir::South),
-            'R' |'E' => Ok(Dir::East),
-            _ => Err(format!("Invalid Direction [{c}]"))
+            'U' | 'N' => Ok(Dir::North),
+            'L' | 'W' => Ok(Dir::West),
+            'D' | 'S' => Ok(Dir::South),
+            'R' | 'E' => Ok(Dir::East),
+            _ => Err(format!("Invalid Direction [{c}]")),
         }
     }
     pub fn turn_right(&self) -> Self {

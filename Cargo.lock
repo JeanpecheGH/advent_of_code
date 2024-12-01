@@ -117,6 +117,7 @@ dependencies = [
 name = "aoc_2024"
 version = "0.1.0"
 dependencies = [
+ "fxhash",
  "itertools",
  "md5",
  "nom",
