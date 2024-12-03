@@ -11,14 +11,10 @@ struct Memory {
 }
 
 impl Memory {
-    fn multiply(&self) -> usize {
-        self.pairs.iter().map(|(_, a, b)| a * b).sum()
-    }
-
-    fn conditional_multiply(&self) -> usize {
+    fn multiply(&self, all: bool) -> usize {
         self.pairs
             .iter()
-            .map(|(add, a, b)| a * b * *add as usize)
+            .map(|(add, a, b)| a * b * (add | all) as usize)
             .sum()
     }
 }
@@ -74,11 +70,11 @@ fn main() {
 
     println!(
         "Part1: The sum of all valid multiplications is {}",
-        memory.multiply()
+        memory.multiply(true)
     );
     println!(
         "Part2: When disabling some multiplications, the sum is {}",
-        memory.conditional_multiply()
+        memory.multiply(false)
     );
     println!("Computing time: {:?}", now.elapsed());
 }
@@ -95,11 +91,11 @@ mod tests {
     #[test]
     fn part_1() {
         let memory: Memory = EXAMPLE_1.parse().unwrap();
-        assert_eq!(memory.multiply(), 161);
+        assert_eq!(memory.multiply(true), 161);
     }
     #[test]
     fn part_2() {
         let memory: Memory = EXAMPLE_2.parse().unwrap();
-        assert_eq!(memory.conditional_multiply(), 48);
+        assert_eq!(memory.multiply(false), 48);
     }
 }
