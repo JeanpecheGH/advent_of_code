@@ -12,7 +12,6 @@ struct Reports {
 impl Reports {
     fn is_safe(r: &[usize]) -> bool {
         let mut inc: Option<bool> = None;
-        let mut safe: bool = true;
 
         for pair in r.windows(2) {
             match (inc, pair[0].cmp(&pair[1])) {
@@ -20,24 +19,21 @@ impl Reports {
                 (None, Ordering::Greater) => inc = Some(false),
                 (Some(true), Ordering::Less) => (),
                 (Some(false), Ordering::Greater) => (),
-                _ => safe = false,
+                _ => return false,
             }
             if pair[0].abs_diff(pair[1]) > 3 {
-                safe = false;
+                return false;
             }
         }
-
-        safe
+        true
     }
 
     fn is_dampened_safe(r: &[usize]) -> bool {
-        (0..r.len())
-            .map(|i| {
-                let mut dampened_report: Vec<usize> = r.to_vec();
-                dampened_report.remove(i);
-                Reports::is_safe(&dampened_report)
-            })
-            .any(|b| b)
+        (0..r.len()).any(|i| {
+            let mut dampened_report: Vec<usize> = r.to_vec();
+            dampened_report.remove(i);
+            Reports::is_safe(&dampened_report)
+        })
     }
 
     fn nb_safe(&self) -> usize {
