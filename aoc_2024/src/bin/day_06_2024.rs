@@ -1,5 +1,5 @@
 use fxhash::FxHashSet;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::prelude::*;
 use std::str::FromStr;
 use util::coord::Pos;
 use util::orientation::Dir;
