@@ -14,36 +14,53 @@ struct Equation {
 }
 
 impl Equation {
+    // Solving from right to left is faster
     fn is_solvable(&self, with_concat: bool) -> bool {
-        fn concat(a: usize, b: usize) -> usize {
-            a * 10usize.pow(b.ilog10() + 1) + b
-        }
-        fn inner_is_solvable(
+        fn mul(
             rest: &[usize],
-            partial: usize,
             target: usize,
+            current: usize,
+            last: usize,
             with_concat: bool,
         ) -> bool {
-            if rest.is_empty() {
-                partial == target
+            if current % last == 0 {
+                inner(rest, target, current / last, with_concat)
             } else {
-                if partial > target {
-                    return false;
-                }
-                let current: usize = rest[0];
-                inner_is_solvable(&rest[1..], partial + current, target, with_concat)
-                    || inner_is_solvable(&rest[1..], partial * current, target, with_concat)
-                    || (with_concat
-                        && inner_is_solvable(
-                            &rest[1..],
-                            concat(partial, current),
-                            target,
-                            with_concat,
-                        ))
+                false
             }
         }
 
-        inner_is_solvable(&self.values[1..], self.values[0], self.total, with_concat)
+        fn concat(
+            rest: &[usize],
+            target: usize,
+            current: usize,
+            last: usize,
+            with_concat: bool,
+        ) -> bool {
+            let d: usize = 10usize.pow(last.ilog10() + 1);
+            if current % d == last {
+                inner(rest, target, current / d, with_concat)
+            } else {
+                false
+            }
+        }
+
+        fn inner(rest: &[usize], target: usize, current: usize, with_concat: bool) -> bool {
+            if current < target {
+                return false;
+            }
+            if rest.is_empty() {
+                target == current
+            } else {
+                let len = rest.len() - 1;
+                let new_rest = &rest[..len];
+                let last: usize = rest[len];
+                inner(new_rest, target, current - last, with_concat)
+                    || mul(new_rest, target, current, last, with_concat)
+                    || (with_concat && concat(new_rest, target, current, last, with_concat))
+            }
+        }
+        inner(&self.values[1..], self.values[0], self.total, with_concat)
     }
 }
 
