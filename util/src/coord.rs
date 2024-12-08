@@ -98,6 +98,14 @@ impl PosI {
             .filter(|&PosI(x, y)| x >= 0 && x < max_x && y >= 0 && y < max_y)
             .collect()
     }
+
+    pub fn sub(&self, PosI(x, y): PosI) -> PosI {
+        PosI(self.0 - x, self.1 - y)
+    }
+
+    pub fn add(&self, PosI(x, y): PosI) -> PosI {
+        PosI(self.0 + x, self.1 + y)
+    }
 }
 
 impl Pos3I {
