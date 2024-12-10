@@ -1,65 +1,74 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::{anychar, char};
-use nom::combinator::{map, opt, value};
+use nom::combinator::{map, value};
+use nom::multi::fold_many1;
+use nom::sequence::separated_pair;
 use nom::IResult;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
+type MemoryValue = (bool, usize);
+
 struct Memory {
-    pairs: Vec<(bool, usize, usize)>,
+    values: Vec<MemoryValue>,
 }
 
 impl Memory {
     fn multiply(&self, all: bool) -> usize {
-        self.pairs
+        self.values
             .iter()
-            .map(|(add, a, b)| a * b * (add | all) as usize)
+            .map(|(add, v)| v * (add | all) as usize)
             .sum()
     }
+}
+
+enum ParseToken {
+    Switch(bool),
+    Value(usize),
+    Nothing,
 }
 
 impl FromStr for Memory {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn parse_pair(s: &str) -> IResult<&str, (usize, usize)> {
+        fn parse_mul(s: &str) -> IResult<&str, ParseToken> {
             let (s, _) = tag("mul(")(s)?;
-            let (s, a) = parse_usize(s)?;
-            let (s, _) = char(',')(s)?;
-            let (s, b) = parse_usize(s)?;
+            let (s, (a, b)) = separated_pair(parse_usize, char(','), parse_usize)(s)?;
             let (s, _) = char(')')(s)?;
-            Ok((s, (a, b)))
+            Ok((s, ParseToken::Value(a * b)))
         }
 
-        fn parse_do(s: &str) -> IResult<&str, bool> {
+        fn parse_do(s: &str) -> IResult<&str, ParseToken> {
             let (s, b) = alt((value(true, tag("do()")), value(false, tag("don't()"))))(s)?;
-            Ok((s, b))
+            Ok((s, ParseToken::Switch(b)))
         }
 
-        fn parse_cond(s: &str, mut do_mul: bool) -> IResult<&str, (bool, usize, usize)> {
-            let (s, b_opt) = opt(parse_do)(s)?;
-            b_opt.iter().for_each(|&b| do_mul = b);
+        fn parse_token(s: &str) -> IResult<&str, ParseToken> {
+            let (s, token) = alt((parse_do, parse_mul, map(anychar, |_| ParseToken::Nothing)))(s)?;
 
-            let (s, (a, b)) = alt((map(parse_pair, |(a, b)| (a, b)), map(anychar, |_| (0, 0))))(s)?;
-
-            Ok((s, (do_mul, a, b)))
+            Ok((s, token))
         }
 
-        fn parse_memory(mut s: &str) -> IResult<&str, Vec<(bool, usize, usize)>> {
-            let mut do_mul: bool = true;
-            let mut v: Vec<(bool, usize, usize)> = Vec::new();
-            while !s.is_empty() {
-                let (rest, triplet): (&str, (bool, usize, usize)) = parse_cond(s, do_mul)?;
-                do_mul = triplet.0;
-                v.push(triplet);
-                s = rest;
-            }
+        fn parse_memory(s: &str) -> IResult<&str, Vec<MemoryValue>> {
+            let (s, (_, v)): (&str, (bool, Vec<MemoryValue>)) = fold_many1(
+                parse_token,
+                || (true, Vec::new()),
+                |(mut enabled, mut acc): (bool, Vec<MemoryValue>), token: ParseToken| {
+                    match token {
+                        ParseToken::Switch(b) => enabled = b,
+                        ParseToken::Value(v) => acc.push((enabled, v)),
+                        ParseToken::Nothing => (),
+                    };
+                    (enabled, acc)
+                },
+            )(s)?;
             Ok((s, v))
         }
-        let pairs: Vec<(bool, usize, usize)> = parse_memory(s).unwrap().1;
+        let values: Vec<MemoryValue> = parse_memory(s).unwrap().1;
 
-        Ok(Memory { pairs })
+        Ok(Memory { values })
     }
 }
 
