@@ -7,68 +7,88 @@ use util::coord::Pos;
 struct Fence {
     start: Pos,
     end: Pos,
+    diff: Pos,
 }
 
 impl Fence {
     fn from(a: Pos, b: Pos) -> Self {
-        Fence { start: a, end: b }
+        let diff: Pos = Pos(b.0 - a.0, b.1 - a.1);
+        Fence {
+            start: a,
+            end: b,
+            diff,
+        }
     }
-    fn diff(&self) -> Pos {
-        Pos(self.end.0 - self.start.0, self.end.1 - self.start.1)
+
+    fn before_opt(&self, fences: &FxHashSet<Fence>) -> Option<Self> {
+        if fences.contains(&self.cross_bb()) || fences.contains(&self.cross_ba()) {
+            None
+        } else {
+            let before = self.before();
+            if fences.contains(&before) {
+                Some(before)
+            } else {
+                None
+            }
+        }
     }
 
     fn before(&self) -> Self {
-        let Pos(x, y) = self.diff();
-        Fence {
-            start: Pos(
+        let Pos(x, y) = self.diff;
+        Self::from(
+            Pos(
                 self.start.0.saturating_sub(x),
                 self.start.1.saturating_sub(y),
             ),
-            end: self.start,
+            self.start,
+        )
+    }
+
+    fn after_opt(&self, fences: &FxHashSet<Fence>) -> Option<Self> {
+        if fences.contains(&self.cross_ab()) || fences.contains(&self.cross_aa()) {
+            None
+        } else {
+            let after = self.after();
+            if fences.contains(&after) {
+                Some(after)
+            } else {
+                None
+            }
         }
     }
 
     fn after(&self) -> Self {
-        let Pos(x, y) = self.diff();
-        Fence {
-            start: self.end,
-            end: Pos(self.end.0 + x, self.end.1 + y),
-        }
+        let Pos(x, y) = self.diff;
+        Self::from(self.end, Pos(self.end.0 + x, self.end.1 + y))
     }
 
     fn cross_bb(&self) -> Self {
-        let Pos(x, y) = self.diff();
-        Fence {
-            start: Pos(
+        let Pos(x, y) = self.diff;
+        Self::from(
+            Pos(
                 self.start.0.saturating_sub(y),
                 self.start.1.saturating_sub(x),
             ),
-            end: self.start,
-        }
+            self.start,
+        )
     }
 
     fn cross_ba(&self) -> Self {
-        let Pos(x, y) = self.diff();
-        Fence {
-            start: self.start,
-            end: Pos(self.start.0 + y, self.start.1 + x),
-        }
+        let Pos(x, y) = self.diff;
+        Self::from(self.start, Pos(self.start.0 + y, self.start.1 + x))
     }
 
     fn cross_ab(&self) -> Self {
-        let Pos(x, y) = self.diff();
-        Fence {
-            start: Pos(self.end.0.saturating_sub(y), self.end.1.saturating_sub(x)),
-            end: self.end,
-        }
+        let Pos(x, y) = self.diff;
+        Self::from(
+            Pos(self.end.0.saturating_sub(y), self.end.1.saturating_sub(x)),
+            self.end,
+        )
     }
 
     fn cross_aa(&self) -> Self {
-        let Pos(x, y) = self.diff();
-        Fence {
-            start: self.end,
-            end: Pos(self.end.0 + y, self.end.1 + x),
-        }
+        let Pos(x, y) = self.diff;
+        Self::from(self.end, Pos(self.end.0 + y, self.end.1 + x))
     }
 }
 struct Gardens {
@@ -114,29 +134,15 @@ impl Gardens {
                     nb_sides += 1;
                     used.insert(f);
                     // Get the 2 touching fences left & right || up & down
-                    let mut before = f.before();
-                    let mut cross_bb = f.cross_bb();
-                    let mut cross_ba = f.cross_ba();
-                    while fences.contains(&before)
-                        && !fences.contains(&cross_bb)
-                        && !fences.contains(&cross_ba)
-                    {
-                        used.insert(before);
-                        cross_bb = before.cross_bb();
-                        cross_ba = before.cross_ba();
-                        before = before.before();
+                    let mut before = f.before_opt(fences);
+                    while let Some(b) = before {
+                        used.insert(b);
+                        before = b.before_opt(fences);
                     }
-                    let mut after = f.after();
-                    let mut cross_ab = f.cross_ab();
-                    let mut cross_aa = f.cross_aa();
-                    while fences.contains(&after)
-                        && !fences.contains(&cross_ab)
-                        && !fences.contains(&cross_aa)
-                    {
-                        used.insert(after);
-                        cross_ab = after.cross_ab();
-                        cross_aa = after.cross_aa();
-                        after = after.after();
+                    let mut after = f.after_opt(fences);
+                    while let Some(a) = after {
+                        used.insert(a);
+                        after = a.after_opt(fences);
                     }
                 }
             }
