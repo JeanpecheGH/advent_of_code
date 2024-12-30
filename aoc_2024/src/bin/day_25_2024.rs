@@ -28,7 +28,7 @@ impl FromStr for LocksAndKeys {
                     let key = it.next().unwrap() == &b'#';
                     let value = it
                         .skip(5) // Skip the first line
-                        .take(30) // Take the 5 next lines including LFs
+                        .take(35) // Take the 5 next lines including CRs & LFs
                         .fold(0, |acc, &c| acc * 2 + (c == b'#') as usize);
                     if key {
                         keys.push(value);
