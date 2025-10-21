@@ -17,8 +17,8 @@ fn main() {
 
     //Split the data in 2 VecDeque since we always remove elements in the middle
     let now = std::time::Instant::now();
-    let mut front_circle = VecDeque::from_iter(1..=((input + 1) / 2));
-    let mut back_circle = VecDeque::from_iter(((input + 1) / 2) + 1..=input);
+    let mut front_circle = VecDeque::from_iter(1..=input.div_ceil(2));
+    let mut back_circle = VecDeque::from_iter(input.div_ceil(2) + 1..=input);
 
     while (front_circle.len() + back_circle.len()) > 1 {
         if front_circle.len() > back_circle.len() {

@@ -12,16 +12,8 @@ struct Node {
 
 impl Node {
     fn score(&self, Pos(x, y): Pos) -> usize {
-        let dist: usize = Self::dist_abs(x, self.pos.0) + Self::dist_abs(y, self.pos.1);
+        let dist: usize = x.abs_diff(self.pos.0) + y.abs_diff(self.pos.1);
         dist + self.depth
-    }
-
-    fn dist_abs(a: usize, b: usize) -> usize {
-        if a > b {
-            a - b
-        } else {
-            b - a
-        }
     }
 
     fn eq(&self, target: Pos) -> bool {
@@ -48,7 +40,7 @@ impl Maze {
 
     fn is_open(Pos(x, y): Pos, seed: usize) -> bool {
         let s: usize = x * x + 3 * x + 2 * x * y + y + y * y + seed;
-        s.count_ones() % 2 == 0
+        s.count_ones().is_multiple_of(2)
     }
 
     fn print(&self) {

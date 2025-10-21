@@ -23,7 +23,7 @@ impl Equation {
             last: usize,
             with_concat: bool,
         ) -> bool {
-            if current % last == 0 {
+            if current.is_multiple_of(last) {
                 inner(rest, target, current / last, with_concat)
             } else {
                 false

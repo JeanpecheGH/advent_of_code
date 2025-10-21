@@ -186,13 +186,7 @@ impl HailCloud {
                         .iter()
                         .map(|s| s.change_vel(a, b))
                         .circular_tuple_windows::<(_, _)>()
-                        .filter_map(|(s_1, s_2)| {
-                            if let Ok(cross_opt) = s_1.intersect_2d(&s_2) {
-                                Some(cross_opt)
-                            } else {
-                                None
-                            }
-                        })
+                        .filter_map(|(s_1, s_2)| s_1.intersect_2d(&s_2).ok())
                         .collect();
                     if !crossings.is_empty()
                         && crossings[0].is_some()

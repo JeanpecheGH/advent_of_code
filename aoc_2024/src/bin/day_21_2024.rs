@@ -13,7 +13,7 @@ enum KeypadMove {
 }
 
 impl KeypadMove {
-    fn to_char(&self) -> char {
+    fn as_char(&self) -> char {
         match self {
             KeypadMove::Up => '^',
             KeypadMove::Down => 'v',
@@ -272,7 +272,7 @@ impl KeypadsSystem {
 
             for pair in x.windows(2) {
                 *new_cache
-                    .entry((pair[0].to_char(), pair[1].to_char()))
+                    .entry((pair[0].as_char(), pair[1].as_char()))
                     .or_insert(0) += count;
             }
         }
@@ -290,7 +290,7 @@ impl KeypadsSystem {
 
                 for pair in x.windows(2) {
                     *new_cache
-                        .entry((pair[0].to_char(), pair[1].to_char()))
+                        .entry((pair[0].as_char(), pair[1].as_char()))
                         .or_insert(0) += count;
                 }
             }

@@ -26,10 +26,10 @@ impl DuelingGenerators {
             a = (a * factor_a) % div;
             b = (b * factor_b) % div;
             if only_multiples {
-                while a % 4 != 0 {
+                while !a.is_multiple_of(4) {
                     a = (a * factor_a) % div;
                 }
-                while b % 8 != 0 {
+                while !b.is_multiple_of(8) {
                     b = (b * factor_b) % div;
                 }
             }

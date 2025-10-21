@@ -81,7 +81,7 @@ impl Garden {
                 .collect();
         }
 
-        if steps % 2 == 0 {
+        if steps.is_multiple_of(2) {
             evens.len()
         } else {
             odds.len()

@@ -192,12 +192,12 @@ fn win_fight(player: &Fighter, boss: &Fighter) -> bool {
     let damage_dealt = player.damage - boss.armor;
     let damage_received = boss.damage - player.armor;
 
-    let turns_to_kill = if boss.hp % damage_dealt == 0 {
+    let turns_to_kill = if boss.hp.is_multiple_of(damage_dealt) {
         boss.hp / damage_dealt
     } else {
         boss.hp / damage_dealt + 1
     };
-    let turns_to_die = if player.hp % damage_received == 0 {
+    let turns_to_die = if player.hp.is_multiple_of(damage_received) {
         player.hp / damage_received
     } else {
         player.hp / damage_received + 1

@@ -96,7 +96,7 @@ impl NanoFactory {
         for reaction in self.reactions.iter() {
             let target: usize = chem_map.get(&reaction.output.name).copied().unwrap();
             let quantity: usize = reaction.output.quantity;
-            let nb_react: usize = if target % quantity == 0 {
+            let nb_react: usize = if target.is_multiple_of(quantity) {
                 target / quantity
             } else {
                 target / quantity + 1

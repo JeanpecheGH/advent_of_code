@@ -10,12 +10,7 @@ fn main() {
 }
 
 fn fuel_for_mass(n: usize) -> usize {
-    let d: usize = n / 3;
-    if d >= 2 {
-        d - 2
-    } else {
-        0
-    }
+    (n / 3).saturating_sub(2)
 }
 
 fn total_fuel(n: usize) -> usize {

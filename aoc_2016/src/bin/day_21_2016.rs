@@ -54,7 +54,7 @@ impl Password {
             Operation::RotateBased(a) => {
                 let i: usize = self.letters.iter().position(|&c| c == a).unwrap();
                 if i % 2 == 1 {
-                    self.letters.rotate_left((i + 1) / 2);
+                    self.letters.rotate_left(i.div_ceil(2));
                 } else {
                     let rot = (i / 2 + 3) % 4 + 6;
                     self.letters.rotate_left(rot % 8)

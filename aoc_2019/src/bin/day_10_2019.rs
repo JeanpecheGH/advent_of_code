@@ -35,7 +35,7 @@ impl Slope {
         let x = self.x as f64;
 
         match (x, y) {
-            (a, b) if a == 0f64 => b * 50f64,
+            (0f64, b) => b * 50f64,
             (a, b) if a > 0f64 => b / a,
             (a, b) => (b / a) - 50f64,
         }

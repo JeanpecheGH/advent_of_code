@@ -22,7 +22,7 @@ impl PlutonianStones {
                 match k {
                     0 => *new_stones.entry(1).or_default() += v,
                     n if (n.ilog10() + 1) % 2 == 0 => {
-                        let div: usize = 10usize.pow((n.ilog10() + 1) / 2);
+                        let div: usize = 10usize.pow(n.ilog10().div_ceil(2));
                         *new_stones.entry(n / div).or_default() += v;
                         *new_stones.entry(n % div).or_default() += v;
                     }

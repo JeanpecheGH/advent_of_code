@@ -22,7 +22,7 @@ fn main() {
             println!("Part2: {i}");
             break;
         }
-        if i % 1000000 == 0 {
+        if i.is_multiple_of(1_000_000) {
             println!("{i}");
         }
         i += 1;

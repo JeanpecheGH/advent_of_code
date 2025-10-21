@@ -56,7 +56,7 @@ impl Square {
 
     fn split(&self) -> Vec<Vec<Square>> {
         let size: usize = self.grid.len();
-        let s: usize = if size % 2 == 0 { 2 } else { 3 };
+        let s: usize = if size.is_multiple_of(2) { 2 } else { 3 };
 
         let split: Vec<Vec<Square>> = (0..size)
             .step_by(s)

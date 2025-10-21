@@ -4,7 +4,7 @@ fn div_sum(n: usize) -> usize {
     let sqrt: usize = (n as f64).sqrt() as usize;
     let mut sum: usize = 0;
     for i in 1..=sqrt {
-        if n % i == 0 {
+        if n.is_multiple_of(i) {
             let d = n / i;
             if d != i {
                 sum += d + i;

@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use nom::bytes::complete::{tag, take};
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
@@ -46,7 +47,7 @@ impl Wasteland {
 
         let mut dist_to_z: Vec<usize> = vec![0; curr_nodes.len()];
 
-        while dist_to_z.iter().any(|&n| n == 0) {
+        while dist_to_z.iter().contains(&0) {
             let dir_step: usize = steps % self.dirs.len();
             curr_nodes = curr_nodes
                 .into_iter()

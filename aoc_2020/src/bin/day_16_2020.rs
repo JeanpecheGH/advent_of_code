@@ -129,10 +129,7 @@ impl FromStr for TicketSystem {
         let fields: Vec<Field> = groups[0].iter().map(|l| l.parse().unwrap()).collect();
         let my_ticket: Ticket = groups[1].last().map(|l| l.parse().unwrap()).unwrap();
         let tickets: Vec<&str> = groups[2][1..].to_vec();
-        let tickets: Vec<Ticket> = tickets
-            .into_iter()
-            .filter_map(|l| if let Ok(f) = l.parse() { Some(f) } else { None })
-            .collect();
+        let tickets: Vec<Ticket> = tickets.into_iter().filter_map(|l| l.parse().ok()).collect();
         Ok(TicketSystem {
             fields,
             my_ticket,

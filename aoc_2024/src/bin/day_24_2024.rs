@@ -11,9 +11,9 @@ use util::{basic_parser::parse_usize, split_blocks};
 
 #[derive(Copy, Clone, Debug)]
 enum LogicOp {
-    AND,
-    OR,
-    XOR,
+    And,
+    Or,
+    Xor,
 }
 
 impl FromStr for LogicOp {
@@ -21,9 +21,9 @@ impl FromStr for LogicOp {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "AND" => Ok(LogicOp::AND),
-            "OR" => Ok(LogicOp::OR),
-            "XOR" => Ok(LogicOp::XOR),
+            "AND" => Ok(LogicOp::And),
+            "OR" => Ok(LogicOp::Or),
+            "XOR" => Ok(LogicOp::Xor),
             _ => Err(()),
         }
     }
@@ -46,10 +46,10 @@ impl LogicGate {
         //translate
         if self.left.starts_with("x") || self.left.starts_with("y") {
             let index = &self.left[1..];
-            let new_name = match self.op {
-                LogicOp::AND => format!("a{}", index),
-                LogicOp::OR => format!("o{}", index),
-                LogicOp::XOR => format!("r{}", index),
+            let new_name: String = match self.op {
+                LogicOp::And => format!("a{}", index),
+                LogicOp::Or => format!("o{}", index),
+                LogicOp::Xor => format!("r{}", index),
             };
 
             translate.insert(self.output.clone(), new_name);
@@ -60,9 +60,9 @@ impl LogicGate {
         match (left_opt, right_opt) {
             (Some(&left), Some(&right)) => {
                 let out: bool = match self.op {
-                    LogicOp::AND => left && right,
-                    LogicOp::OR => left || right,
-                    LogicOp::XOR => left != right,
+                    LogicOp::And => left && right,
+                    LogicOp::Or => left || right,
+                    LogicOp::Xor => left != right,
                 };
                 inputs.insert(self.output.clone(), out);
                 true
