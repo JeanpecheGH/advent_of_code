@@ -21,42 +21,49 @@ struct FileSystem {
 }
 
 impl FileSystem {
-    fn checksum(&self) -> usize {
-        let mut fragmented: Vec<Option<usize>> = Vec::new();
-        let mut nb_empty: usize = 0;
-        for (idx, &n) in self.disk_map.iter().enumerate() {
-            if idx % 2 == 0 {
-                // Data
-                (0..n).for_each(|_| fragmented.push(Some(idx / 2)));
-            } else {
-                //Empty
-                nb_empty += n;
-                (0..n).for_each(|_| fragmented.push(None));
-            }
-        }
+    fn block_checksum(id: usize, pos: usize, size: usize) -> usize {
+        id / 2 * size * (size + 2 * pos - 1) / 2
+    }
 
-        let mut idx_refill: usize = 0;
-        //Densify
-        while nb_empty > 0 {
-            match fragmented.pop().unwrap() {
-                None => (),
-                Some(n) => {
-                    //Insert from the start
-                    while fragmented[idx_refill].is_some() {
-                        idx_refill += 1;
+    fn checksum(&self) -> usize {
+        let mut disk: Vec<usize> = self.disk_map.clone();
+        let mut sum: usize = 0;
+        let mut curr_pos: usize = 0;
+        let mut front_id: usize = 0;
+        let mut back_id: usize = disk.len() - 1;
+
+        while front_id <= back_id {
+            let mut block_size: usize = disk[front_id];
+            if front_id.is_multiple_of(2) {
+                //Used space, compute partial checksum
+                sum += FileSystem::block_checksum(front_id, curr_pos, block_size);
+                curr_pos += block_size;
+            } else {
+                //Empty space, fill from the back block
+                while block_size > 0 {
+                    let nb_back: usize = disk[back_id];
+                    if nb_back > block_size {
+                        //Fill all this block
+                        sum += FileSystem::block_checksum(back_id, curr_pos, block_size);
+                        //Consume partially the back block
+                        disk[back_id] -= block_size;
+                        curr_pos += block_size;
+                        block_size = 0;
+                    } else {
+                        //Fill block partially
+                        sum += FileSystem::block_checksum(back_id, curr_pos, nb_back);
+                        block_size -= nb_back;
+                        //Back block consumed. Go to the next non-empty block in the back
+                        back_id -= 2;
+                        curr_pos += nb_back;
                     }
-                    fragmented[idx_refill] = Some(n);
                 }
             }
-            nb_empty -= 1;
+            //Go to the next front block
+            front_id += 1;
         }
 
-        //Compute checksum
-        fragmented
-            .iter()
-            .enumerate()
-            .map(|(idx, &opt)| idx * opt.unwrap_or(0))
-            .sum()
+        sum
     }
 
     fn checksum_by_block(&self) -> usize {
@@ -163,5 +170,33 @@ mod tests {
     fn part_2() {
         let fs: FileSystem = EXAMPLE_1.parse().unwrap();
         assert_eq!(fs.checksum_by_block(), 2858);
+    }
+
+    #[test]
+    fn test_block() {
+        let id: usize = 44;
+        let a: usize = 17;
+        let n: usize = 15;
+        let sum_1: usize = (a..a + n).sum();
+        let sum_2: usize = FileSystem::block_checksum(id, a, n);
+        assert_eq!((id / 2) * sum_1, sum_2);
+    }
+    #[test]
+    fn test_empty_block() {
+        let id: usize = 44;
+        let a: usize = 17;
+        let n: usize = 0;
+        let sum_1: usize = (a..a + n).sum();
+        let sum_2: usize = FileSystem::block_checksum(id, a, n);
+        assert_eq!((id / 2) * sum_1, sum_2);
+    }
+    #[test]
+    fn test_block_null_id() {
+        let id: usize = 0;
+        let a: usize = 17;
+        let n: usize = 15;
+        let sum_1: usize = (a..a + n).sum();
+        let sum_2: usize = FileSystem::block_checksum(id, a, n);
+        assert_eq!((id / 2) * sum_1, sum_2);
     }
 }
