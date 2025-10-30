@@ -36,12 +36,11 @@ impl Square {
     }
 
     fn rotate(&self) -> Square {
-        let size: usize = self.grid.len();
         let mut new_grid: Vec<Vec<bool>> = self.grid.clone();
 
-        for y in 0..size {
-            for x in 0..size {
-                new_grid[size - x - 1][y] = self.grid[y][x];
+        for (y, row) in self.grid.iter().enumerate() {
+            for (x, &p) in row.iter().enumerate() {
+                new_grid[self.grid.len() - x - 1][y] = p;
             }
         }
         Square { grid: new_grid }
