@@ -1,18 +1,61 @@
-use std::collections::VecDeque;
+use std::collections::BTreeSet;
 use std::str::FromStr;
 
 struct Block {
+    id: usize,
+    pos: usize,
     length: usize,
-    id: Option<usize>,
 }
 
 impl Block {
-    fn checksum(&self, idx: usize) -> (usize, usize) {
-        let new_idx: usize = idx + self.length;
-        (
-            new_idx,
-            self.id.unwrap_or(0) * self.length * (idx + new_idx - 1) / 2,
-        )
+    fn checksum(&self, new_pos: Option<usize>) -> usize {
+        let final_pos: usize = new_pos.unwrap_or(self.pos);
+        self.id * self.length * (2 * final_pos + self.length - 1) / 2
+    }
+}
+
+#[derive(Debug)]
+struct EmptyCache {
+    cache: [BTreeSet<usize>; 9],
+}
+
+impl EmptyCache {
+    fn new() -> EmptyCache {
+        EmptyCache {
+            cache: Default::default(),
+        }
+    }
+
+    fn insert_empty_block(&mut self, pos: usize, length: usize) {
+        self.cache[length - 1].insert(pos);
+    }
+
+    fn remove_block(&mut self, length: usize) {
+        self.cache[length - 1].pop_first();
+    }
+
+    fn first_available(&self, length: usize) -> Option<(usize, usize)> {
+        (length - 1..9)
+            .filter_map(|i| self.cache[i].first().map(|&pos| (pos, i + 1)))
+            .min_by(|&(pos_a, _), &(pos_b, _)| pos_a.cmp(&pos_b))
+    }
+
+    fn move_block(&mut self, block: &Block) -> Option<usize> {
+        //Find the leftmost empty block big enough
+        let (pos, length) = self.first_available(block.length)?;
+        if pos > block.pos {
+            //Don't move the block, it's already well-placed
+            return None;
+        }
+        //Split empty block if it was bigger
+        if length > block.length {
+            let new_length: usize = length - block.length;
+            let new_pos: usize = pos + block.length;
+            self.insert_empty_block(new_pos, new_length);
+        }
+        self.remove_block(length);
+
+        Some(pos)
     }
 }
 
@@ -67,64 +110,42 @@ impl FileSystem {
     }
 
     fn checksum_by_block(&self) -> usize {
-        let mut fragmented: Vec<Block> = Vec::new();
-        for (idx, &n) in self.disk_map.iter().enumerate() {
-            if idx % 2 == 0 {
-                fragmented.push(Block {
-                    length: n,
-                    id: Some(idx / 2),
-                })
-            } else {
-                fragmented.push(Block {
-                    length: n,
-                    id: None,
-                })
-            }
-        }
-
-        //Densify
-        let mut tail: VecDeque<Block> = VecDeque::new();
-
-        while let Some(b) = fragmented.pop() {
-            if b.id.is_none() {
-                tail.push_front(b);
-            } else {
-                //Check for a big enough space
-                if let Some(pos) = fragmented
-                    .iter()
-                    .position(|other_bl| other_bl.id.is_none() && other_bl.length >= b.length)
-                {
-                    //Split the space block if needed
-                    let old_len = fragmented[pos].length;
-                    if old_len > b.length {
-                        fragmented.insert(
-                            pos + 1,
-                            Block {
-                                length: old_len - b.length,
-                                id: None,
-                            },
-                        )
+        //First pass
+        //Store blocks in a new array with their id, length and actual position
+        //Store empty spaces in a cache
+        let (_, mut cache, blocks): (usize, EmptyCache, Vec<Block>) =
+            self.disk_map.iter().enumerate().fold(
+                (0, EmptyCache::new(), Vec::default()),
+                |(mut curr_pos, mut cache, mut blocks), (idx, &len)| {
+                    if len > 0 {
+                        if idx.is_multiple_of(2) {
+                            let b: Block = Block {
+                                id: idx / 2,
+                                pos: curr_pos,
+                                length: len,
+                            };
+                            blocks.push(b);
+                        } else {
+                            cache.insert_empty_block(curr_pos, len);
+                        }
+                        curr_pos += len;
                     }
-                    //Empty the current position
-                    tail.push_front(Block {
-                        length: b.length,
-                        id: None,
-                    });
-                    //Insert the new block
-                    fragmented[pos] = b;
-                } else {
-                    tail.push_front(b);
-                }
-            }
-        }
+                    (curr_pos, cache, blocks)
+                },
+            );
 
-        //Compute checksum
-        tail.iter()
-            .fold((0, 0), |(idx, sum), block| {
-                let (new_idx, part_sum) = block.checksum(idx);
-                (new_idx, sum + part_sum)
+        //Second pass (from the right)
+        // Try to move each block to the leftmost open space
+        // Split the empty space used if need be.
+        // Compute checksum in the new place
+        blocks
+            .into_iter()
+            .rev()
+            .map(|b| {
+                let new_pos: Option<usize> = cache.move_block(&b);
+                b.checksum(new_pos)
             })
-            .1
+            .sum()
     }
 }
 
