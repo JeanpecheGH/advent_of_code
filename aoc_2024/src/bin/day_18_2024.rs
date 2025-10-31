@@ -36,6 +36,71 @@ impl PartialOrd for RamNode {
     }
 }
 
+#[derive(Clone, Debug)]
+struct ByteBlock {
+    bytes: FxHashSet<Pos>,
+    top_right: bool,
+    bottom_left: bool,
+}
+
+impl ByteBlock {
+    fn contains(&self, pos: &Pos) -> bool {
+        self.bytes.contains(pos)
+    }
+    fn merge(&mut self, other: ByteBlock) {
+        self.bytes.extend(other.bytes);
+        self.top_right = self.top_right || other.top_right;
+        self.bottom_left = self.bottom_left || other.bottom_left;
+    }
+
+    fn is_wall(&self) -> bool {
+        self.top_right && self.bottom_left
+    }
+}
+
+struct BlockCache {
+    blocks: Vec<ByteBlock>,
+    size: usize,
+}
+
+impl BlockCache {
+    fn from_size(size: usize) -> BlockCache {
+        BlockCache {
+            blocks: Vec::new(),
+            size,
+        }
+    }
+    fn is_blocking(&self) -> bool {
+        self.blocks.iter().any(|b| b.is_wall())
+    }
+
+    fn add_byte(&mut self, pos: Pos) -> bool {
+        //Create a new block with the falling byte
+        let mut bytes: FxHashSet<Pos> = FxHashSet::default();
+        bytes.insert(pos);
+        let top_right: bool = pos.0 == self.size || pos.1 == 0;
+        let bottom_left: bool = pos.0 == 0 || pos.1 == self.size;
+        let mut new_block = ByteBlock {
+            bytes,
+            top_right,
+            bottom_left,
+        };
+        //Merge the blocks touching this new block with it
+        //Keep the others in the vec
+        let ngbs: Vec<Pos> = pos.neighbours_diag_safe(self.size, self.size);
+        self.blocks.retain(|b| {
+            let is_near: bool = ngbs.iter().any(|n| b.contains(n));
+            if is_near {
+                new_block.merge(b.clone());
+            }
+            !is_near
+        });
+        //Add the newly created block
+        self.blocks.push(new_block);
+        self.is_blocking()
+    }
+}
+
 struct RamRun {
     falling_bytes: Vec<Pos>,
 }
@@ -79,53 +144,13 @@ impl RamRun {
         0
     }
 
-    fn blocking_byte(&self, size: usize, min_fallen: usize) -> Pos {
-        fn forms_wall(fallen_bytes: &FxHashSet<Pos>, size: usize) -> bool {
-            let mut horizontal_bytes: FxHashSet<Pos> = FxHashSet::default();
-            let mut vertical_bytes: FxHashSet<Pos> = FxHashSet::default();
-            let mut current_h_bytes: Vec<Pos> = fallen_bytes
-                .iter()
-                .filter(|Pos(x, _)| *x == 0)
-                .copied()
-                .collect();
-            let mut current_v_bytes: Vec<Pos> = fallen_bytes
-                .iter()
-                .filter(|Pos(_, y)| *y == 0)
-                .copied()
-                .collect();
-            horizontal_bytes.extend(current_h_bytes.clone());
-            vertical_bytes.extend(current_v_bytes.clone());
-
-            while !current_v_bytes.is_empty() || !current_h_bytes.is_empty() {
-                current_h_bytes = current_h_bytes
-                    .into_iter()
-                    .flat_map(|p| p.neighbours_diag_safe(size + 1, size + 1))
-                    .filter(|p| fallen_bytes.contains(p))
-                    .filter(|&p| horizontal_bytes.insert(p))
-                    .collect();
-                current_v_bytes = current_v_bytes
-                    .into_iter()
-                    .flat_map(|p| p.neighbours_diag_safe(size + 1, size + 1))
-                    .filter(|p| fallen_bytes.contains(p))
-                    .filter(|&p| vertical_bytes.insert(p))
-                    .collect();
-            }
-
-            horizontal_bytes.iter().any(|&Pos(x, _)| x == size)
-                || vertical_bytes.iter().any(|&Pos(_, y)| y == size)
-        }
-
-        let mut i: usize = min_fallen;
-
-        while i < self.falling_bytes.len() {
-            let fallen_bytes: FxHashSet<Pos> = self.falling_bytes.iter().take(i).copied().collect();
-            if forms_wall(&fallen_bytes, size) {
-                return self.falling_bytes[i - 1];
-            }
-            i += 1;
-        }
-
-        Pos(0, 0)
+    fn blocking_byte(&self, size: usize) -> Pos {
+        let mut cache: BlockCache = BlockCache::from_size(size);
+        self.falling_bytes
+            .iter()
+            .find(|&&pos| cache.add_byte(pos))
+            .copied()
+            .unwrap()
     }
 }
 
@@ -152,7 +177,7 @@ fn main() {
         "Part1: After 1024 bytes have fallen, we need {} steps to reach the exit",
         ram.shortest_path(70, 1024)
     );
-    let block: Pos = ram.blocking_byte(70, 1024);
+    let block: Pos = ram.blocking_byte(70);
     println!(
         "Part2: The byte falling at coordinates {},{} will block the exit",
         block.0, block.1
@@ -199,6 +224,6 @@ mod tests {
     #[test]
     fn part_2() {
         let ram: RamRun = EXAMPLE_1.parse().unwrap();
-        assert_eq!(ram.blocking_byte(6, 12), Pos(6, 1));
+        assert_eq!(ram.blocking_byte(6), Pos(6, 1));
     }
 }
