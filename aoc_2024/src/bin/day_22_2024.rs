@@ -1,66 +1,64 @@
 use std::str::FromStr;
 
-use fxhash::{FxHashMap, FxHashSet};
+use bitvec::bitvec;
+use rayon::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
-struct SecretNumber {
-    n: isize,
+struct MonkeyMarket {
+    numbers: Vec<isize>,
 }
-
-impl SecretNumber {
-    fn next(&self) -> SecretNumber {
-        let mut secret: isize = self.n;
-        let mul: isize = secret * 64;
-        secret ^= mul;
-        secret %= 16777216;
-        let div: isize = secret / 32;
-        secret ^= div;
-        secret %= 16777216;
-        let mul_2: isize = secret * 2048;
-        secret ^= mul_2;
-        secret %= 16777216;
-
-        SecretNumber { n: secret }
+impl MonkeyMarket {
+    fn next(secret: isize) -> isize {
+        let mut s: isize = secret;
+        s = ((s * 64) ^ s) % 16777216;
+        s = ((s / 32) ^ s) % 16777216;
+        ((s * 2048) ^ s) % 16777216
     }
-
-    fn next_n(&self, n: isize) -> Vec<isize> {
-        let mut secret: SecretNumber = *self;
-        let mut values: Vec<isize> = vec![secret.n];
+    fn next_n(secret: isize, n: usize) -> Vec<isize> {
+        let mut s: isize = secret;
+        let mut values: Vec<isize> = vec![secret];
         for _ in 0..n {
-            secret = secret.next();
-            values.push(secret.n);
+            s = MonkeyMarket::next(s);
+            values.push(s);
         }
         values
     }
-}
 
-struct MonkeyMarket {
-    numbers: Vec<SecretNumber>,
-}
-impl MonkeyMarket {
-    fn max_bananas(cache: &mut FxHashMap<(isize, isize, isize, isize), isize>, values: &[isize]) {
-        let mut key_set: FxHashSet<(isize, isize, isize, isize)> = FxHashSet::default();
-        for quint in values.windows(5) {
-            let a: isize = (quint[1] % 10) - (quint[0] % 10);
-            let b: isize = (quint[2] % 10) - (quint[1] % 10);
-            let c: isize = (quint[3] % 10) - (quint[2] % 10);
-            let d: isize = (quint[4] % 10) - (quint[3] % 10);
-            let key: (isize, isize, isize, isize) = (a, b, c, d);
-            if key_set.insert(key) {
-                *cache.entry(key).or_default() += quint[4] % 10;
+    fn index((a, b, c, d): (isize, isize, isize, isize)) -> usize {
+        ((a + 9) as usize) * 19usize.pow(3)
+            + ((b + 9) as usize) * 19usize.pow(2)
+            + ((c + 9) as usize) * 19usize.pow(1)
+            + (d + 9) as usize
+    }
+
+    fn max_bananas(cache: &mut [isize], values: &[isize]) {
+        let changes: Vec<isize> = values
+            .windows(2)
+            .map(|pair| (pair[1] % 10) - (pair[0] % 10))
+            .collect();
+
+        let mut seen = bitvec![0; 19usize.pow(4)];
+        for (i, quad) in changes.windows(4).enumerate() {
+            let idx: usize = MonkeyMarket::index((quad[0], quad[1], quad[2], quad[3]));
+            if !seen[idx] {
+                seen.set(idx, true);
+                cache[idx] += values[i + 4] % 10;
             }
         }
     }
 
-    fn iterate(&self, times: isize) -> (isize, isize) {
-        let all_values: Vec<Vec<isize>> = self.numbers.iter().map(|n| n.next_n(times)).collect();
-        let sum_last: isize = all_values.iter().map(|n| n.last().unwrap()).sum();
+    fn iterate(&self, times: usize) -> (isize, isize) {
+        let all_values: Vec<Vec<isize>> = self
+            .numbers
+            .par_iter()
+            .map(|&n| MonkeyMarket::next_n(n, times))
+            .collect();
+        let sum_last: isize = all_values.par_iter().map(|n| n.last().unwrap()).sum();
 
-        let mut banana_cache: FxHashMap<(isize, isize, isize, isize), isize> = FxHashMap::default();
+        let mut banana_cache: Vec<isize> = vec![0; 19usize.pow(4)];
         all_values
             .iter()
             .for_each(|n| MonkeyMarket::max_bananas(&mut banana_cache, n));
-        let max_bananas: isize = banana_cache.values().copied().max().unwrap();
+        let max_bananas: isize = banana_cache.into_iter().max().unwrap();
 
         (sum_last, max_bananas)
     }
@@ -70,13 +68,7 @@ impl FromStr for MonkeyMarket {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let numbers: Vec<SecretNumber> = s
-            .lines()
-            .map(|l| SecretNumber {
-                n: l.parse().unwrap(),
-            })
-            .collect();
-
+        let numbers: Vec<isize> = s.lines().map(|l| l.parse().unwrap()).collect();
         Ok(MonkeyMarket { numbers })
     }
 }
@@ -86,8 +78,8 @@ fn main() {
     let s = util::file_as_string("aoc_2024/input/day_22.txt").expect("Cannot open input file");
     let market: MonkeyMarket = s.parse().unwrap();
     let (sum, max_bananas) = market.iterate(2000);
-    println!("Part1: {sum}");
-    println!("Part2: {max_bananas}");
+    println!("Part1: The sum of all the 2000th generated secrets is {sum}");
+    println!("Part2: At most, you can get {max_bananas} bananas");
     println!("Computing time: {:?}", now.elapsed());
 }
 
@@ -109,27 +101,27 @@ mod tests {
 
     #[test]
     fn hash_test() {
-        let secret = SecretNumber { n: 123 };
-        let next = secret.next();
-        assert_eq!(next.n, 15887950);
-        let next = next.next();
-        assert_eq!(next.n, 16495136);
-        let next = next.next();
-        assert_eq!(next.n, 527345);
-        let next = next.next();
-        assert_eq!(next.n, 704524);
-        let next = next.next();
-        assert_eq!(next.n, 1553684);
-        let next = next.next();
-        assert_eq!(next.n, 12683156);
-        let next = next.next();
-        assert_eq!(next.n, 11100544);
-        let next = next.next();
-        assert_eq!(next.n, 12249484);
-        let next = next.next();
-        assert_eq!(next.n, 7753432);
-        let next = next.next();
-        assert_eq!(next.n, 5908254);
+        let mut s = 123;
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 15887950);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 16495136);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 527345);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 704524);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 1553684);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 12683156);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 11100544);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 12249484);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 7753432);
+        s = MonkeyMarket::next(s);
+        assert_eq!(s, 5908254);
     }
 
     #[test]
