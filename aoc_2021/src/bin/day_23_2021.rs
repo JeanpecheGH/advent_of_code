@@ -288,7 +288,6 @@ impl AmphipodsBurrow {
 
 impl FromStr for AmphipodsBurrow {
     type Err = ();
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_row(s: &str) -> IResult<&str, Vec<Amphipod>> {
             let (s, pods) = preceded(
@@ -306,6 +305,7 @@ impl FromStr for AmphipodsBurrow {
             .map(|l| parse_row(l).unwrap().1)
             .collect();
         let mut starting_rooms: Vec<Vec<Amphipod>> = Vec::new();
+        #[allow(clippy::needless_range_loop)]
         for i in 0..4 {
             starting_rooms.push(vec![rows[1][i], rows[0][i]]);
         }

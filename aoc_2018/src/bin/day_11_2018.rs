@@ -13,6 +13,7 @@ impl Fuel {
         for y in 0..SIZE {
             let mut row: Vec<isize> = Vec::new();
             let mut summed_row: isize = 0;
+            #[allow(clippy::needless_range_loop)]
             for x in 0..SIZE {
                 summed_row += Self::power_level(serial_number, Pos(x + 1, y + 1));
                 if y > 0 {
