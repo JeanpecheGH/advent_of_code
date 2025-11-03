@@ -1,42 +1,29 @@
 use std::str::FromStr;
 
 use fxhash::{FxHashMap, FxHashSet};
-use nom::{
-    character::complete::alpha1, character::complete::char, sequence::separated_pair, IResult,
-};
+use itertools::Itertools;
+use nom::character::complete::anychar;
+use nom::multi::count;
+use nom::{character::complete::char, sequence::separated_pair, IResult};
 
 struct LanParty {
-    pairs: FxHashSet<(String, String)>,
+    pairs: Vec<(usize, usize)>,
+    connections: FxHashMap<usize, FxHashSet<usize>>,
 }
-impl LanParty {
-    fn are_linked(&self, a: &str) -> FxHashSet<String> {
-        self.pairs
-            .iter()
-            .filter_map(|(x, y)| {
-                if x == a {
-                    Some(y)
-                } else if y == a {
-                    Some(x)
-                } else {
-                    None
-                }
-            })
-            .cloned()
-            .collect()
-    }
 
+impl LanParty {
     fn t_triplets(&self) -> usize {
-        let triplets: FxHashSet<Vec<String>> = self
+        let triplets: FxHashSet<Vec<usize>> = self
             .pairs
             .iter()
             .flat_map(|(a, b)| {
-                if a.starts_with("t") || b.starts_with("t") {
-                    let a_candidates: FxHashSet<String> = self.are_linked(a);
-                    let b_candidates: FxHashSet<String> = self.are_linked(b);
-                    let inter = a_candidates.intersection(&b_candidates);
+                if (a / 26) == 19 || (b / 26) == 19 {
+                    let a_candidates: &FxHashSet<usize> = self.connections.get(a).unwrap();
+                    let b_candidates: &FxHashSet<usize> = self.connections.get(b).unwrap();
+                    let inter = a_candidates.intersection(b_candidates);
                     inter
                         .map(|c| {
-                            let mut v = vec![a.clone(), b.clone(), c.clone()];
+                            let mut v = vec![*a, *b, *c];
                             v.sort();
                             v
                         })
@@ -50,34 +37,66 @@ impl LanParty {
     }
 
     fn biggest_lan(&self) -> String {
-        let mut connections: FxHashMap<String, FxHashSet<String>> = FxHashMap::default();
-        for (a, b) in &self.pairs {
-            connections.entry(a.clone()).or_default().insert(b.clone());
-            connections.entry(b.clone()).or_default().insert(a.clone());
-        }
-        let mut lans: Vec<FxHashSet<String>> = Vec::new();
-        for (a, b) in &self.pairs {
-            let a_conn = connections.get(a).unwrap();
-            let b_conn = connections.get(b).unwrap();
-            for l in lans.iter_mut() {
-                if l.iter()
-                    .all(|x| (x == a || a_conn.contains(x)) && (x == b || b_conn.contains(x)))
-                {
-                    l.insert(a.clone());
-                    l.insert(b.clone());
+        fn bron_kerbosch(
+            clique: FxHashSet<usize>,
+            mut pot: FxHashSet<usize>,
+            mut ex: FxHashSet<usize>,
+            connections: &FxHashMap<usize, FxHashSet<usize>>,
+            biggest_lan: &mut FxHashSet<usize>,
+        ) {
+            if biggest_lan.len() > (clique.len() + pot.iter().len()) {
+                //We already have a bigger clique than the potential biggest, prune this branch
+                return;
+            }
+            if pot.is_empty() && ex.is_empty() && clique.len() > biggest_lan.len() {
+                *biggest_lan = clique.clone();
+            }
+            // Choose a pivot with the maximum degree in P ∪ X
+            let pivot: Option<usize> = pot
+                .union(&ex)
+                .max_by_key(|&v| connections.get(v).map_or(0, |neighbors| neighbors.len()))
+                .copied();
+
+            if let Some(pivot_vertex) = pivot {
+                let neighbors: FxHashSet<usize> =
+                    connections.get(&pivot_vertex).cloned().unwrap_or_default();
+                let candidates: Vec<usize> = pot.difference(&neighbors).copied().collect();
+
+                for v in candidates {
+                    let mut new_clique: FxHashSet<usize> = clique.clone();
+                    new_clique.insert(v);
+                    let ngbs: &FxHashSet<usize> = connections.get(&v).unwrap();
+                    let new_pot: FxHashSet<usize> = pot.intersection(ngbs).copied().collect();
+                    let new_ex: FxHashSet<usize> = ex.intersection(ngbs).copied().collect();
+                    bron_kerbosch(new_clique, new_pot, new_ex, connections, biggest_lan);
+                    pot.remove(&v);
+                    ex.insert(v);
                 }
             }
-            let mut new_lan: FxHashSet<String> = FxHashSet::default();
-            new_lan.insert(a.clone());
-            new_lan.insert(b.clone());
-            lans.push(new_lan);
         }
+        let mut biggest_lan: FxHashSet<usize> = FxHashSet::default();
+        let clique: FxHashSet<usize> = FxHashSet::default();
+        let potential: FxHashSet<usize> = self.connections.keys().copied().collect();
+        let excluded: FxHashSet<usize> = FxHashSet::default();
+        bron_kerbosch(
+            clique,
+            potential,
+            excluded,
+            &self.connections,
+            &mut biggest_lan,
+        );
 
-        // Find the biggest lan
-        let biggest_lan: &FxHashSet<String> = lans.iter().max_by_key(|lan| lan.len()).unwrap();
-        let mut sorted_lan: Vec<String> = biggest_lan.iter().cloned().collect();
-        sorted_lan.sort();
-        sorted_lan.join(",")
+        biggest_lan
+            .into_iter()
+            .sorted()
+            .map(|n| {
+                format!(
+                    "{}{}",
+                    ((n / 26) as u8 + b'a') as char,
+                    ((n % 26) as u8 + b'a') as char
+                )
+            })
+            .join(",")
     }
 }
 
@@ -85,15 +104,27 @@ impl FromStr for LanParty {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn parse_pair(s: &str) -> IResult<&str, (String, String)> {
-            let (s, (a, b)) = separated_pair(alpha1, char('-'), alpha1)(s)?;
-            Ok((s, (a.to_string(), b.to_string())))
+        fn parse_pair(s: &str) -> IResult<&str, (usize, usize)> {
+            let (s, (a, b)) = separated_pair(count(anychar, 2), char('-'), count(anychar, 2))(s)?;
+            Ok((s, (to_usize(&a), to_usize(&b))))
         }
 
-        let pairs: FxHashSet<(String, String)> =
-            s.lines().map(|l| parse_pair(l).unwrap().1).collect();
+        fn to_usize(chars: &[char]) -> usize {
+            (chars[0] as usize - 'a' as usize) * 26 + chars[1] as usize - 'a' as usize
+        }
 
-        Ok(LanParty { pairs })
+        let mut connections: FxHashMap<usize, FxHashSet<usize>> = FxHashMap::default();
+        let pairs: Vec<(usize, usize)> = s
+            .lines()
+            .map(|l| {
+                let (a, b) = parse_pair(l).unwrap().1;
+                connections.entry(a).or_default().insert(b);
+                connections.entry(b).or_default().insert(a);
+                (a, b)
+            })
+            .collect();
+
+        Ok(LanParty { pairs, connections })
     }
 }
 
@@ -101,8 +132,14 @@ fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2024/input/day_23.txt").expect("Cannot open input file");
     let lan: LanParty = s.parse().unwrap();
-    println!("Part1: {}", lan.t_triplets());
-    println!("Part2: {}", lan.biggest_lan());
+    println!(
+        "Part1: There are {} triplets of connected computer where at least one starts with a 't' ",
+        lan.t_triplets()
+    );
+    println!(
+        "Part2: The password to the LAN party is {}",
+        lan.biggest_lan()
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
