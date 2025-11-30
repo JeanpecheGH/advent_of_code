@@ -1,6 +1,7 @@
 use std::{collections::VecDeque, str::FromStr};
 
 use fxhash::FxHashMap;
+use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
     character::complete::{alphanumeric1, char},
@@ -9,7 +10,7 @@ use nom::{
 };
 use util::{basic_parser::parse_usize, split_blocks};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum LogicOp {
     And,
     Or,
@@ -54,7 +55,7 @@ impl LogicGate {
 
             translate.insert(self.output.clone(), new_name);
         }
-        // COmpute gate output
+        // Compute gate output
         let left_opt = inputs.get(&self.left);
         let right_opt = inputs.get(&self.right);
         match (left_opt, right_opt) {
@@ -68,24 +69,6 @@ impl LogicGate {
                 true
             }
             _ => false,
-        }
-    }
-
-    fn show(&self, i: &str, translate: &FxHashMap<String, String>) {
-        let left = translate
-            .get(&self.left)
-            .map(|s| format!("{}({})", self.left, s))
-            .unwrap_or(self.left.clone());
-        let right = translate
-            .get(&self.right)
-            .map(|s| format!("{}({})", self.right, s))
-            .unwrap_or(self.right.clone());
-        let output = translate
-            .get(&self.output)
-            .map(|s| format!("{}({})", self.output, s))
-            .unwrap_or(self.output.clone());
-        if left.contains(i) || right.contains(i) || output.contains(i) {
-            println!("{} {:?} {} -> {}", left, self.op, right, output);
         }
     }
 }
@@ -130,32 +113,7 @@ impl CrossedWires {
 
     fn z_output(&self) -> usize {
         let mut values: FxHashMap<String, bool> = self.inputs.clone();
-        let mut swap: FxHashMap<String, String> = FxHashMap::default();
-        swap.insert("vcf".to_string(), "z10".to_string());
-        swap.insert("z10".to_string(), "vcf".to_string());
-
-        swap.insert("fsq".to_string(), "dvb".to_string());
-        swap.insert("dvb".to_string(), "fsq".to_string());
-
-        swap.insert("tnc".to_string(), "z39".to_string());
-        swap.insert("z39".to_string(), "tnc".to_string());
-
-        swap.insert("fhg".to_string(), "z17".to_string());
-        swap.insert("z17".to_string(), "fhg".to_string());
-        let mut remaining_gates: VecDeque<LogicGate> = self
-            .gates
-            .iter()
-            .cloned()
-            .map(|gate| {
-                let output = swap.get(&gate.output).unwrap_or(&gate.output).clone();
-                LogicGate {
-                    left: gate.left,
-                    right: gate.right,
-                    output,
-                    op: gate.op,
-                }
-            })
-            .collect();
+        let mut remaining_gates: VecDeque<LogicGate> = self.gates.iter().cloned().collect();
         let mut translate: FxHashMap<String, String> = FxHashMap::default();
 
         while let Some(gate) = remaining_gates.pop_front() {
@@ -164,36 +122,80 @@ impl CrossedWires {
             }
         }
 
-        for i in 0..=45 {
-            let i_str: String = format!("{:0>2}", i);
-            println!("Cycle: {}", i_str);
-            let new_gates: Vec<LogicGate> = self
-                .gates
-                .iter()
-                .cloned()
-                .map(|gate| {
-                    let output = swap.get(&gate.output).unwrap_or(&gate.output).clone();
-                    LogicGate {
-                        left: gate.left,
-                        right: gate.right,
-                        output,
-                        op: gate.op,
-                    }
-                })
-                .collect();
-            for g in &new_gates {
-                g.show(&i_str, &translate);
-            }
-        }
-
         Self::numeric_value("z", &values)
     }
 
-    fn expected(&self) -> String {
-        let x: usize = Self::numeric_value("x", &self.inputs);
-        let y: usize = Self::numeric_value("y", &self.inputs);
-        println!("x: {}, y: {} -> z: {}", x, y, x + y);
-        format!("{}", x + y)
+    fn output_with_swap(
+        &self,
+        a_ref: &str,
+        b_ref: &str,
+        op: LogicOp,
+        swap_map: &mut FxHashMap<String, String>,
+    ) -> &str {
+        let a: String = swap_map
+            .get(a_ref)
+            .unwrap_or(&a_ref.to_string())
+            .to_string();
+        let b: String = swap_map
+            .get(b_ref)
+            .unwrap_or(&b_ref.to_string())
+            .to_string();
+        for gate in &self.gates {
+            let o: LogicOp = gate.op;
+            if o == op {
+                if (gate.left == a && gate.right == b) || (gate.left == b && gate.right == a) {
+                    return &gate.output;
+                } else if gate.left == a {
+                    // b swap r
+                    swap_map.insert(b.to_string(), gate.right.clone());
+                    swap_map.insert(gate.right.clone(), b.to_string());
+                    return &gate.output;
+                } else if gate.left == b {
+                    // a swap r
+                    swap_map.insert(a.to_string(), gate.right.clone());
+                    swap_map.insert(gate.right.clone(), a.to_string());
+                    return &gate.output;
+                } else if gate.right == a {
+                    // b swap l
+                    swap_map.insert(b.to_string(), gate.left.clone());
+                    swap_map.insert(gate.left.clone(), b.to_string());
+                    return &gate.output;
+                } else if gate.right == b {
+                    // a swap l
+                    swap_map.insert(a.to_string(), gate.left.clone());
+                    swap_map.insert(gate.left.clone(), a.to_string());
+                    return &gate.output;
+                }
+            }
+        }
+        "This should not happen"
+    }
+
+    fn swapped(&self) -> String {
+        let mut swap_map: FxHashMap<String, String> = FxHashMap::default();
+
+        let _z00: &str = self.output_with_swap("x00", "y00", LogicOp::Xor, &mut swap_map);
+        let mut carry: &str = self.output_with_swap("x00", "y00", LogicOp::And, &mut swap_map);
+        //Loop for each input pair
+        for i in 1..(self.inputs.len() / 2) {
+            let x: String = format!("x{:0>2}", i);
+            let y: String = format!("y{:0>2}", i);
+            //There will always be XOR & AND for the inputs
+            let xor: &str = self.output_with_swap(&x, &y, LogicOp::Xor, &mut swap_map);
+            let and: &str = self.output_with_swap(&x, &y, LogicOp::And, &mut swap_map);
+            //Check that we get the z output.
+            let z: &str = self.output_with_swap(xor, carry, LogicOp::Xor, &mut swap_map);
+            let target_z: String = format!("z{:0>2}", i);
+            if z != target_z {
+                swap_map.insert(z.to_string(), target_z.to_string());
+                swap_map.insert(target_z.to_string(), z.to_string());
+            }
+            let other_and: &str = self.output_with_swap(xor, carry, LogicOp::And, &mut swap_map);
+            carry = self.output_with_swap(and, other_and, LogicOp::Or, &mut swap_map);
+        }
+        //The last carry should be the last z output
+        let keys: Vec<String> = swap_map.keys().sorted().cloned().collect();
+        keys.join(",")
     }
 }
 
@@ -221,8 +223,11 @@ fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2024/input/day_24.txt").expect("Cannot open input file");
     let wires: CrossedWires = s.parse().unwrap();
-    println!("Part1: {}", wires.z_output());
-    println!("Part2: {}", wires.expected());
+    println!("Part1: The system outputs the number {}", wires.z_output());
+    println!(
+        "Part2: The 8 wires involved in a swap are {}",
+        wires.swapped()
+    );
     // dvb,fhg,fsq,tnc,vcf,z10,z17,z39
     println!("Computing time: {:?}", now.elapsed());
 }
@@ -299,7 +304,7 @@ tnw OR pbm -> gnj
     }
 
     #[test]
-    fn part_2_test_2() {
+    fn part_1_test_2() {
         let wires: CrossedWires = EXAMPLE_2.parse().unwrap();
         assert_eq!(wires.z_output(), 2024);
     }
