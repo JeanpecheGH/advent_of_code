@@ -3,7 +3,7 @@ use nom::character::complete::{alpha1, char};
 use nom::multi::separated_list1;
 use nom::sequence::terminated;
 use nom::IResult;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -67,7 +67,7 @@ impl Graph {
     }
     fn contract(&mut self) {
         //Get random edge
-        let rand_idx: usize = thread_rng().gen_range(0..self.edges.len());
+        let rand_idx: usize = rng().random_range(0..self.edges.len());
         let (a, b) = self.edges[rand_idx];
 
         //Merge the two nodes linked by this edge

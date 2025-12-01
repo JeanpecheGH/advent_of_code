@@ -1,11 +1,8 @@
 [package]
-name = "aoc_2021"
+name = "aoc_2025"
 version = "0.1.0"
-edition = "2021"
-
+edition = "2024"
 
 [dependencies]
 util = { path = "../util" }
-fxhash = { workspace = true }
-itertools = { workspace = true }
 nom = { workspace = true }
