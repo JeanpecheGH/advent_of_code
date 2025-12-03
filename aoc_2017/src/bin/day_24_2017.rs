@@ -1,6 +1,7 @@
 use nom::character::complete::char;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -93,7 +94,7 @@ impl FromStr for ElectromagneticMoat {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pair(s: &str) -> IResult<&str, (usize, usize)> {
-            separated_pair(parse_usize, char('/'), parse_usize)(s)
+            separated_pair(parse_usize, char('/'), parse_usize).parse(s)
         }
 
         let ports_pair: Vec<(usize, usize)> = s.lines().map(|l| parse_pair(l).unwrap().1).collect();

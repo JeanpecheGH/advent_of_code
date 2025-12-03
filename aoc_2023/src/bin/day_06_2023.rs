@@ -1,4 +1,5 @@
 use nom::sequence::preceded;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::{title, usize_list};
 
@@ -51,8 +52,8 @@ impl FromStr for Races {
         let mut lines = s.lines();
         let first: &str = lines.next().unwrap();
         let second: &str = lines.next().unwrap();
-        let times: Vec<usize> = preceded(title, usize_list)(first).unwrap().1;
-        let distances: Vec<usize> = preceded(title, usize_list)(second).unwrap().1;
+        let times: Vec<usize> = preceded(title, usize_list).parse(first).unwrap().1;
+        let distances: Vec<usize> = preceded(title, usize_list).parse(second).unwrap().1;
 
         let races: Vec<BoatRace> = (0..times.len())
             .map(|i| BoatRace {

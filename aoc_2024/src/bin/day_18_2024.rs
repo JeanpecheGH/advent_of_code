@@ -2,6 +2,7 @@ use fxhash::{FxHashMap, FxHashSet};
 use nom::character::complete::char;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::str::FromStr;
@@ -159,7 +160,7 @@ impl FromStr for RamRun {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos(s: &str) -> IResult<&str, Pos> {
-            let (s, (x, y)) = separated_pair(parse_usize, char(','), parse_usize)(s)?;
+            let (s, (x, y)) = separated_pair(parse_usize, char(','), parse_usize).parse(s)?;
             Ok((s, Pos(x, y)))
         }
 

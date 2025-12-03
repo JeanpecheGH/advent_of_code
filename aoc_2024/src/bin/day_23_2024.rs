@@ -1,3 +1,4 @@
+use nom::Parser;
 use std::str::FromStr;
 
 use fxhash::{FxHashMap, FxHashSet};
@@ -105,7 +106,8 @@ impl FromStr for LanParty {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pair(s: &str) -> IResult<&str, (usize, usize)> {
-            let (s, (a, b)) = separated_pair(count(anychar, 2), char('-'), count(anychar, 2))(s)?;
+            let (s, (a, b)) =
+                separated_pair(count(anychar, 2), char('-'), count(anychar, 2)).parse(s)?;
             Ok((s, (to_usize(&a), to_usize(&b))))
         }
 

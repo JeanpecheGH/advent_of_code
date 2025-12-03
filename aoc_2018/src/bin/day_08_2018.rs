@@ -2,6 +2,7 @@ use nom::character::complete::space0;
 use nom::multi::count;
 use nom::sequence::terminated;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -41,14 +42,14 @@ impl FromStr for Node {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn usize_space(s: &str) -> IResult<&str, usize> {
-            terminated(parse_usize, space0)(s)
+            terminated(parse_usize, space0).parse(s)
         }
         fn parse_node(s: &str) -> IResult<&str, Node> {
             let (s, nb_child) = usize_space(s)?;
             let (s, nb_meta) = usize_space(s)?;
 
-            let (s, children) = count(parse_node, nb_child)(s)?;
-            let (s, metadata) = count(usize_space, nb_meta)(s)?;
+            let (s, children) = count(parse_node, nb_child).parse(s)?;
+            let (s, metadata) = count(usize_space, nb_meta).parse(s)?;
 
             Ok((s, Node { children, metadata }))
         }

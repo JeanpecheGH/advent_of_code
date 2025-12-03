@@ -5,6 +5,7 @@ use nom::character::complete::{anychar, char};
 use nom::combinator::map;
 use nom::sequence::{separated_pair, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::cmp::{max, min};
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -40,10 +41,10 @@ impl FromStr for ClayVein {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_vein(s: &str) -> IResult<&str, ClayVein> {
-            let (s, vert) = map(terminated(anychar, char('=')), |c| c == 'x')(s)?;
+            let (s, vert) = map(terminated(anychar, char('=')), |c| c == 'x').parse(s)?;
             let (s, spot) = parse_usize(s)?;
-            let (s, _) = alt((tag(", x="), tag(", y=")))(s)?;
-            let (s, (start, end)) = separated_pair(parse_usize, tag(".."), parse_usize)(s)?;
+            let (s, _) = alt((tag(", x="), tag(", y="))).parse(s)?;
+            let (s, (start, end)) = separated_pair(parse_usize, tag(".."), parse_usize).parse(s)?;
 
             Ok((
                 s,

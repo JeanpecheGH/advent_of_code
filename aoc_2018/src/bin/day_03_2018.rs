@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 use util::coord::Pos;
@@ -18,15 +19,17 @@ impl FromStr for Claim {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_claim(s: &str) -> IResult<&str, Claim> {
-            let (s, _id) = preceded(char('#'), parse_usize)(s)?;
+            let (s, _id) = preceded(char('#'), parse_usize).parse(s)?;
             let (s, (min_x, min_y)) = preceded(
                 tag(" @ "),
                 separated_pair(parse_usize, char(','), parse_usize),
-            )(s)?;
+            )
+            .parse(s)?;
             let (s, (width, height)) = preceded(
                 tag(": "),
                 separated_pair(parse_usize, char('x'), parse_usize),
-            )(s)?;
+            )
+            .parse(s)?;
 
             let claim: Claim = Claim {
                 width: Pos(min_x, min_x + width),

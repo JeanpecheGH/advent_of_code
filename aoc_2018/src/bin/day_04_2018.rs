@@ -6,6 +6,7 @@ use nom::combinator::rest;
 use nom::multi::separated_list1;
 use nom::sequence::{delimited, preceded, separated_pair, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -41,11 +42,12 @@ impl FromStr for Date {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_date(s: &str) -> IResult<&str, Date> {
-            let (s, day_elems) = separated_list1(char('-'), parse_usize)(s)?;
+            let (s, day_elems) = separated_list1(char('-'), parse_usize).parse(s)?;
             let (s, (hour, minute)) = preceded(
                 char(' '),
                 separated_pair(parse_usize, char(':'), parse_usize),
-            )(s)?;
+            )
+            .parse(s)?;
 
             Ok((
                 s,
@@ -78,7 +80,8 @@ impl FromStr for Action {
             let (s, id) = preceded(
                 tag("Guard #"),
                 terminated(parse_usize, tag(" begins shift")),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, Action::BeginShift(id)))
         }
 
@@ -94,7 +97,7 @@ impl FromStr for Action {
             Ok((s, Action::WakeUp))
         }
         fn parse_action(s: &str) -> IResult<&str, Action> {
-            alt((parse_shift, parse_fall_asleep, parse_wake_up))(s)
+            alt((parse_shift, parse_fall_asleep, parse_wake_up)).parse(s)
         }
 
         Ok(parse_action(s).unwrap().1)
@@ -112,8 +115,9 @@ impl FromStr for Log {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_log(s: &str) -> IResult<&str, Log> {
-            let (s, date_str): (&str, &str) = delimited(char('['), take(16usize), char(']'))(s)?;
-            let (s, action_str): (&str, &str) = preceded(char(' '), rest)(s)?;
+            let (s, date_str): (&str, &str) =
+                delimited(char('['), take(16usize), char(']')).parse(s)?;
+            let (s, action_str): (&str, &str) = preceded(char(' '), rest).parse(s)?;
 
             let date: Date = date_str.parse().unwrap();
             let action: Action = action_str.parse().unwrap();

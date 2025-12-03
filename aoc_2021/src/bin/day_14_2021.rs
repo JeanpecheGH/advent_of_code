@@ -5,6 +5,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::anychar;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::split_blocks;
 
@@ -64,7 +65,7 @@ impl FromStr for Polymerization {
         fn parse_insertion(s: &str) -> IResult<&str, ((char, char), char)> {
             let (s, a) = anychar(s)?;
             let (s, b) = anychar(s)?;
-            let (s, t) = preceded(tag(" -> "), anychar)(s)?;
+            let (s, t) = preceded(tag(" -> "), anychar).parse(s)?;
             Ok((s, ((a, b), t)))
         }
 

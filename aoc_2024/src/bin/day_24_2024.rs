@@ -1,3 +1,4 @@
+use nom::Parser;
 use std::{collections::VecDeque, str::FromStr};
 
 use fxhash::FxHashMap;
@@ -78,9 +79,10 @@ impl FromStr for LogicGate {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_gate(s: &str) -> IResult<&str, LogicGate> {
-            let (s, (left, op)) = separated_pair(alphanumeric1, char(' '), alphanumeric1)(s)?;
-            let (s, right) = preceded(char(' '), alphanumeric1)(s)?;
-            let (s, output) = preceded(tag(" -> "), alphanumeric1)(s)?;
+            let (s, (left, op)) =
+                separated_pair(alphanumeric1, char(' '), alphanumeric1).parse(s)?;
+            let (s, right) = preceded(char(' '), alphanumeric1).parse(s)?;
+            let (s, output) = preceded(tag(" -> "), alphanumeric1).parse(s)?;
             Ok((
                 s,
                 LogicGate {
@@ -204,7 +206,7 @@ impl FromStr for CrossedWires {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_input(s: &str) -> IResult<&str, (String, bool)> {
-            let (s, (name, b)) = separated_pair(alphanumeric1, tag(": "), parse_usize)(s)?;
+            let (s, (name, b)) = separated_pair(alphanumeric1, tag(": "), parse_usize).parse(s)?;
             Ok((s, (name.to_string(), b == 1)))
         }
 

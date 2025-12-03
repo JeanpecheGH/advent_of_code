@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
 use util::chinese_remainders::smallest_remainder;
@@ -31,11 +32,13 @@ impl FromStr for Robot {
             let (s, (x, y)) = preceded(
                 tag("p="),
                 separated_pair(parse_isize, char(','), parse_isize),
-            )(s)?;
+            )
+            .parse(s)?;
             let (s, (i, j)) = preceded(
                 tag(" v="),
                 separated_pair(parse_isize, char(','), parse_isize),
-            )(s)?;
+            )
+            .parse(s)?;
 
             let pos = PosI(x, y);
             let vel = PosI(i, j);

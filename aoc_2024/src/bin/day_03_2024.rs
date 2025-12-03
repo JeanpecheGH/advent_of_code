@@ -5,6 +5,7 @@ use nom::combinator::{map, value};
 use nom::multi::fold_many1;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -35,18 +36,19 @@ impl FromStr for Memory {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_mul(s: &str) -> IResult<&str, ParseToken> {
             let (s, _) = tag("mul(")(s)?;
-            let (s, (a, b)) = separated_pair(parse_usize, char(','), parse_usize)(s)?;
+            let (s, (a, b)) = separated_pair(parse_usize, char(','), parse_usize).parse(s)?;
             let (s, _) = char(')')(s)?;
             Ok((s, ParseToken::Value(a * b)))
         }
 
         fn parse_do(s: &str) -> IResult<&str, ParseToken> {
-            let (s, b) = alt((value(true, tag("do()")), value(false, tag("don't()"))))(s)?;
+            let (s, b) = alt((value(true, tag("do()")), value(false, tag("don't()")))).parse(s)?;
             Ok((s, ParseToken::Switch(b)))
         }
 
         fn parse_token(s: &str) -> IResult<&str, ParseToken> {
-            let (s, token) = alt((parse_do, parse_mul, map(anychar, |_| ParseToken::Nothing)))(s)?;
+            let (s, token) =
+                alt((parse_do, parse_mul, map(anychar, |_| ParseToken::Nothing))).parse(s)?;
 
             Ok((s, token))
         }
@@ -63,7 +65,8 @@ impl FromStr for Memory {
                     };
                     (enabled, acc)
                 },
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, v))
         }
         let values: Vec<MemoryValue> = parse_memory(s).unwrap().1;

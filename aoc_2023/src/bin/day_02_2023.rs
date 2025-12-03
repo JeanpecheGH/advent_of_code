@@ -3,6 +3,7 @@ use nom::combinator::opt;
 use nom::multi::separated_list1;
 use nom::sequence::{pair, preceded, terminated};
 use nom::IResult;
+use nom::Parser;
 use nom_permutation::permutation_opt;
 use std::cmp::max;
 use std::str::FromStr;
@@ -42,19 +43,19 @@ impl FromStr for Game {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_draw(s: &str) -> IResult<&str, Pos3> {
             fn parse_red(s: &str) -> IResult<&str, usize> {
-                terminated(parse_usize, pair(tag(" red"), opt(tag(", "))))(s)
+                terminated(parse_usize, pair(tag(" red"), opt(tag(", ")))).parse(s)
             }
             fn parse_green(s: &str) -> IResult<&str, usize> {
-                terminated(parse_usize, pair(tag(" green"), opt(tag(", "))))(s)
+                terminated(parse_usize, pair(tag(" green"), opt(tag(", ")))).parse(s)
             }
             fn parse_blue(s: &str) -> IResult<&str, usize> {
-                terminated(parse_usize, pair(tag(" blue"), opt(tag(", "))))(s)
+                terminated(parse_usize, pair(tag(" blue"), opt(tag(", ")))).parse(s)
             }
             let (s, (r, g, b)) = permutation_opt((parse_red, parse_green, parse_blue))(s)?;
             Ok((s, Pos3(r.unwrap_or(0), g.unwrap_or(0), b.unwrap_or(0))))
         }
         fn parse_draws(s: &str) -> IResult<&str, Vec<Pos3>> {
-            preceded(title, separated_list1(tag("; "), parse_draw))(s)
+            preceded(title, separated_list1(tag("; "), parse_draw)).parse(s)
         }
         let draws: Vec<Pos3> = parse_draws(s).unwrap().1;
 

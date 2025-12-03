@@ -1,6 +1,7 @@
 use nom::bytes::complete::take_till;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -46,7 +47,7 @@ impl FromStr for DuelingGenerators {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_seed(s: &str) -> IResult<&str, usize> {
-            preceded(take_till(|c: char| c.is_ascii_digit()), parse_usize)(s)
+            preceded(take_till(|c: char| c.is_ascii_digit()), parse_usize).parse(s)
         }
 
         let seeds: Vec<usize> = s.lines().map(|l| parse_seed(l).unwrap().1).collect();

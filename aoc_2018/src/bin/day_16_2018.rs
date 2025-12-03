@@ -4,6 +4,7 @@ use nom::character::complete::{char, space1};
 use nom::multi::separated_list1;
 use nom::sequence::delimited;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::{parse_usize, title};
 use util::split_blocks;
@@ -28,7 +29,7 @@ impl FromStr for HiddenInstruction {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_instruction(s: &str) -> IResult<&str, HiddenInstruction> {
-            let (s, v) = separated_list1(space1, parse_usize)(s)?;
+            let (s, v) = separated_list1(space1, parse_usize).parse(s)?;
             Ok((
                 s,
                 HiddenInstruction {
@@ -60,7 +61,8 @@ impl FromStr for Sample {
                 char('['),
                 separated_list1(tag(", "), parse_usize),
                 char(']'),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, v))
         }
         let lines: Vec<&str> = s.lines().collect();

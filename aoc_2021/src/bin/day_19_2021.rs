@@ -3,6 +3,7 @@ use itertools::Itertools;
 use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
 use util::coord::Pos3I;
@@ -72,7 +73,7 @@ impl FromStr for Scanner {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos3i(s: &str) -> IResult<&str, Pos3I> {
-            let (s, v) = separated_list1(char(','), parse_isize)(s)?;
+            let (s, v) = separated_list1(char(','), parse_isize).parse(s)?;
 
             Ok((s, Pos3I(v[0], v[1], v[2])))
         }

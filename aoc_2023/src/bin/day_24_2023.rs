@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
@@ -133,11 +134,11 @@ impl FromStr for HailStone {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos3i(s: &str) -> IResult<&str, Pos3I> {
-            let (s, coords) = separated_list1(tag(", "), parse_isize)(s)?;
+            let (s, coords) = separated_list1(tag(", "), parse_isize).parse(s)?;
             Ok((s, Pos3I(coords[0], coords[1], coords[2])))
         }
         fn parse_hailstone(s: &str) -> IResult<&str, HailStone> {
-            let (s, (pos, vel)) = separated_pair(parse_pos3i, tag(" @ "), parse_pos3i)(s)?;
+            let (s, (pos, vel)) = separated_pair(parse_pos3i, tag(" @ "), parse_pos3i).parse(s)?;
             Ok((s, HailStone { pos, vel }))
         }
         Ok(parse_hailstone(s).unwrap().1)

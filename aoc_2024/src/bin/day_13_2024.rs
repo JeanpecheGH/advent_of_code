@@ -2,6 +2,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::one_of;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::{parse_usize, title};
 use util::coord::Pos;
@@ -46,8 +47,8 @@ impl FromStr for ClawMachine {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos(s: &str) -> IResult<&str, Pos> {
             let (s, _) = title(s)?;
-            let (s, x) = preceded(preceded(tag("X"), one_of("+=")), parse_usize)(s)?;
-            let (s, y) = preceded(preceded(tag(", Y"), one_of("+=")), parse_usize)(s)?;
+            let (s, x) = preceded(preceded(tag("X"), one_of("+=")), parse_usize).parse(s)?;
+            let (s, y) = preceded(preceded(tag(", Y"), one_of("+=")), parse_usize).parse(s)?;
 
             Ok((s, Pos(x, y)))
         }

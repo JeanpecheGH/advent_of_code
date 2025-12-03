@@ -1,6 +1,7 @@
 use nom::bytes::complete::tag;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -53,7 +54,7 @@ impl FromStr for Locations {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pair(s: &str) -> IResult<&str, (usize, usize)> {
-            let (s, (a, b)) = separated_pair(parse_usize, tag("   "), parse_usize)(s)?;
+            let (s, (a, b)) = separated_pair(parse_usize, tag("   "), parse_usize).parse(s)?;
 
             Ok((s, (a, b)))
         }

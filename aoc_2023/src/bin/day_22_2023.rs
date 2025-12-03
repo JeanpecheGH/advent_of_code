@@ -2,6 +2,7 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::collections::HashSet;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -49,11 +50,11 @@ impl FromStr for Brick {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos3(s: &str) -> IResult<&str, Pos3> {
-            let (s, l) = separated_list1(char(','), parse_usize)(s)?;
+            let (s, l) = separated_list1(char(','), parse_usize).parse(s)?;
             Ok((s, Pos3(l[0], l[1], l[2])))
         }
         fn parse_brick(s: &str) -> IResult<&str, Brick> {
-            let (s, (start, end)) = separated_pair(parse_pos3, char('~'), parse_pos3)(s)?;
+            let (s, (start, end)) = separated_pair(parse_pos3, char('~'), parse_pos3).parse(s)?;
             Ok((s, Brick { start, end }))
         }
         Ok(parse_brick(s).unwrap().1)

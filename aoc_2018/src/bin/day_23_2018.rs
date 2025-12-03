@@ -4,6 +4,7 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 use util::basic_parser::{parse_isize, parse_usize};
@@ -38,8 +39,9 @@ impl FromStr for Nanobot {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_nanobot(s: &str) -> IResult<&str, (Pos3I, usize)> {
-            let (s, coords) = preceded(tag("pos=<"), separated_list1(char(','), parse_isize))(s)?;
-            let (s, radius) = preceded(tag(">, r="), parse_usize)(s)?;
+            let (s, coords) =
+                preceded(tag("pos=<"), separated_list1(char(','), parse_isize)).parse(s)?;
+            let (s, radius) = preceded(tag(">, r="), parse_usize).parse(s)?;
             let pos = Pos3I(coords[0], coords[1], coords[2]);
             Ok((s, (pos, radius)))
         }

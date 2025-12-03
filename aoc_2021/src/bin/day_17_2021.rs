@@ -1,6 +1,7 @@
 use nom::bytes::complete::tag;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
 
@@ -72,9 +73,11 @@ impl FromStr for ProbeLauncher {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_launcher(s: &str) -> IResult<&str, ProbeLauncher> {
             let (s, _) = tag("target area: x=")(s)?;
-            let (s, (min_x, max_x)) = separated_pair(parse_isize, tag(".."), parse_isize)(s)?;
+            let (s, (min_x, max_x)) =
+                separated_pair(parse_isize, tag(".."), parse_isize).parse(s)?;
             let (s, _) = tag(", y=")(s)?;
-            let (s, (min_y, max_y)) = separated_pair(parse_isize, tag(".."), parse_isize)(s)?;
+            let (s, (min_y, max_y)) =
+                separated_pair(parse_isize, tag(".."), parse_isize).parse(s)?;
 
             Ok((
                 s,

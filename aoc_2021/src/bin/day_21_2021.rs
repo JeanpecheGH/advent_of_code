@@ -2,6 +2,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::anychar;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -114,7 +115,8 @@ impl FromStr for DiceGame {
             preceded(
                 tag("Player "),
                 preceded(anychar, preceded(tag(" starting position: "), parse_usize)),
-            )(s)
+            )
+            .parse(s)
         }
         let players: Vec<usize> = s.lines().map(|l| parse_player(l).unwrap().1).collect();
         Ok(DiceGame {

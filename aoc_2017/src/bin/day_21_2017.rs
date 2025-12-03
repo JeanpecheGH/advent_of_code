@@ -5,6 +5,7 @@ use nom::combinator::rest;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 
 const INPUT: &str = ".#./..#/###";
@@ -111,7 +112,7 @@ impl FromStr for Square {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_square(s: &str) -> IResult<&str, Square> {
             let (s, rows): (&str, Vec<&str>) =
-                separated_list1(char('/'), take_till(|c| c == '/'))(s)?;
+                separated_list1(char('/'), take_till(|c| c == '/')).parse(s)?;
 
             let grid: Vec<Vec<bool>> = rows
                 .into_iter()
@@ -171,7 +172,7 @@ impl FromStr for Fractal {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_squares(s: &str) -> IResult<&str, (Square, Square)> {
             let (s, (source, target)): (&str, (&str, &str)) =
-                separated_pair(take_till(|c| c == ' '), tag(" => "), rest)(s)?;
+                separated_pair(take_till(|c| c == ' '), tag(" => "), rest).parse(s)?;
 
             Ok((s, (source.parse().unwrap(), target.parse().unwrap())))
         }

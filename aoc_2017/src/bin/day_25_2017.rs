@@ -4,6 +4,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::{anychar, char, line_ending};
 use nom::sequence::{delimited, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::collections::VecDeque;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -28,11 +29,12 @@ impl FromStr for TuringState {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_name(s: &str) -> IResult<&str, char> {
-            delimited(tag("In state "), anychar, char(':'))(s)
+            delimited(tag("In state "), anychar, char(':')).parse(s)
         }
 
         fn parse_value(s: &str) -> IResult<&str, bool> {
-            let (s, value) = delimited(tag("    - Write the value "), parse_usize, char('.'))(s)?;
+            let (s, value) =
+                delimited(tag("    - Write the value "), parse_usize, char('.')).parse(s)?;
             if value == 1 {
                 Ok((s, true))
             } else {
@@ -45,7 +47,8 @@ impl FromStr for TuringState {
                 tag("    - Move one slot to the "),
                 alt((tag("right"), tag("left"))),
                 char('.'),
-            )(s)?;
+            )
+            .parse(s)?;
             if value == "right" {
                 Ok((s, true))
             } else {
@@ -54,7 +57,7 @@ impl FromStr for TuringState {
         }
 
         fn parse_next_state(s: &str) -> IResult<&str, char> {
-            delimited(tag("    - Continue with state "), anychar, char('.'))(s)
+            delimited(tag("    - Continue with state "), anychar, char('.')).parse(s)
         }
 
         let lines: Vec<&str> = s.lines().collect();
@@ -134,12 +137,14 @@ impl FromStr for TuringMachine {
                 tag("Begin in state "),
                 anychar,
                 terminated(char('.'), line_ending),
-            )(s)?;
+            )
+            .parse(s)?;
             let (s, nb_steps) = delimited(
                 tag("Perform a diagnostic checksum after "),
                 parse_usize,
                 tag(" steps."),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, (name, nb_steps)))
         }
 

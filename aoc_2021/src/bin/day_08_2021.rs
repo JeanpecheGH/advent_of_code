@@ -5,6 +5,7 @@ use nom::character::complete::{alpha1, char};
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -106,8 +107,8 @@ impl FromStr for Display {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_display(s: &str) -> IResult<&str, Display> {
-            let (s, dict) = separated_list1(char(' '), alpha1)(s)?;
-            let (s, numbers) = preceded(tag(" | "), separated_list1(char(' '), alpha1))(s)?;
+            let (s, dict) = separated_list1(char(' '), alpha1).parse(s)?;
+            let (s, numbers) = preceded(tag(" | "), separated_list1(char(' '), alpha1)).parse(s)?;
 
             let dict: Vec<Vec<char>> = dict.into_iter().map(|w| w.chars().collect()).collect();
             let numbers: Vec<Vec<char>> =

@@ -7,6 +7,7 @@ use nom::combinator::map;
 use nom::multi::separated_list1;
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -22,7 +23,7 @@ impl FromStr for DanceMove {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_spin(s: &str) -> IResult<&str, DanceMove> {
-            let (s, n) = preceded(char('s'), parse_usize)(s)?;
+            let (s, n) = preceded(char('s'), parse_usize).parse(s)?;
 
             Ok((s, DanceMove::Spin(n)))
         }
@@ -30,17 +31,20 @@ impl FromStr for DanceMove {
             let (s, (a, b)) = preceded(
                 char('x'),
                 separated_pair(parse_usize, char('/'), parse_usize),
-            )(s)?;
+            )
+            .parse(s)?;
 
             Ok((s, DanceMove::Exchange(a, b)))
         }
         fn parse_partner(s: &str) -> IResult<&str, DanceMove> {
-            let (s, (a, b)) = preceded(char('p'), separated_pair(anychar, char('/'), anychar))(s)?;
+            let (s, (a, b)) =
+                preceded(char('p'), separated_pair(anychar, char('/'), anychar)).parse(s)?;
 
             Ok((s, DanceMove::Partner(a, b)))
         }
 
-        Ok(alt((parse_spin, parse_exchange, parse_partner))(s)
+        Ok(alt((parse_spin, parse_exchange, parse_partner))
+            .parse(s)
             .unwrap()
             .1)
     }
@@ -116,7 +120,8 @@ impl FromStr for ProgramDance {
             separated_list1(
                 char(','),
                 map(take_till(|c| c == ','), |w: &str| w.parse().unwrap()),
-            )(s)
+            )
+            .parse(s)
         }
 
         let moves: Vec<DanceMove> = s.lines().next().map(|l| parse_moves(l).unwrap().1).unwrap();

@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::{anychar, char};
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 use util::coord::Pos;
@@ -22,7 +23,8 @@ impl FromStr for OrigamiFold {
             let (s, (axis, v)) = preceded(
                 tag("fold along "),
                 separated_pair(anychar, char('='), parse_usize),
-            )(s)?;
+            )
+            .parse(s)?;
             let fold: OrigamiFold = if axis == 'x' {
                 OrigamiFold::Vertical(v)
             } else {
@@ -102,7 +104,7 @@ impl FromStr for Origami {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos(s: &str) -> IResult<&str, Pos> {
-            let (s, (x, y)) = separated_pair(parse_usize, char(','), parse_usize)(s)?;
+            let (s, (x, y)) = separated_pair(parse_usize, char(','), parse_usize).parse(s)?;
             Ok((s, Pos(x, y)))
         }
         let blocks = split_blocks(s);

@@ -3,6 +3,7 @@ use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::collections::HashSet;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
@@ -81,7 +82,7 @@ impl FromStr for Calibration {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_change(s: &str) -> IResult<&str, isize> {
-            let (s, change) = preceded(opt(char('+')), parse_isize)(s)?;
+            let (s, change) = preceded(opt(char('+')), parse_isize).parse(s)?;
 
             Ok((s, change))
         }

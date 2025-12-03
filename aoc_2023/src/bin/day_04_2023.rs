@@ -1,6 +1,7 @@
 use nom::bytes::complete::tag;
 use nom::character::complete::space1;
 use nom::sequence::{pair, preceded, separated_pair};
+use nom::Parser;
 use std::cmp::min;
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -31,7 +32,8 @@ impl FromStr for ScratchCard {
         let vecs: (Vec<usize>, Vec<usize>) = preceded(
             title,
             separated_pair(usize_list, pair(tag(" |"), space1), usize_list),
-        )(s)
+        )
+        .parse(s)
         .unwrap()
         .1;
         Ok(ScratchCard {

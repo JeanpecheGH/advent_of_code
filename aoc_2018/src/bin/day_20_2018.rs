@@ -6,6 +6,7 @@ use nom::combinator::map;
 use nom::multi::{many0, separated_list0};
 use nom::sequence::delimited;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::coord::PosI;
 
@@ -92,7 +93,7 @@ impl FromStr for RegMap {
             let west = map(char('W'), |_| RegToken::West);
             let rm = map(parse_reg_map, RegToken::Reg);
             let parse_token = alt((north, south, east, west, rm));
-            let (s, tokens) = many0(parse_token)(s)?;
+            let (s, tokens) = many0(parse_token).parse(s)?;
 
             Ok((s, RegBranch { tokens }))
         }
@@ -101,7 +102,8 @@ impl FromStr for RegMap {
                 alt((char('('), char('^'))),
                 separated_list0(tag("|"), parse_reg_branch),
                 alt((char(')'), char('$'))),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, RegMap { branches }))
         }
 

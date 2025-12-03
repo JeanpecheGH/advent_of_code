@@ -3,6 +3,7 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::{parse_usize, title};
 
@@ -121,12 +122,12 @@ impl FromStr for ChronoComputer {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_register(s: &str) -> IResult<&str, usize> {
-            let (s, reg) = preceded(title, parse_usize)(s)?;
+            let (s, reg) = preceded(title, parse_usize).parse(s)?;
             Ok((s, reg))
         }
 
         fn parse_opcodes(s: &str) -> IResult<&str, Vec<usize>> {
-            let (s, opcodes) = preceded(title, separated_list1(char(','), parse_usize))(s)?;
+            let (s, opcodes) = preceded(title, separated_list1(char(','), parse_usize)).parse(s)?;
             Ok((s, opcodes))
         }
 

@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -63,13 +64,13 @@ impl FromStr for HydrothermalLine {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos(s: &str) -> IResult<&str, Pos> {
-            let (s, (a, b)) = separated_pair(parse_usize, char(','), parse_usize)(s)?;
+            let (s, (a, b)) = separated_pair(parse_usize, char(','), parse_usize).parse(s)?;
 
             Ok((s, Pos(a, b)))
         }
 
         fn parse_line(s: &str) -> IResult<&str, HydrothermalLine> {
-            let (s, (start, end)) = separated_pair(parse_pos, tag(" -> "), parse_pos)(s)?;
+            let (s, (start, end)) = separated_pair(parse_pos, tag(" -> "), parse_pos).parse(s)?;
 
             Ok((s, HydrothermalLine { start, end }))
         }

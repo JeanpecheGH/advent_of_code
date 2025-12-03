@@ -4,28 +4,30 @@ use nom::combinator::{map_res, opt, recognize};
 use nom::multi::separated_list1;
 use nom::sequence::{preceded, terminated};
 use nom::IResult;
+use nom::Parser;
 
 pub fn parse_isize(input: &str) -> IResult<&str, isize> {
     let (i, number) = map_res(recognize(preceded(opt(tag("-")), digit1)), |s: &str| {
         s.parse::<isize>()
-    })(input)?;
+    })
+    .parse(input)?;
 
     Ok((i, number))
 }
 pub fn isize_list(s: &str) -> IResult<&str, Vec<isize>> {
-    separated_list1(space1, parse_isize)(s)
+    separated_list1(space1, parse_isize).parse(s)
 }
 
 pub fn parse_usize(s: &str) -> IResult<&str, usize> {
-    map_res(digit1, |s: &str| s.parse::<usize>())(s)
+    map_res(digit1, |s: &str| s.parse::<usize>()).parse(s)
 }
 
 pub fn usize_list(s: &str) -> IResult<&str, Vec<usize>> {
-    separated_list1(space1, parse_usize)(s)
+    separated_list1(space1, parse_usize).parse(s)
 }
 
 pub fn title(s: &str) -> IResult<&str, &str> {
-    terminated(take_while(|c| c != ':'), preceded(char(':'), space1))(s)
+    terminated(take_while(|c| c != ':'), preceded(char(':'), space1)).parse(s)
 }
 
 pub fn from_hex(input: &str) -> Result<usize, std::num::ParseIntError> {

@@ -1,6 +1,7 @@
 use nom::bytes::complete::tag;
 use nom::sequence::terminated;
 use nom::IResult;
+use nom::Parser;
 use std::collections::VecDeque;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -39,8 +40,8 @@ impl FromStr for MarbleGame {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_game(s: &str) -> IResult<&str, MarbleGame> {
             let (s, nb_players) =
-                terminated(parse_usize, tag(" players; last marble is worth "))(s)?;
-            let (s, nb_marbles) = terminated(parse_usize, tag(" points"))(s)?;
+                terminated(parse_usize, tag(" players; last marble is worth ")).parse(s)?;
+            let (s, nb_marbles) = terminated(parse_usize, tag(" points")).parse(s)?;
 
             Ok((
                 s,

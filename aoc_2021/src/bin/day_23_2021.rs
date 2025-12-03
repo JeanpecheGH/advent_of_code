@@ -1,3 +1,4 @@
+use nom::Parser;
 extern crate core;
 
 use nom::bytes::complete::take;
@@ -293,7 +294,8 @@ impl FromStr for AmphipodsBurrow {
             let (s, pods) = preceded(
                 take(3usize),
                 separated_list1(char('#'), map(anychar, Amphipod::from_char)),
-            )(s)?;
+            )
+            .parse(s)?;
 
             Ok((s, pods))
         }

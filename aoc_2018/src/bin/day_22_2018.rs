@@ -2,6 +2,7 @@ use fxhash::FxHashMap;
 use nom::character::complete::{char, line_ending};
 use nom::sequence::{preceded, separated_pair, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::str::FromStr;
@@ -181,9 +182,9 @@ impl FromStr for CaveMaze {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_depth_and_target(s: &str) -> IResult<&str, (usize, Pos)> {
-            let (s, depth) = preceded(title, terminated(parse_usize, line_ending))(s)?;
+            let (s, depth) = preceded(title, terminated(parse_usize, line_ending)).parse(s)?;
             let (s, (x, y)) =
-                preceded(title, separated_pair(parse_usize, char(','), parse_usize))(s)?;
+                preceded(title, separated_pair(parse_usize, char(','), parse_usize)).parse(s)?;
             Ok((s, (depth, Pos(x, y))))
         }
 

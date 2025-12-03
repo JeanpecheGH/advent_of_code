@@ -4,6 +4,7 @@ use nom::combinator::{map, map_res, opt};
 use nom::multi::separated_list1;
 use nom::sequence::{delimited, preceded, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::collections::HashMap;
 use std::ops::Range;
 use std::str::FromStr;
@@ -97,17 +98,17 @@ impl FromStr for PartRule {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_start(s: &str) -> IResult<&str, (Category, bool, usize)> {
-            let (s, cat) = map_res(anychar, Category::from_char)(s)?;
-            let (s, sup) = map(anychar, |c| c == '>')(s)?;
-            let (s, value) = terminated(parse_usize, char(':'))(s)?;
+            let (s, cat) = map_res(anychar, Category::from_char).parse(s)?;
+            let (s, sup) = map(anychar, |c| c == '>').parse(s)?;
+            let (s, value) = terminated(parse_usize, char(':')).parse(s)?;
             Ok((s, (cat, sup, value)))
         }
 
         fn parse_part_rule(s: &str) -> IResult<&str, PartRule> {
             //println!("Parsing part rule: {s}");
-            let (s, triplet) = opt(parse_start)(s)?;
+            let (s, triplet) = opt(parse_start).parse(s)?;
             //println!("Parsing part rule, triplet: {triplet:?}");
-            let (s, result) = map_res(alpha1, RuleResult::from_str)(s)?;
+            let (s, result) = map_res(alpha1, RuleResult::from_str).parse(s)?;
 
             if let Some((cat, sup, value)) = triplet {
                 Ok((
@@ -188,7 +189,8 @@ impl FromStr for Workflow {
                     map_res(take_till(|c| c == ',' || c == '}'), PartRule::from_str),
                 ),
                 char('}'),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((
                 s,
                 Workflow {
@@ -276,10 +278,10 @@ impl FromStr for MachinePart {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_part(s: &str) -> IResult<&str, MachinePart> {
-            let (rs, x) = preceded(tag("{x="), parse_usize)(s)?;
-            let (rs, m) = preceded(tag(",m="), parse_usize)(rs)?;
-            let (rs, a) = preceded(tag(",a="), parse_usize)(rs)?;
-            let (rs, s) = preceded(tag(",s="), parse_usize)(rs)?;
+            let (rs, x) = preceded(tag("{x="), parse_usize).parse(s)?;
+            let (rs, m) = preceded(tag(",m="), parse_usize).parse(rs)?;
+            let (rs, a) = preceded(tag(",a="), parse_usize).parse(rs)?;
+            let (rs, s) = preceded(tag(",s="), parse_usize).parse(rs)?;
 
             Ok((rs, MachinePart { x, m, a, s }))
         }

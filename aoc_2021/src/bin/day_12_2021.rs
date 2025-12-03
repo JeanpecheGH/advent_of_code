@@ -2,6 +2,7 @@ use fxhash::FxHashMap;
 use nom::character::complete::{alpha1, char};
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -84,7 +85,7 @@ impl FromStr for CaveSystem {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_tunnel(s: &str) -> IResult<&str, (String, String)> {
-            let (s, (first, last)) = separated_pair(alpha1, char('-'), alpha1)(s)?;
+            let (s, (first, last)) = separated_pair(alpha1, char('-'), alpha1).parse(s)?;
             Ok((s, (first.to_string(), last.to_string())))
         }
         let mut tunnels: FxHashMap<u16, Vec<u16>> = FxHashMap::default();

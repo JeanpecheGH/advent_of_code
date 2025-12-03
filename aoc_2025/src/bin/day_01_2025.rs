@@ -1,4 +1,5 @@
 use nom::IResult;
+use nom::Parser;
 use nom::character::complete::anychar;
 use nom::sequence::pair;
 use std::str::FromStr;
@@ -15,7 +16,7 @@ impl FromStr for Rotation {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_rot(s: &str) -> IResult<&str, (char, isize)> {
-            let (s, (c, n)) = pair(anychar, parse_isize)(s)?;
+            let (s, (c, n)) = pair(anychar, parse_isize).parse(s)?;
             Ok((s, (c, n)))
         }
         let (c, n) = parse_rot(s).unwrap().1;

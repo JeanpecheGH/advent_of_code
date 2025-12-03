@@ -5,6 +5,7 @@ use nom::combinator::map;
 use nom::multi::separated_list1;
 use nom::sequence::{preceded, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -97,8 +98,9 @@ impl FromStr for Instruction {
         fn parse_instruction(s: &str) -> IResult<&str, Instruction> {
             let (s, op) = map(terminated(alpha1, space1), |op_name: &str| {
                 op_name.parse::<Opcode>().unwrap()
-            })(s)?;
-            let (s, v) = separated_list1(space1, parse_usize)(s)?;
+            })
+            .parse(s)?;
+            let (s, v) = separated_list1(space1, parse_usize).parse(s)?;
             Ok((
                 s,
                 Instruction {
@@ -204,7 +206,7 @@ impl FromStr for WristDevice {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pointer(s: &str) -> IResult<&str, usize> {
-            preceded(tag("#ip "), parse_usize)(s)
+            preceded(tag("#ip "), parse_usize).parse(s)
         }
 
         let mut lines = s.lines();

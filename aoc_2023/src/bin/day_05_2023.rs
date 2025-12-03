@@ -1,4 +1,5 @@
 use nom::sequence::preceded;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::{title, usize_list};
 use util::coord::Pos;
@@ -165,7 +166,7 @@ impl FromStr for Almanac {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let blocks: Vec<&str> = split_blocks(s);
-        let seeds: Vec<usize> = preceded(title, usize_list)(blocks[0]).unwrap().1;
+        let seeds: Vec<usize> = preceded(title, usize_list).parse(blocks[0]).unwrap().1;
         let maps: Vec<AlmanacMap> = (1..=7).map(|n| blocks[n].parse().unwrap()).collect();
 
         Ok(Almanac { seeds, maps })

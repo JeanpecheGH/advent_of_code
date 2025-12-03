@@ -2,6 +2,7 @@ use crate::basic_parser::parse_usize;
 use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::IResult;
+use nom::Parser;
 use std::fmt::Write;
 use std::str::FromStr;
 
@@ -84,7 +85,7 @@ impl FromStr for KnotHash {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_lengths(s: &str) -> IResult<&str, Vec<usize>> {
-            separated_list1(char(','), parse_usize)(s)
+            separated_list1(char(','), parse_usize).parse(s)
         }
 
         let lengths: Vec<usize> = s

@@ -6,6 +6,7 @@ use nom::combinator::{map, opt};
 use nom::multi::separated_list1;
 use nom::sequence::{delimited, preceded};
 use nom::IResult;
+use nom::Parser;
 use nom_permutation::permutation_opt;
 use std::cmp::Ordering;
 use std::str::FromStr;
@@ -78,14 +79,16 @@ impl FromStr for UnitGroup {
             preceded(
                 tag("weak to "),
                 separated_list1(tag(", "), map(alpha1, |str: &str| str.to_string())),
-            )(s)
+            )
+            .parse(s)
         }
 
         fn parse_immunities(s: &str) -> IResult<&str, Vec<String>> {
             preceded(
                 tag("immune to "),
                 separated_list1(tag(", "), map(alpha1, |str: &str| str.to_string())),
-            )(s)
+            )
+            .parse(s)
         }
 
         fn parse_group(s: &str) -> IResult<&str, UnitGroup> {
@@ -97,7 +100,8 @@ impl FromStr for UnitGroup {
                 char('('),
                 permutation_opt((parse_immunities, tag("; "), parse_weaknesses)),
                 tag(") "),
-            ))(s)?;
+            ))
+            .parse(s)?;
             let (immunities, weaknesses): (Vec<String>, Vec<String>) =
                 if let Some((i, _, w)) = opt_tuple {
                     (i.unwrap_or(Vec::new()), w.unwrap_or(Vec::new()))
@@ -107,7 +111,7 @@ impl FromStr for UnitGroup {
             let (s, _) = tag("with an attack that does ")(s)?;
             let (s, attack) = parse_usize(s)?;
             let (s, attack_type) =
-                map(preceded(char(' '), alpha1), |str: &str| str.to_string())(s)?;
+                map(preceded(char(' '), alpha1), |str: &str| str.to_string()).parse(s)?;
             let (s, _) = tag(" damage at initiative ")(s)?;
             let (s, initiative) = parse_usize(s)?;
 

@@ -3,6 +3,7 @@ use nom::character::complete::alpha1;
 use nom::combinator::map;
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::cmp::{max, min};
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
@@ -60,13 +61,13 @@ impl FromStr for RebootStep {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_range(s: &str) -> IResult<&str, (isize, isize)> {
-            separated_pair(parse_isize, tag(".."), parse_isize)(s)
+            separated_pair(parse_isize, tag(".."), parse_isize).parse(s)
         }
         fn parse_step(s: &str) -> IResult<&str, RebootStep> {
-            let (s, on) = map(alpha1, |w| w == "on")(s)?;
-            let (s, x_range) = preceded(tag(" x="), parse_range)(s)?;
-            let (s, y_range) = preceded(tag(",y="), parse_range)(s)?;
-            let (s, z_range) = preceded(tag(",z="), parse_range)(s)?;
+            let (s, on) = map(alpha1, |w| w == "on").parse(s)?;
+            let (s, x_range) = preceded(tag(" x="), parse_range).parse(s)?;
+            let (s, y_range) = preceded(tag(",y="), parse_range).parse(s)?;
+            let (s, z_range) = preceded(tag(",z="), parse_range).parse(s)?;
 
             Ok((
                 s,

@@ -4,6 +4,7 @@ use nom::combinator::{map, opt};
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 
@@ -76,9 +77,9 @@ impl FromStr for Module {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_module(s: &str) -> IResult<&str, Module> {
-            let (s, mod_type) = map(opt(one_of("%&")), ModuleType::from_char)(s)?;
+            let (s, mod_type) = map(opt(one_of("%&")), ModuleType::from_char).parse(s)?;
             let (s, id) = alpha1(s)?;
-            let (s, dest) = preceded(tag(" -> "), separated_list1(tag(", "), alpha1))(s)?;
+            let (s, dest) = preceded(tag(" -> "), separated_list1(tag(", "), alpha1)).parse(s)?;
             let dest: Vec<String> = dest.into_iter().map(|d| d.to_string()).collect();
 
             Ok((

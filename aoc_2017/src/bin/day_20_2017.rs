@@ -4,6 +4,7 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::{delimited, preceded};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
 use util::coord::Pos3I;
@@ -42,15 +43,15 @@ impl FromStr for Particle {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_triplet(s: &str) -> IResult<&str, Pos3I> {
-            let (s, list) = separated_list1(char(','), parse_isize)(s)?;
+            let (s, list) = separated_list1(char(','), parse_isize).parse(s)?;
 
             Ok((s, Pos3I(list[0], list[1], list[2])))
         }
 
         fn parse_particle(s: &str) -> IResult<&str, Particle> {
-            let (s, position) = preceded(tag("p=<"), parse_triplet)(s)?;
-            let (s, velocity) = preceded(tag(">, v=<"), parse_triplet)(s)?;
-            let (s, acceleration) = delimited(tag(">, a=<"), parse_triplet, char('>'))(s)?;
+            let (s, position) = preceded(tag("p=<"), parse_triplet).parse(s)?;
+            let (s, velocity) = preceded(tag(">, v=<"), parse_triplet).parse(s)?;
+            let (s, acceleration) = delimited(tag(">, a=<"), parse_triplet, char('>')).parse(s)?;
 
             Ok((
                 s,

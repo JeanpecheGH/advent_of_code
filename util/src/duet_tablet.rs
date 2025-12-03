@@ -5,6 +5,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::{anychar, char};
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::collections::VecDeque;
 use std::str::FromStr;
 
@@ -37,103 +38,105 @@ impl FromStr for DuetOp {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_send_val(s: &str) -> IResult<&str, DuetOp> {
-            let (s, v) = preceded(tag("snd "), parse_isize)(s)?;
+            let (s, v) = preceded(tag("snd "), parse_isize).parse(s)?;
             Ok((s, DuetOp::SendVal(v)))
         }
         fn parse_send_reg(s: &str) -> IResult<&str, DuetOp> {
-            let (s, r) = preceded(tag("snd "), anychar)(s)?;
+            let (s, r) = preceded(tag("snd "), anychar).parse(s)?;
             Ok((s, DuetOp::SendReg(r)))
         }
         fn parse_receive_val(s: &str) -> IResult<&str, DuetOp> {
-            let (s, v) = preceded(tag("rcv "), parse_isize)(s)?;
+            let (s, v) = preceded(tag("rcv "), parse_isize).parse(s)?;
             Ok((s, DuetOp::ReceiveVal(v)))
         }
         fn parse_receive_reg(s: &str) -> IResult<&str, DuetOp> {
-            let (s, r) = preceded(tag("rcv "), anychar)(s)?;
+            let (s, r) = preceded(tag("rcv "), anychar).parse(s)?;
             Ok((s, DuetOp::ReceiveReg(r)))
         }
         fn parse_set_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("set "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("set "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::SetVal(r, v)))
         }
         fn parse_set_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("set "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("set "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::SetReg(r1, r2)))
         }
         fn parse_add_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("add "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("add "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::AddVal(r, v)))
         }
         fn parse_add_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("add "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("add "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::AddReg(r1, r2)))
         }
         fn parse_sub_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("sub "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("sub "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::SubVal(r, v)))
         }
         fn parse_sub_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("sub "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("sub "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::SubReg(r1, r2)))
         }
         fn parse_mul_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("mul "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("mul "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::MulVal(r, v)))
         }
         fn parse_mul_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("mul "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("mul "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::MulReg(r1, r2)))
         }
         fn parse_mod_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("mod "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("mod "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::ModVal(r, v)))
         }
         fn parse_mod_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("mod "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("mod "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::ModReg(r1, r2)))
         }
         fn parse_jump_gtz_val_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (v1, v2)) = preceded(
                 tag("jgz "),
                 separated_pair(parse_isize, char(' '), parse_isize),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, DuetOp::JumpGTZValVal(v1, v2)))
         }
         fn parse_jump_gtz_reg_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("jgz "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("jgz "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::JumpGTZRegVal(r, v)))
         }
         fn parse_jump_gtz_reg_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("jgz "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("jgz "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::JumpGTZRegReg(r1, r2)))
         }
         fn parse_jump_not_zero_val_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (v1, v2)) = preceded(
                 tag("jnz "),
                 separated_pair(parse_isize, char(' '), parse_isize),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, DuetOp::JumpNotZeroValVal(v1, v2)))
         }
         fn parse_jump_not_zero_reg_val(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r, v)) =
-                preceded(tag("jnz "), separated_pair(anychar, char(' '), parse_isize))(s)?;
+                preceded(tag("jnz "), separated_pair(anychar, char(' '), parse_isize)).parse(s)?;
             Ok((s, DuetOp::JumpNotZeroRegVal(r, v)))
         }
         fn parse_jump_not_zero_reg_reg(s: &str) -> IResult<&str, DuetOp> {
             let (s, (r1, r2)) =
-                preceded(tag("jnz "), separated_pair(anychar, char(' '), anychar))(s)?;
+                preceded(tag("jnz "), separated_pair(anychar, char(' '), anychar)).parse(s)?;
             Ok((s, DuetOp::JumpNotZeroRegReg(r1, r2)))
         }
 
@@ -158,7 +161,8 @@ impl FromStr for DuetOp {
             parse_jump_not_zero_val_val,
             parse_jump_not_zero_reg_val,
             parse_jump_not_zero_reg_reg,
-        ))(s)
+        ))
+        .parse(s)
         .unwrap()
         .1)
     }

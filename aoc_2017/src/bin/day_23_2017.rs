@@ -1,5 +1,6 @@
 use nom::bytes::complete::tag;
 use nom::sequence::preceded;
+use nom::Parser;
 use util::basic_parser::parse_usize;
 
 fn main() {
@@ -17,7 +18,7 @@ fn main() {
 }
 
 fn parse_reg_b(s: &str) -> usize {
-    preceded(tag("set b "), parse_usize)(s).unwrap().1
+    preceded(tag("set b "), parse_usize).parse(s).unwrap().1
 }
 
 //The program is just counting the number of non-prime numbers between two value

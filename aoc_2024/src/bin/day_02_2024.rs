@@ -1,6 +1,7 @@
 use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -53,7 +54,7 @@ impl FromStr for Reports {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_report(s: &str) -> IResult<&str, Vec<usize>> {
-            let (s, l) = separated_list1(char(' '), parse_usize)(s)?;
+            let (s, l) = separated_list1(char(' '), parse_usize).parse(s)?;
 
             Ok((s, l))
         }

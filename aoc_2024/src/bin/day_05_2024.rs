@@ -4,6 +4,7 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Ordering;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -30,7 +31,7 @@ impl FromStr for OrderingRules {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pair(s: &str) -> IResult<&str, (usize, usize)> {
-            separated_pair(parse_usize, char('|'), parse_usize)(s)
+            separated_pair(parse_usize, char('|'), parse_usize).parse(s)
         }
         let mut rules: FxHashMap<usize, Vec<usize>> = FxHashMap::default();
         s.lines().for_each(|l| {
@@ -75,7 +76,7 @@ impl FromStr for Update {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_list(s: &str) -> IResult<&str, Vec<usize>> {
-            separated_list1(char(','), parse_usize)(s)
+            separated_list1(char(','), parse_usize).parse(s)
         }
         let pages = parse_list(s).unwrap().1;
         Ok(Update { pages })

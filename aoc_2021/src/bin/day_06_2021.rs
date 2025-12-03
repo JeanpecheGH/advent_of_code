@@ -1,6 +1,7 @@
 use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -31,7 +32,7 @@ impl FromStr for Lanternfish {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_line(s: &str) -> IResult<&str, Vec<usize>> {
-            separated_list1(char(','), parse_usize)(s)
+            separated_list1(char(','), parse_usize).parse(s)
         }
 
         let fishes: Vec<usize> = s.lines().next().map(|l| parse_line(l).unwrap().1).unwrap();

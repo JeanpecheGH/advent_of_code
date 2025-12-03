@@ -4,6 +4,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::anychar;
 use nom::sequence::{preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::str::FromStr;
@@ -126,7 +127,8 @@ impl FromStr for Instructions {
             let (s, (from, to)) = preceded(
                 tag("Step "),
                 separated_pair(anychar, tag(" must be finished before step "), anychar),
-            )(s)?;
+            )
+            .parse(s)?;
             Ok((s, (from, to)))
         }
 

@@ -1,6 +1,7 @@
 use nom::character::complete::char;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -120,7 +121,8 @@ impl FromStr for SnailNumber {
                 Ok((s, SnailNumber::Leave(v)))
             } else {
                 let (s, _) = char('[')(s)?;
-                let (s, (left, right)) = separated_pair(parse_number, char(','), parse_number)(s)?;
+                let (s, (left, right)) =
+                    separated_pair(parse_number, char(','), parse_number).parse(s)?;
                 let (s, _) = char(']')(s)?;
                 Ok((s, SnailNumber::Node(Box::new(left), Box::new(right))))
             }

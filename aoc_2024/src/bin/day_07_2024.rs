@@ -3,6 +3,7 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::terminated;
 use nom::IResult;
+use nom::Parser;
 use rayon::prelude::*;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -69,8 +70,8 @@ impl FromStr for Equation {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_equation(s: &str) -> IResult<&str, Equation> {
-            let (s, total) = terminated(parse_usize, tag(": "))(s)?;
-            let (s, values) = separated_list1(char(' '), parse_usize)(s)?;
+            let (s, total) = terminated(parse_usize, tag(": ")).parse(s)?;
+            let (s, values) = separated_list1(char(' '), parse_usize).parse(s)?;
 
             Ok((s, Equation { total, values }))
         }

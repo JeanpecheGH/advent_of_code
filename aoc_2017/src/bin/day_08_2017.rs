@@ -4,6 +4,7 @@ use nom::character::complete::{alpha1, space1};
 use nom::combinator::map;
 use nom::sequence::terminated;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
 
@@ -66,12 +67,14 @@ impl FromStr for Instruction {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_instr(s: &str) -> IResult<&str, Instruction> {
-            let (s, mod_reg) = map(terminated(alpha1, space1), |w: &str| w.to_string())(s)?;
-            let (s, mod_action): (&str, &str) = terminated(alpha1, space1)(s)?;
+            let (s, mod_reg) = map(terminated(alpha1, space1), |w: &str| w.to_string()).parse(s)?;
+            let (s, mod_action): (&str, &str) = terminated(alpha1, space1).parse(s)?;
             let mod_action: RegisterAction = mod_action.parse().unwrap();
-            let (s, mod_value) = terminated(parse_isize, tag(" if "))(s)?;
-            let (s, cond_reg) = map(terminated(alpha1, space1), |w: &str| w.to_string())(s)?;
-            let (s, cond_op): (&str, &str) = terminated(take_till(|c| c == ' '), space1)(s)?;
+            let (s, mod_value) = terminated(parse_isize, tag(" if ")).parse(s)?;
+            let (s, cond_reg) =
+                map(terminated(alpha1, space1), |w: &str| w.to_string()).parse(s)?;
+            let (s, cond_op): (&str, &str) =
+                terminated(take_till(|c| c == ' '), space1).parse(s)?;
             let cond_op: RegisterCondition = cond_op.parse().unwrap();
             let (s, cond_value) = parse_isize(s)?;
 

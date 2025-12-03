@@ -1,6 +1,7 @@
 use nom::character::complete::{alpha1, space1};
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -57,7 +58,7 @@ impl FromStr for SubmarineDive {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_command(s: &str) -> IResult<&str, DiveCommand> {
-            let (s, (name, factor)) = separated_pair(alpha1, space1, parse_usize)(s)?;
+            let (s, (name, factor)) = separated_pair(alpha1, space1, parse_usize).parse(s)?;
             let command: DiveCommand = match name {
                 "down" => DiveCommand::Down(factor),
                 "up" => DiveCommand::Up(factor),

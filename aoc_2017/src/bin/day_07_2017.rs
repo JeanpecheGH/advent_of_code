@@ -5,6 +5,7 @@ use nom::combinator::{map, opt};
 use nom::multi::separated_list1;
 use nom::sequence::{preceded, terminated};
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -26,8 +27,8 @@ impl FromStr for Program {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_program(s: &str) -> IResult<&str, Program> {
-            let (s, name) = map(terminated(alpha1, tag(" (")), |w: &str| w.to_string())(s)?;
-            let (s, weight) = terminated(parse_usize, char(')'))(s)?;
+            let (s, name) = map(terminated(alpha1, tag(" (")), |w: &str| w.to_string()).parse(s)?;
+            let (s, weight) = terminated(parse_usize, char(')')).parse(s)?;
             let (s, balancing) = opt(preceded(
                 tag(" -> "),
                 map(separated_list1(tag(", "), alpha1), |l| {
@@ -35,7 +36,8 @@ impl FromStr for Program {
                         .map(|w: &str| w.to_string())
                         .collect::<Vec<String>>()
                 }),
-            ))(s)?;
+            ))
+            .parse(s)?;
 
             Ok((
                 s,

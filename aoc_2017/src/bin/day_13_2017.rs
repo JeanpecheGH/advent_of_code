@@ -1,6 +1,7 @@
 use nom::bytes::complete::tag;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -41,7 +42,8 @@ impl FromStr for Firewall {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_scanner(s: &str) -> IResult<&str, (usize, usize)> {
-            let (s, (depth, range)) = separated_pair(parse_usize, tag(": "), parse_usize)(s)?;
+            let (s, (depth, range)) =
+                separated_pair(parse_usize, tag(": "), parse_usize).parse(s)?;
 
             Ok((s, (depth, range)))
         }

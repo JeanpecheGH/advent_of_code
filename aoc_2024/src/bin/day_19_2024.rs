@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
 use nom::multi::separated_list1;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::split_blocks;
 
@@ -45,7 +46,7 @@ impl FromStr for LinenLayout {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_towels(s: &str) -> IResult<&str, Vec<&str>> {
-            let (s, towels) = separated_list1(tag(", "), alpha1)(s)?;
+            let (s, towels) = separated_list1(tag(", "), alpha1).parse(s)?;
             Ok((s, towels))
         }
 

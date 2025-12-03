@@ -3,6 +3,7 @@ use nom::character::complete::{alpha1, char};
 use nom::multi::separated_list1;
 use nom::sequence::terminated;
 use nom::IResult;
+use nom::Parser;
 use rand::{rng, Rng};
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -118,8 +119,8 @@ impl FromStr for Component {
                     .map(|c| c as usize - 'a' as usize + 1)
                     .fold(0, |acc, c| acc * 30 + c)
             }
-            let (s, id) = terminated(alpha1, tag(": "))(s)?;
-            let (s, wired_to) = separated_list1(char(' '), alpha1)(s)?;
+            let (s, id) = terminated(alpha1, tag(": ")).parse(s)?;
+            let (s, wired_to) = separated_list1(char(' '), alpha1).parse(s)?;
             let id = to_usize(id);
             let wired_to = wired_to.into_iter().map(to_usize).collect();
 

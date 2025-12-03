@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::multi::separated_list1;
 use nom::sequence::terminated;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -57,8 +58,8 @@ impl FromStr for DigitalPlumbing {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pipe(s: &str) -> IResult<&str, (usize, Vec<usize>)> {
-            let (s, source) = terminated(parse_usize, tag(" <-> "))(s)?;
-            let (s, targets) = separated_list1(tag(", "), parse_usize)(s)?;
+            let (s, source) = terminated(parse_usize, tag(" <-> ")).parse(s)?;
+            let (s, targets) = separated_list1(tag(", "), parse_usize).parse(s)?;
 
             Ok((s, (source, targets)))
         }

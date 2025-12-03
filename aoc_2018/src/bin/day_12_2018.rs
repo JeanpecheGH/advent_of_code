@@ -4,6 +4,7 @@ use nom::character::complete::anychar;
 use nom::multi::many1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::collections::VecDeque;
 use std::str::FromStr;
 use util::basic_parser::title;
@@ -104,7 +105,7 @@ impl FromStr for PotsRow {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_initial_state(s: &str) -> IResult<&str, VecDeque<bool>> {
-            let (s, pots) = preceded(title, many1(anychar))(s)?;
+            let (s, pots) = preceded(title, many1(anychar)).parse(s)?;
 
             let pots: VecDeque<bool> = pots.into_iter().map(|c| c == '#').collect();
             Ok((s, pots))
@@ -112,7 +113,7 @@ impl FromStr for PotsRow {
 
         fn parse_rule(s: &str) -> IResult<&str, (usize, bool)> {
             let (s, left) = take(5usize)(s)?;
-            let (s, right) = preceded(tag(" => "), anychar)(s)?;
+            let (s, right) = preceded(tag(" => "), anychar).parse(s)?;
 
             let score: usize = left.chars().fold(0, |acc, c| {
                 let p: usize = if c == '#' { 1 } else { 0 };

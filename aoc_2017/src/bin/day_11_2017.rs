@@ -2,6 +2,7 @@ use nom::character::complete::{alpha1, char};
 use nom::combinator::map;
 use nom::multi::separated_list1;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::max;
 use std::str::FromStr;
 use util::coord::PosI;
@@ -85,7 +86,8 @@ impl FromStr for HexEd {
             separated_list1(
                 char(','),
                 map(alpha1, |w: &str| w.parse::<HexMove>().unwrap()),
-            )(s)
+            )
+            .parse(s)
         }
 
         let moves: Vec<HexMove> = s.lines().next().map(|l| parse_moves(l).unwrap().1).unwrap();

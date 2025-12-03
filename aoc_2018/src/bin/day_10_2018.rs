@@ -3,6 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::{char, space0};
 use nom::sequence::{delimited, preceded, separated_pair};
 use nom::IResult;
+use nom::Parser;
 use std::cmp::{max, min};
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
@@ -26,7 +27,7 @@ impl FromStr for Star {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn space_isize(s: &str) -> IResult<&str, isize> {
-            preceded(space0, parse_isize)(s)
+            preceded(space0, parse_isize).parse(s)
         }
 
         fn parse_posi(s: &str) -> IResult<&str, PosI> {
@@ -34,13 +35,14 @@ impl FromStr for Star {
                 char('<'),
                 separated_pair(space_isize, char(','), space_isize),
                 char('>'),
-            )(s)?;
+            )
+            .parse(s)?;
 
             Ok((s, PosI(x, y)))
         }
         fn parse_star(s: &str) -> IResult<&str, Star> {
-            let (s, pos) = preceded(tag("position="), parse_posi)(s)?;
-            let (s, velocity) = preceded(tag(" velocity="), parse_posi)(s)?;
+            let (s, pos) = preceded(tag("position="), parse_posi).parse(s)?;
+            let (s, velocity) = preceded(tag(" velocity="), parse_posi).parse(s)?;
 
             Ok((s, Star { pos, velocity }))
         }

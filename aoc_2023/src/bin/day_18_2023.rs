@@ -2,6 +2,7 @@ use nom::bytes::complete::{tag, take};
 use nom::character::complete::{anychar, char};
 use nom::combinator::map_res;
 use nom::sequence::{delimited, pair, separated_pair};
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::{from_hex, parse_usize};
 use util::coord::PosI;
@@ -65,7 +66,8 @@ impl FromStr for Trench {
                     char(')'),
                 ),
             ),
-        )(s)
+        )
+        .parse(s)
         .unwrap();
         Ok(Trench {
             size,

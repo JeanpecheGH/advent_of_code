@@ -1,7 +1,8 @@
 use itertools::Itertools;
 use nom::bytes::complete::{tag, take};
-use nom::sequence::{preceded, tuple};
+use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::collections::HashMap;
 use std::str::FromStr;
 use util::orientation::Dir;
@@ -78,11 +79,12 @@ impl FromStr for Wasteland {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_dict(s: &str) -> IResult<&str, (String, (String, String))> {
-            let (s, (k, l, r)) = tuple((
+            let (s, (k, l, r)) = (
                 take(3usize),
                 preceded(tag(" = ("), take(3usize)),
                 preceded(tag(", "), take(3usize)),
-            ))(s)?;
+            )
+                .parse(s)?;
 
             Ok((s, (k.to_string(), (l.to_string(), r.to_string()))))
         }

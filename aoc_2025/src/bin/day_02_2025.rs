@@ -1,4 +1,5 @@
 use nom::IResult;
+use nom::Parser;
 use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
@@ -53,7 +54,8 @@ impl FromStr for GiftShop {
             separated_list1(
                 char(','),
                 separated_pair(parse_usize, char('-'), parse_usize),
-            )(s)
+            )
+            .parse(s)
         }
 
         let ranges: Vec<(usize, usize)> = parse_ranges(s.lines().next().unwrap()).unwrap().1;

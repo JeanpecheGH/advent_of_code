@@ -3,6 +3,7 @@ use nom::combinator::opt;
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 use util::split_blocks;
@@ -52,7 +53,7 @@ impl FromStr for BingoBoard {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_line(s: &str) -> IResult<&str, Vec<Option<usize>>> {
-            let (s, nbs) = separated_list1(space1, preceded(opt(space0), parse_usize))(s)?;
+            let (s, nbs) = separated_list1(space1, preceded(opt(space0), parse_usize)).parse(s)?;
 
             let row: Vec<Option<usize>> = nbs.into_iter().map(Some).collect();
             Ok((s, row))
@@ -98,7 +99,7 @@ impl FromStr for Bingo {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_numbers(s: &str) -> IResult<&str, Vec<usize>> {
-            separated_list1(char(','), parse_usize)(s)
+            separated_list1(char(','), parse_usize).parse(s)
         }
 
         let blocks: Vec<&str> = split_blocks(s);

@@ -3,6 +3,7 @@ use nom::character::complete::{alpha1, anychar, space1};
 use nom::combinator::{map, opt, rest};
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 use std::str::FromStr;
 use util::basic_parser::parse_isize;
 
@@ -39,7 +40,8 @@ impl FromStr for LogicValue {
             alt((
                 map(parse_isize, LogicValue::Val),
                 map(anychar, LogicValue::Reg),
-            ))(s)
+            ))
+            .parse(s)
         }
         Ok(parse_value(s).unwrap().1)
     }
@@ -61,8 +63,8 @@ impl FromStr for LogicInstruction {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_instruction(s: &str) -> IResult<&str, LogicInstruction> {
             let (s, name) = alpha1(s)?;
-            let (s, val1) = preceded(space1, alpha1)(s)?;
-            let (s, val2) = opt(preceded(space1, rest))(s)?;
+            let (s, val1) = preceded(space1, alpha1).parse(s)?;
+            let (s, val2) = opt(preceded(space1, rest)).parse(s)?;
 
             let val1: LogicValue = val1.parse().unwrap();
             let instr: LogicInstruction = if let Some(val2) = val2 {

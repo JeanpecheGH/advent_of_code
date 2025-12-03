@@ -2,6 +2,7 @@ use fxhash::{FxHashMap, FxHashSet};
 use nom::bytes::complete::tag;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use nom::Parser;
 use std::cmp::{max, min, Ordering};
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -82,7 +83,7 @@ impl FromStr for Coordinates {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn parse_pos(s: &str) -> IResult<&str, Pos> {
-            let (s, (x, y)) = separated_pair(parse_usize, tag(", "), parse_usize)(s)?;
+            let (s, (x, y)) = separated_pair(parse_usize, tag(", "), parse_usize).parse(s)?;
             Ok((s, Pos(x, y)))
         }
 
