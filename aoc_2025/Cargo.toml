@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 util = { path = "../util" }
+fxhash = { workspace = true }
 nom = { workspace = true }
