@@ -115,7 +115,9 @@ name = "aoc_2025"
 version = "0.1.0"
 dependencies = [
  "fxhash",
+ "itertools",
  "nom",
+ "rayon",
  "util",
 ]
 

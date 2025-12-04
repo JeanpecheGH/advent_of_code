@@ -3,6 +3,7 @@ use nom::Parser;
 use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::sequence::separated_pair;
+use rayon::prelude::*;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 
@@ -36,7 +37,7 @@ impl GiftShop {
 
     fn solve(&self, half_only: bool) -> usize {
         self.ranges
-            .iter()
+            .par_iter()
             .map(|&(a, b)| {
                 (a..=b)
                     .filter(|&x| GiftShop::is_invalid(x, half_only))

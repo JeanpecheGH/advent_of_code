@@ -6,4 +6,6 @@ edition = "2024"
 [dependencies]
 util = { path = "../util" }
 fxhash = { workspace = true }
+itertools = { workspace = true }
 nom = { workspace = true }
+rayon = { workspace = true }

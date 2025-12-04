@@ -1,4 +1,5 @@
 use fxhash::FxHashSet;
+use rayon::prelude::*;
 use std::str::FromStr;
 use util::coord::Pos;
 
@@ -29,7 +30,7 @@ impl PrintingDepartment {
 
     fn accessible(&self, rolls: &FxHashSet<Pos>) -> Vec<Pos> {
         rolls
-            .iter()
+            .par_iter()
             .filter(|p| {
                 let nb_ngb: usize = p
                     .neighbours_diag_safe(1000, 1000)
