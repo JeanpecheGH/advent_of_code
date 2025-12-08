@@ -108,6 +108,12 @@ impl PosI {
     }
 }
 
+impl Pos3 {
+    pub fn distance_squared(&self, Pos3(x, y, z): Pos3) -> usize {
+        self.0.abs_diff(x).pow(2u32) + self.1.abs_diff(y).pow(2u32) + self.2.abs_diff(z).pow(2u32)
+    }
+}
+
 impl Pos3I {
     pub fn distance(&self, Pos3I(x, y, z): Pos3I) -> usize {
         self.0.abs_diff(x) + self.1.abs_diff(y) + self.2.abs_diff(z)

@@ -1,3 +1,4 @@
+use crate::coord::Pos3;
 use nom::bytes::complete::{tag, take_while};
 use nom::character::complete::{char, digit1, space1};
 use nom::combinator::{map_res, opt, recognize};
@@ -28,6 +29,11 @@ pub fn usize_list(s: &str) -> IResult<&str, Vec<usize>> {
 
 pub fn title(s: &str) -> IResult<&str, &str> {
     terminated(take_while(|c| c != ':'), preceded(char(':'), space1)).parse(s)
+}
+
+pub fn parse_pos3(s: &str) -> IResult<&str, Pos3> {
+    let (s, v) = separated_list1(tag(","), parse_usize).parse(s)?;
+    Ok((s, Pos3(v[0], v[1], v[2])))
 }
 
 pub fn from_hex(input: &str) -> Result<usize, std::num::ParseIntError> {
