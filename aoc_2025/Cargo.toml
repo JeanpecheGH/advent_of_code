@@ -9,3 +9,4 @@ fxhash = { workspace = true }
 itertools = { workspace = true }
 nom = { workspace = true }
 rayon = { workspace = true }
+z3 = { workspace = true }
