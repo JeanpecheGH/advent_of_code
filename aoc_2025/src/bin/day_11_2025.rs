@@ -1,4 +1,4 @@
-use fxhash::{FxHashMap, FxHashSet};
+use fxhash::FxHashMap;
 use nom::IResult;
 use nom::Parser;
 use nom::bytes::complete::tag;
@@ -7,63 +7,63 @@ use nom::multi::separated_list1;
 use nom::sequence::terminated;
 use std::str::FromStr;
 
-#[derive(Clone, Debug)]
-struct DataPath {
-    current: String,
-    depth: usize,
-}
-
-impl DataPath {
-    fn from_name(name: &str) -> DataPath {
-        let current: String = name.to_owned();
-        DataPath { current, depth: 0 }
-    }
-
-    fn add_visited(&mut self, name: &str) {
-        self.current = name.to_owned();
-        self.depth += 1;
-    }
-
-    fn add_children(&self, children: &[String]) -> Vec<DataPath> {
-        children
-            .iter()
-            .map(|name| {
-                let mut path: DataPath = self.clone();
-                path.add_visited(name);
-                path
-            })
-            .collect()
-    }
-
-    fn is_finished(&self, to: &str) -> bool {
-        self.current == to
-    }
-}
-
 struct Reactor {
     outputs: FxHashMap<String, Vec<String>>,
 }
 
 impl Reactor {
-    fn nb_paths(&self, from: &str, to: &str, max_depth: usize) -> usize {
-        let mut nb_paths: usize = 0;
+    fn paths_between(
+        cache: &mut FxHashMap<usize, usize>,
+        map: &FxHashMap<usize, Vec<usize>>,
+        from: usize,
+        to: usize,
+    ) -> usize {
+        if from == to {
+            1
+        } else if cache.contains_key(&from) {
+            cache[&from]
+        } else {
+            let nb_paths: usize = if let Some(children) = map.get(&from) {
+                children
+                    .iter()
+                    .map(|&child| Reactor::paths_between(cache, map, child, to))
+                    .sum()
+            } else {
+                0
+            };
+            cache.insert(from, nb_paths);
+            nb_paths
+        }
+    }
 
-        let mut paths: Vec<DataPath> = vec![DataPath::from_name(from)];
-        while let Some(path) = paths.pop() {
-            if self.outputs.contains_key(&path.current) {
-                let children: &Vec<String> = self.outputs.get(&path.current).unwrap();
-                let news: Vec<DataPath> = path.add_children(children);
-                for new in news {
-                    if new.is_finished(to) {
-                        //println!("Finished: {:?}", new);
-                        nb_paths += 1;
-                    } else if new.depth < max_depth {
-                        paths.push(new);
-                    }
-                }
-            }
+    fn paths(&self, nodes: &[&str]) -> usize {
+        fn node_to_usize(name: &str) -> usize {
+            name.chars().fold(0, |mut acc, c| {
+                acc *= 26;
+                acc += c as usize - 'a' as usize;
+                acc
+            })
         }
 
+        let map: FxHashMap<usize, Vec<usize>> = self
+            .outputs
+            .iter()
+            .map(|(k, v)| {
+                let k_hash: usize = node_to_usize(k);
+                let values: Vec<usize> = v.iter().map(|n| node_to_usize(n)).collect();
+                (k_hash, values)
+            })
+            .collect();
+        let mut nb_paths: usize = 1;
+        let nodes: Vec<usize> = nodes.iter().map(|n| node_to_usize(n)).collect();
+
+        for pair in nodes.windows(2).rev() {
+            let start: usize = pair[0];
+            let end: usize = pair[1];
+            let mut cache: FxHashMap<usize, usize> = FxHashMap::default();
+            let nb: usize = Reactor::paths_between(&mut cache, &map, start, end);
+            nb_paths *= nb;
+        }
         nb_paths
     }
 }
@@ -90,17 +90,14 @@ fn main() {
     let s = util::file_as_string("aoc_2025/input/day_11.txt").expect("Cannot open input file");
     let reactor: Reactor = s.parse().unwrap();
 
-    println!("Part1: {}", reactor.nb_paths("you", "out", 20));
-    // println!(
-    //     "Dac -> Fft: {}",
-    //     reactor.nb_paths("dac", "fft", &Vec::new())
-    // );
-    let r: usize = 14805 * 6747790 * 2963;
-    println!("Part2: {}", r);
-    println!("Svr -> Fft: {}", reactor.nb_paths("svr", "fft", 12));
-    println!("Fft -> Dac: {}", reactor.nb_paths("fft", "dac", 17));
-    println!("Dac -> Out: {}", reactor.nb_paths("dac", "out", 20));
-    //println!("Part2: {}", reactor.nb_paths("svr", "out", &["dac", "fft"]));
+    println!(
+        "Part1: There are {} paths between \"you\" and \"out\"",
+        reactor.paths(&["you", "out"])
+    );
+    println!(
+        "Part2: There are {} paths between \"svr\" and \"out\" visiting \"fft\" and \"dac\"",
+        reactor.paths(&["svr", "fft", "dac", "out"])
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
@@ -122,7 +119,7 @@ iii: out
     #[test]
     fn test_part_1() {
         let reactor: Reactor = EXAMPLE_1.parse().unwrap();
-        assert_eq!(reactor.nb_paths("you", "out", 20), 5);
+        assert_eq!(reactor.paths(&["you", "out"]), 5);
     }
 
     const EXAMPLE_2: &str = "svr: aaa bbb
@@ -143,6 +140,6 @@ hhh: out
     #[test]
     fn test_part_2() {
         let reactor: Reactor = EXAMPLE_2.parse().unwrap();
-        assert_eq!(reactor.nb_paths("svr", "out", 20), 2);
+        assert_eq!(reactor.paths(&["svr", "fft", "dac", "out"]), 2);
     }
 }
