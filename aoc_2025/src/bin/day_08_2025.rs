@@ -1,74 +1,121 @@
-use fxhash::{FxHashMap, FxHashSet};
 use itertools::Itertools;
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 use std::str::FromStr;
 use util::basic_parser::parse_pos3;
 use util::coord::Pos3;
+
+#[derive(Debug, Eq, PartialEq)]
+struct Junction {
+    a: usize,
+    b: usize,
+    dist: usize,
+}
+
+impl Junction {
+    fn from_pos(pos: &[(usize, &Pos3)]) -> Junction {
+        let dist: usize = pos[0].1.distance_squared(*pos[1].1);
+        Junction {
+            a: pos[0].0,
+            b: pos[1].0,
+            dist,
+        }
+    }
+}
+
+impl Ord for Junction {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.dist.cmp(&self.dist)
+    }
+}
+
+impl PartialOrd for Junction {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+struct DisjointSet {
+    parents: Vec<usize>,
+    sizes: Vec<usize>,
+    nb_sets: usize,
+}
+
+impl DisjointSet {
+    fn new(nb_sets: usize) -> DisjointSet {
+        let parents: Vec<usize> = (0..nb_sets).collect();
+        let sizes: Vec<usize> = vec![1; nb_sets];
+        DisjointSet {
+            parents,
+            sizes,
+            nb_sets,
+        }
+    }
+
+    fn join(&mut self, a: usize, b: usize) {
+        let prt_a: usize = self.parents[a];
+        let prt_b: usize = self.parents[b];
+
+        let (tgt_grp, src_grp) = match prt_a.cmp(&prt_b) {
+            Ordering::Less => (prt_a, prt_b),
+            Ordering::Greater => (prt_b, prt_a),
+            Ordering::Equal => return, // Nothing to do
+        };
+
+        for idx in self.parents.iter_mut() {
+            if *idx == src_grp {
+                *idx = tgt_grp
+            }
+        }
+
+        self.sizes[tgt_grp] += self.sizes[src_grp];
+        self.sizes[src_grp] = 0;
+        self.nb_sets -= 1;
+    }
+
+    fn top_3(&self) -> usize {
+        self.sizes.iter().sorted_unstable().rev().take(3).product()
+    }
+
+    fn is_complete(&self) -> bool {
+        self.nb_sets == 1
+    }
+}
 
 struct Playground {
     boxes: Vec<Pos3>,
 }
 
 impl Playground {
-    fn apply_junctions(
-        &self,
-        junctions: &[(Pos3, Pos3)],
-        existing_circuits: &mut Vec<FxHashSet<Pos3>>,
-    ) -> usize {
-        let mut circuits: Vec<FxHashSet<Pos3>> = existing_circuits.clone();
-        for &(a, b) in junctions {
-            let mut new_circuit: FxHashSet<Pos3> = FxHashSet::from_iter([a, b]);
-            let mut new_circuits: Vec<FxHashSet<Pos3>> = Vec::new();
-
-            for circuit in circuits {
-                if circuit.contains(&a) || circuit.contains(&b) {
-                    new_circuit.extend(circuit.iter())
-                } else {
-                    new_circuits.push(circuit);
-                }
-            }
-            if new_circuit.len() == self.boxes.len() {
-                return a.0 * b.0;
-            }
-            new_circuits.push(new_circuit);
-            circuits = new_circuits
-        }
-        *existing_circuits = circuits;
-        0
-    }
-
     fn build_circuit(&self, nb_junctions: usize) -> (usize, usize) {
-        //Compute all distances
-        let mut dist_dict: FxHashMap<(Pos3, Pos3), usize> = FxHashMap::default();
-
-        for (i, &pos_a) in self.boxes.iter().enumerate() {
-            for j in (i + 1)..self.boxes.len() {
-                let pos_b = self.boxes[j];
-                let dist: usize = pos_a.distance_squared(pos_b);
-                dist_dict.insert((pos_a, pos_b), dist);
-            }
-        }
-
-        let junctions: Vec<(Pos3, Pos3)> = dist_dict
+        //Compute and sort all distances
+        let mut queue: BinaryHeap<Junction> = self
+            .boxes
             .iter()
-            .sorted_unstable_by(|(_, a), (_, b)| a.cmp(b))
-            .map(|((a, b), _)| (*a, *b))
+            .enumerate()
+            .combinations(2)
+            .map(|pair| Junction::from_pos(&pair))
             .collect();
 
-        let mut circuits: Vec<FxHashSet<Pos3>> = Vec::new();
+        let mut set: DisjointSet = DisjointSet::new(self.boxes.len());
         // Apply the first nb_junctions junctions
-        self.apply_junctions(&junctions[0..nb_junctions], &mut circuits);
+        for _ in 0..nb_junctions {
+            let junction = queue.pop().unwrap();
+            set.join(junction.a, junction.b);
+        }
 
-        let largest_circuit_product: usize = circuits
-            .iter()
-            .map(|c| c.len())
-            .sorted_unstable()
-            .rev()
-            .take(3)
-            .product();
+        let largest_circuit_product: usize = set.top_3();
 
         // Apply the remaining junctions until we link all boxes
-        let one_circuit: usize = self.apply_junctions(&junctions[nb_junctions..], &mut circuits);
-        (largest_circuit_product, one_circuit)
+        while let Some(junction) = queue.pop() {
+            set.join(junction.a, junction.b);
+            if set.is_complete() {
+                return (
+                    largest_circuit_product,
+                    self.boxes[junction.a].0 * self.boxes[junction.b].0,
+                );
+            }
+        }
+        (0, 0)
     }
 }
 
@@ -87,8 +134,14 @@ fn main() {
     let s = util::file_as_string("aoc_2025/input/day_08.txt").expect("Cannot open input file");
     let playground: Playground = s.parse().unwrap();
     let (largest_circuit_product, one_circuit) = playground.build_circuit(1000);
-    println!("Part1: {}", largest_circuit_product);
-    println!("Part2: {}", one_circuit);
+    println!(
+        "Part1: The product of the size of the 3 largest circuits is {}",
+        largest_circuit_product
+    );
+    println!(
+        "Part2: The last boxes connected give a product of {}",
+        one_circuit
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
