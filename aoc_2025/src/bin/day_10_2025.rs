@@ -5,6 +5,7 @@ use nom::branch::alt;
 use nom::character::char;
 use nom::multi::{many1, separated_list1};
 use nom::sequence::{delimited, preceded};
+use std::iter::Sum;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
 use z3::Optimize;
@@ -31,13 +32,11 @@ impl Machine {
         0
     }
 
-    fn buttons(&self) -> Vec<Vec<u16>> {
-        let mut buttons: Vec<Vec<u16>> = Vec::new();
-        for i in 0..14 {
-            let b: u16 = self.buttons.get(i).copied().unwrap_or_default() as u16;
-
-            let v: Vec<u16> = (0..self.joltages.len())
-                .map(|i| (b & 2u16.pow(i as u32)) / 2u16.pow(i as u32))
+    fn buttons(&self) -> Vec<Vec<bool>> {
+        let mut buttons: Vec<Vec<bool>> = Vec::new();
+        for &b in &self.buttons {
+            let v: Vec<bool> = (0..self.joltages.len())
+                .map(|i| (b & 2usize.pow(i as u32)) > 0)
                 .collect();
 
             buttons.push(v);
@@ -121,60 +120,32 @@ impl Factory {
 
         let opt = Optimize::new();
 
-        //Declare buttons
-        let a = Int::new_const("a");
-        let b = Int::new_const("b");
-        let c = Int::new_const("c");
-        let d = Int::new_const("d");
-        let e = Int::new_const("e");
-        let f = Int::new_const("f");
-        let g = Int::new_const("g");
-        let h = Int::new_const("h");
-        let i = Int::new_const("i");
-        let j = Int::new_const("j");
-        let k = Int::new_const("k");
-        let l = Int::new_const("l");
-        let m = Int::new_const("m");
-
-        let count = &a + &b + &c + &d + &e + &f + &g + &h + &i + &j + &k + &l + &m;
-        opt.assert(&a.ge(0));
-        opt.assert(&b.ge(0));
-        opt.assert(&c.ge(0));
-        opt.assert(&d.ge(0));
-        opt.assert(&e.ge(0));
-        opt.assert(&f.ge(0));
-        opt.assert(&g.ge(0));
-        opt.assert(&h.ge(0));
-        opt.assert(&i.ge(0));
-        opt.assert(&j.ge(0));
-        opt.assert(&k.ge(0));
-        opt.assert(&l.ge(0));
-        opt.assert(&m.ge(0));
-        opt.minimize(&count);
-
         for machine in &self.machines {
             opt.push();
 
             let joltages: &Vec<usize> = &machine.joltages;
-            let buttons: Vec<Vec<u16>> = machine.buttons();
+            let buttons: Vec<Vec<bool>> = machine.buttons();
 
-            for (idx, &joltage) in joltages.iter().enumerate() {
-                opt.assert(
-                    &(&a * buttons[0][idx]
-                        + &b * buttons[1][idx]
-                        + &c * buttons[2][idx]
-                        + &d * buttons[3][idx]
-                        + &e * buttons[4][idx]
-                        + &f * buttons[5][idx]
-                        + &g * buttons[6][idx]
-                        + &h * buttons[7][idx]
-                        + &i * buttons[8][idx]
-                        + &j * buttons[9][idx]
-                        + &k * buttons[10][idx]
-                        + &l * buttons[11][idx]
-                        + &m * buttons[12][idx])
-                        .eq(joltage as u16),
+            // Declare buttons presses variables
+            let vars: Vec<Int> = (0..buttons.len())
+                .map(|i| Int::new_const(format!("x{}", i)))
+                // Should be useless, but we need it
+                .inspect(|v| opt.assert(&v.ge(0)))
+                .collect();
+
+            // Declare constraint on sum of presses
+            let count: Int = Int::add(&vars);
+            opt.minimize(&count);
+
+            // Declare constraints on target joltages
+            for (j, &joltage) in joltages.iter().enumerate() {
+                let sum: Int = Int::sum(
+                    vars.iter()
+                        .enumerate()
+                        .filter(|&(i, _)| buttons[i][j])
+                        .map(|(_, var)| var),
                 );
+                opt.assert(&sum.eq(joltage as u16));
             }
 
             if let z3::SatResult::Sat = opt.check(&[]) {
@@ -211,7 +182,7 @@ fn main() {
         factory.fewest_presses_lights()
     );
     println!(
-        "Part2: To configure the joltage levels, it is {}",
+        "Part2: To configure the joltage levels, we need {} presses",
         factory.fewest_presses_joltages()
     );
     println!("Computing time: {:?}", now.elapsed());
