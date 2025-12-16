@@ -57,9 +57,17 @@ impl PolygonSide {
         }
     }
 
-    fn crosses(&self, other: PolygonSide) -> bool {
+    fn crosses(&self, other: PolygonSide, lower: bool) -> bool {
         // The sides have to cross anywhere but on either of the extremities of OTHER
-        other.exclusive_range().contains(&self.rank) && self.full_range().contains(&other.rank)
+        // The self side must go inside the rectangle to be considered crossing
+        let going_inside: bool = if lower {
+            self.range.0 < other.rank
+        } else {
+            self.range.1 > other.rank
+        };
+        other.exclusive_range().contains(&self.rank)
+            && self.full_range().contains(&other.rank)
+            && going_inside
     }
 }
 
@@ -88,43 +96,19 @@ impl MovieTheater {
                     cross_cols += 1;
                 }
             }
-            // println!(
-            //     "### {pos:?} crosses {} col and {} rows",
-            //     cross_cols, cross_rows
-            // );
             cross_cols % 2 == 1 && cross_rows % 2 == 1
         }
 
-        fn crosses_side(side: PolygonSide, rows: &[PolygonSide], cols: &[PolygonSide]) -> bool {
-            if side.vertical {
-                rows.iter().any(|r| r.crosses(side))
-            } else {
-                cols.iter().any(|c| c.crosses(side))
-            }
-        }
-
-        fn are_all_contained(
+        fn crosses_side(
             side: PolygonSide,
             rows: &[PolygonSide],
             cols: &[PolygonSide],
+            lower: bool,
         ) -> bool {
             if side.vertical {
-                side.exclusive_range().all(|y| {
-                    let b = is_inside(Pos(side.rank, y), rows, cols);
-                    // if !b {
-                    //     println!("{:?} is not inside", Pos(side.rank, y));
-                    // }
-                    b
-                })
+                rows.iter().any(|r| r.crosses(side, lower))
             } else {
-                side.exclusive_range().all(|x| {
-                    let b = is_inside(Pos(x, side.rank), rows, cols);
-
-                    // if !b {
-                    //     println!("{:?} is not inside", Pos(x, side.rank));
-                    // }
-                    b
-                })
+                cols.iter().any(|c| c.crosses(side, lower))
             }
         }
 
@@ -155,31 +139,41 @@ impl MovieTheater {
 
                 // Check if rectangle is tiled
                 // First check both other corners are inside
-                let a: Pos = Pos(tile.0, other.1);
-                let b: Pos = Pos(other.0, tile.1);
+                let a: Pos = Pos(tile.0, other.1); // 'a' is on the same row as 'other'
+                let b: Pos = Pos(other.0, tile.1); // 'b' is on the same row as 'tile'
 
                 // Check no polygon side cross any of the 4 rectangle side
-                let sides: Vec<PolygonSide> = vec![
-                    PolygonSide::from_pair(tile, a),
-                    PolygonSide::from_pair(tile, b),
-                    PolygonSide::from_pair(other, a),
-                    PolygonSide::from_pair(other, b),
-                ];
+                let (small_y, big_y) = if tile.1 > other.1 {
+                    (
+                        PolygonSide::from_pair(other, a),
+                        PolygonSide::from_pair(tile, b),
+                    )
+                } else {
+                    (
+                        PolygonSide::from_pair(tile, b),
+                        PolygonSide::from_pair(other, a),
+                    )
+                };
 
-                // if is_inside(a, &rows, &cols)
-                //     && is_inside(b, &rows, &cols)
-                //     && sides.iter().all(|&side| !crosses_side(side, &rows, &cols))
-                // {
-                //     println!("{tile:?} {other:?} is valid, area {area}")
-                // } else {
-                //     println!("{tile:?} {other:?} is NOT VALID, area {area}")
-                // }
+                let (small_x, big_x) = if tile.0 > other.0 {
+                    (
+                        PolygonSide::from_pair(other, b),
+                        PolygonSide::from_pair(tile, a),
+                    )
+                } else {
+                    (
+                        PolygonSide::from_pair(tile, a),
+                        PolygonSide::from_pair(other, b),
+                    )
+                };
 
                 if area > largest_tiled_rectangle
                     && is_inside(a, &rows, &cols)
                     && is_inside(b, &rows, &cols)
-                    //&& sides.iter().all(|&side| !crosses_side(side, &rows, &cols))
-                    && sides.iter().all(|&side| are_all_contained(side, &rows, &cols))
+                    && !crosses_side(small_y, &rows, &cols, false)
+                    && !crosses_side(big_y, &rows, &cols, true)
+                    && !crosses_side(small_x, &rows, &cols, false)
+                    && !crosses_side(big_x, &rows, &cols, true)
                 {
                     largest_tiled_rectangle = area;
                 }
@@ -205,11 +199,11 @@ fn main() {
     let s = util::file_as_string("aoc_2025/input/day_09.txt").expect("Cannot open input file");
     let theater: MovieTheater = s.parse().unwrap();
     let (largest_rectangle, largest_tiled_rectangle) = theater.largest_rectangles();
-    println!("Part1: {}", largest_rectangle);
-    println!("Part2: {}", largest_tiled_rectangle);
-    //1603886397 too high
-    //172842768 too low
-    //1452422268
+    println!("Part1: The biggest rectangle area is {}", largest_rectangle);
+    println!(
+        "Part2: The biggest tiled rectangle area is {}",
+        largest_tiled_rectangle
+    );
     println!("Computing time: {:?}", now.elapsed());
 }
 
@@ -226,17 +220,7 @@ mod tests {
 2,3
 7,3
 ";
-    const EXAMPLE_2: &str = "7,1
-11,1
-11,7
-9,7
-9,5
-5,5
-5,7
-2,7
-2,3
-7,3
-";
+
     #[test]
     fn test_1() {
         let theater: MovieTheater = EXAMPLE_1.parse().unwrap();
