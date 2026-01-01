@@ -1,3 +1,4 @@
+use fxhash::FxHashMap;
 use itertools::Itertools;
 use nom::IResult;
 use nom::Parser;
@@ -5,6 +6,7 @@ use nom::branch::alt;
 use nom::character::char;
 use nom::multi::{many1, separated_list1};
 use nom::sequence::{delimited, preceded};
+use rayon::prelude::*;
 use std::iter::Sum;
 use std::str::FromStr;
 use util::basic_parser::parse_usize;
@@ -19,30 +21,80 @@ struct Machine {
 }
 
 impl Machine {
-    fn fewest_presses_lights(&self) -> usize {
-        // Pressing a button 2 times accomplishes nothing
-        // The order in which buttons are pressed is irrelevant
-        for i in 1.. {
+    fn build_lights_map(&self) -> FxHashMap<usize, Vec<(Vec<usize>, usize)>> {
+        let mut lights_map: FxHashMap<usize, Vec<(Vec<usize>, usize)>> = FxHashMap::default();
+        for i in 0..=self.buttons.len() {
             for combo in self.buttons.iter().combinations(i) {
-                if combo.into_iter().fold(0, |acc, b| acc ^ b) == self.target {
-                    return i;
+                let mut totals: Vec<usize> = vec![0; self.joltages.len()];
+                for (j, t) in totals.iter_mut().enumerate() {
+                    for &&c in combo.iter() {
+                        *t += (c >> j) % 2
+                    }
                 }
+
+                let lights: usize = combo.into_iter().fold(0, |acc, b| acc ^ b);
+                lights_map
+                    .entry(lights)
+                    .or_default()
+                    .push((totals.clone(), i));
             }
         }
-        0
+        lights_map
     }
 
     fn buttons(&self) -> Vec<Vec<bool>> {
         let mut buttons: Vec<Vec<bool>> = Vec::new();
         for &b in &self.buttons {
-            let v: Vec<bool> = (0..self.joltages.len())
-                .map(|i| (b & 2usize.pow(i as u32)) > 0)
-                .collect();
-
+            let v: Vec<bool> = (0..self.joltages.len()).map(|i| (b >> i) % 2 > 0).collect();
             buttons.push(v);
         }
 
         buttons
+    }
+
+    fn fewest_presses_rec(
+        jolts: &[usize],
+        lights_map: &FxHashMap<usize, Vec<(Vec<usize>, usize)>>,
+    ) -> Option<usize> {
+        if jolts.iter().all(|n| *n == 0) {
+            return Some(0);
+        }
+        let lights: usize = jolts.iter().rev().fold(0, |acc, b| 2 * acc + b % 2);
+        lights_map.get(&lights).and_then(|p| {
+            p.iter()
+                .flat_map(|(rem_jolts, nb_presses)| {
+                    let mut new_jolts = jolts.to_vec();
+                    let mut dead: bool = false;
+                    for (i, n) in new_jolts.iter_mut().enumerate() {
+                        let rem = rem_jolts[i];
+                        if rem > *n {
+                            dead = true;
+                        } else {
+                            *n -= rem;
+                            *n /= 2;
+                        }
+                    }
+                    if dead {
+                        None
+                    } else {
+                        Self::fewest_presses_rec(&new_jolts, lights_map).map(|n| n * 2 + nb_presses)
+                    }
+                })
+                .min()
+        })
+    }
+
+    fn fewest_presses(&self) -> (usize, usize) {
+        let lights_map: FxHashMap<usize, Vec<(Vec<usize>, usize)>> = self.build_lights_map();
+        let min_lights: usize = lights_map
+            .get(&self.target)
+            .unwrap()
+            .iter()
+            .map(|&(_, n)| n)
+            .min()
+            .unwrap();
+        let min_jolts: usize = Self::fewest_presses_rec(&self.joltages, &lights_map).unwrap();
+        (min_lights, min_jolts)
     }
 }
 
@@ -69,7 +121,7 @@ impl FromStr for Machine {
                 char(')'),
             )
             .parse(s)?;
-            let button = toggles.iter().map(|&n| 2usize.pow(n as u32)).sum();
+            let button = toggles.iter().map(|&n| 1 << n).sum();
             Ok((s, button))
         }
 
@@ -108,14 +160,14 @@ struct Factory {
 }
 
 impl Factory {
-    fn fewest_presses_lights(&self) -> usize {
+    fn fewest_presses(&self) -> (usize, usize) {
         self.machines
-            .iter()
-            .map(|m| m.fewest_presses_lights())
-            .sum()
+            .par_iter()
+            .map(|m| m.fewest_presses())
+            .reduce(|| (0, 0), |(acc_l, acc_j), (l, j)| (acc_l + l, acc_j + j))
     }
 
-    fn fewest_presses_joltages(&self) -> usize {
+    fn fewest_presses_z3(&self) -> usize {
         let mut nb_presses: usize = 0;
 
         let opt = Optimize::new();
@@ -177,13 +229,14 @@ fn main() {
     let now = std::time::Instant::now();
     let s = util::file_as_string("aoc_2025/input/day_10.txt").expect("Cannot open input file");
     let factory: Factory = s.parse().unwrap();
+    let (min_lights, min_jolts) = factory.fewest_presses();
+    println!("Part1: The fewest button presses to configure the lights is {min_lights}");
+    println!("Part2: To configure the joltage levels, we need {min_jolts} presses");
+    println!("Computing time: {:?}", now.elapsed());
+    let now = std::time::Instant::now();
     println!(
-        "Part1: The fewest button presses to configure the lights is {}",
-        factory.fewest_presses_lights()
-    );
-    println!(
-        "Part2: To configure the joltage levels, we need {} presses",
-        factory.fewest_presses_joltages()
+        "Bonus Part2: Solving using Z3 Solver, we find {} needed presses",
+        factory.fewest_presses_z3()
     );
     println!("Computing time: {:?}", now.elapsed());
 }
@@ -196,15 +249,16 @@ mod tests {
 [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
 [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
 ";
+
     #[test]
-    fn test_part_1() {
+    fn test() {
         let factory: Factory = EXAMPLE_1.parse().unwrap();
-        assert_eq!(factory.fewest_presses_lights(), 7);
+        assert_eq!(factory.fewest_presses(), (7, 33));
     }
 
     #[test]
-    fn test_part_2() {
+    fn test_bonus() {
         let factory: Factory = EXAMPLE_1.parse().unwrap();
-        assert_eq!(factory.fewest_presses_joltages(), 33);
+        assert_eq!(factory.fewest_presses_z3(), 33);
     }
 }
