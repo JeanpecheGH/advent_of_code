@@ -26,13 +26,13 @@ impl Machine {
         for i in 0..=self.buttons.len() {
             for combo in self.buttons.iter().combinations(i) {
                 let mut totals: Vec<usize> = vec![0; self.joltages.len()];
-                for (j, t) in totals.iter_mut().enumerate() {
-                    for &&c in combo.iter() {
+                let mut lights: usize = 0;
+                for &&c in combo.iter() {
+                    for (j, t) in totals.iter_mut().enumerate() {
                         *t += (c >> j) % 2
                     }
+                    lights ^= c;
                 }
-
-                let lights: usize = combo.into_iter().fold(0, |acc, b| acc ^ b);
                 lights_map
                     .entry(lights)
                     .or_default()
